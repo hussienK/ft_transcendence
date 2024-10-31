@@ -9,7 +9,7 @@ services:
     environment:
       - DB_NAME=ft_transcendence
       - DB_USER=postgres
-      - DB_PASSWORD=yourpassword
+      - DB_PASSWORD=HK@12345@42Student
       - DB_HOST=db
       - DB_PORT=5432
 
