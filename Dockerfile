@@ -13,6 +13,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 #copy the rest of the app code
 COPY . .
 
+#not sure about it. test later
+USER ROOT
+
 #expose the used port
 EXPOSE 8000
 
