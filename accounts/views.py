@@ -1,9 +1,10 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
 from django.views import generic
-from .forms import TranscendenceUserCreationForm
+from .forms import TranscendenceUserCreationForm, TranscendenceUserChangeForm
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login
+from .models import TranscendenceUser
 
 # Create your views here.
 class SignUpView(generic.CreateView):
@@ -11,19 +12,22 @@ class SignUpView(generic.CreateView):
     success_url = reverse_lazy('login')
     template_name = 'registration/signup.html'
 
-    def form_valid(self, form):
-        user = form.save()
-        login(self.request, user)
-        return super().form_valid(form)
 
 @login_required
-def profile(request):
-    if request.method == 'POST':
-        form = TranscendenceUserCreationForm(request.POST, request.FILES, instance=request.user)
-        if form.is_valid():
-            form.save()
-            return redirect('profile')
-        
+def profile(request, username=None):
+    if username and username != request.user.username:
+        user = get_object_or_404(TranscendenceUser, username=username)
+        editable = False
+        form = None
     else:
-        form = TranscendenceUserCreationForm(instance=request.user)
-    return render(request, 'accounts/profile.html', {'form': form})
+        #if no username provided or matches logged in user
+        user = request.user
+        editable = True
+        if request.method == 'POST':
+            form = TranscendenceUserChangeForm(request.POST, request.FILES, instance=request.user)
+            if form.is_valid():
+                form.save()
+                return redirect('profile')
+        else:
+            form = TranscendenceUserChangeForm(instance=request.user)
+    return render(request, 'accounts/profile.html', {'user': user, 'form': form, 'editable': editable})

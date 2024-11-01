@@ -10,7 +10,7 @@ class TranscendenceUser(AbstractUser):
 
     #details
     display_name = models.CharField(max_length=30, unique=True)
-    avatar = models.ImageField(upload_to='avatars/', default='avatars/default.jpg')
+    avatar = models.ImageField(upload_to='avatars/', default=None)
     bio = models.TextField(blank=True, null=True)
 
     #socials
