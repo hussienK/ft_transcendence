@@ -12,6 +12,7 @@ class TranscendenceUser(AbstractUser):
     losses = models.IntegerField(default=0)
     two_factor_enabled = models.BooleanField(default=False)
     last_activity = models.DateTimeField(default=timezone.now)
+    created_at = models.DateTimeField(default=timezone.now)
 
     @property
     def win_loss_ratio(self):
