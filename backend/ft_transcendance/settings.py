@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'core',
     'users',
+    'forty_two_oauth',
 ]
 
 MIDDLEWARE = [
@@ -50,6 +51,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
 ]
 
 ROOT_URLCONF = 'ft_transcendance.urls'
@@ -135,4 +137,35 @@ REST_FRAMEWORK = {
     )
 }
 
+#related to auth
 AUTH_USER_MODEL = 'users.TranscendenceUser'
+
+#42 Oauth
+INSTALLED_APPS += [
+    'django.contrib.sites',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.oauth2',
+]
+
+SITE_ID = 1
+
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
+)
+
+SOCIALACCOUNT_PROVIDERS = {
+    '42': {
+        'APP': {
+            'client_id': 'u-s4t2ud-009de41b1ff9fe6bdd8378465e520c0b92a4e8ec3647cdc1d5020a4e80003130',
+            'secret': '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',
+            'key': ''
+        }
+    }
+}
+
+INSTALLED_APPS += [
+    'sslserver',
+]
