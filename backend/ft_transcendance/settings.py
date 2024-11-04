@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'core',
+    'users',
 ]
 
 MIDDLEWARE = [
@@ -133,3 +134,5 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticatedOrReadOnly',
     )
 }
+
+AUTH_USER_MODEL = 'users.TranscendenceUser'
