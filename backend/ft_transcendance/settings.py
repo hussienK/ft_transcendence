@@ -11,6 +11,8 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 from pathlib import Path
+from datetime import timedelta
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -59,7 +61,7 @@ ROOT_URLCONF = 'ft_transcendance.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -131,6 +133,7 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.BasicAuthentication',
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticatedOrReadOnly',
@@ -147,6 +150,7 @@ INSTALLED_APPS += [
     'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.oauth2',
+    'rest_framework_simplejwt.token_blacklist',
 ]
 
 SITE_ID = 1
@@ -169,3 +173,19 @@ SOCIALACCOUNT_PROVIDERS = {
 INSTALLED_APPS += [
     'sslserver',
 ]
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),  # Set as needed
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
+}
+
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# EMAIL_HOST = 'live.smtp.mailtrap.io'
+# EMAIL_PORT = 587
+# EMAIL_HOST_USER = 'api'
+# EMAIL_USE_TLS = True
+# EMAIL_USE_SSL = False
+# EMAIL_HOST_PASSWORD = 'eb5ab526c677154911acb7373ebde34c'
+DEFAULT_FROM_MAIL = 'husseinkanaan93@gmail.com'

@@ -10,6 +10,7 @@ class TranscendenceUser(AbstractUser):
     is_online = models.BooleanField(default=False)
     wins = models.IntegerField(default=0)
     losses = models.IntegerField(default=0)
+    is_verified = models.BooleanField(default=False)
     two_factor_enabled = models.BooleanField(default=False)
     last_activity = models.DateTimeField(default=timezone.now)
     created_at = models.DateTimeField(default=timezone.now)
