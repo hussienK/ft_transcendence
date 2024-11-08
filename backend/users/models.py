@@ -1,8 +1,9 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.utils import timezone
+from django_otp.plugins.otp_totp.models import TOTPDevice
 
-# Create your models here.
+# The Basic user model
 class TranscendenceUser(AbstractUser):
     display_name = models.CharField(max_length=30, unique=True)
     avatar = models.ImageField(upload_to='avatars', default='avatars/default.jpg')
@@ -12,9 +13,11 @@ class TranscendenceUser(AbstractUser):
     losses = models.IntegerField(default=0)
     is_verified = models.BooleanField(default=False)
     two_factor_enabled = models.BooleanField(default=False)
+    otp_device = models.ForeignKey(TOTPDevice, on_delete=models.SET_NULL, null=True, blank=True)
     last_activity = models.DateTimeField(default=timezone.now)
     created_at = models.DateTimeField(default=timezone.now)
 
+    #an auto property with some details
     @property
     def win_loss_ratio(self):
         if self.losses == 0:

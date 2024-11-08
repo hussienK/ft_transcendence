@@ -3,28 +3,30 @@ from django.contrib.auth import get_user_model, authenticate
 from django.contrib.auth.password_validation import validate_password
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from .models import TranscendenceUser
+from django.conf import settings
 
 User = get_user_model()
 
+#Responsible for managing user Registration form and requests
 class UserRegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
     password2 = serializers.CharField(write_only=True, required=True)
 
     class Meta:
         model = User
-        fields = ('username', 'email', 'password', 'password2', 'display_name')
+        fields = ('username', 'email', 'password', 'password2', 'display_name') #what to show for user
 
     def validate(self, attrs):
         if attrs['password'] != attrs['password2']:
             raise serializers.ValidationError({"password": "Password fields didn't match"})
-        if len(attrs['username']) < 3:
+        if len(attrs['username']) < settings.FOFORM_SETTINGS['username_length_min']:
             raise serializers.ValidationError("Username must be atleast 3 characters long.")
-        if len(attrs['username']) > 15:
+        if len(attrs['username']) > settings.FOFORM_SETTINGS['username_length_max']:
             raise serializers.ValidationError("Username can't be more than 15 characters long.")
     
-        if len(attrs['display_name']) < 3:
+        if len(attrs['display_name']) < settings.FOFORM_SETTINGS['displayname_length_min']:
             raise serializers.ValidationError("Display Name must be atleast 3 characters long.")
-        if len(attrs['display_name']) > 15:
+        if len(attrs['display_name']) > settings.FOFORM_SETTINGS['displayname_length_max']:
             raise serializers.ValidationError("Display Name can't be more than 15 characters long.")
 
         if User.objects.filter(email=attrs['email']).exists():
@@ -36,6 +38,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         user = User.objects.create_user(**validated_data)
         return user
     
+#Responsible for managing user display and update form requests
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
@@ -43,22 +46,22 @@ class UserProfileSerializer(serializers.ModelSerializer):
         read_only_fields = ('id', 'username', 'email', 'created_at')
 
     def validate_username(self, value):
-        if len(value) < 3:
+        if len(value) < settings.FOFORM_SETTINGS['username_length_min']:
             raise serializers.ValidationError("Username must be atleast 3 characters long.")
-        if len(value) > 15:
+        if len(value) > settings.FOFORM_SETTINGS['username_length_max']:
             raise serializers.ValidationError("Username can't be more than 15 characters long.")
         return value
     
     def validate_display_name(self, value):
-        if len(value) < 3:
+        if len(value) < settings.FOFORM_SETTINGS['displayname_length_min']:
             raise serializers.ValidationError("Display Name must be atleast 3 characters long.")
     
-        if len(value) > 15:
+        if len(value) > settings.FOFORM_SETTINGS['displayname_length_max']:
             raise serializers.ValidationError("Display Name can't be more than 15 characters long.")
         return value
 
     def validate_bio(self, value):
-        if len(value) > 150:
+        if len(value) > settings.FOFORM_SETTINGS['bio_length_max']:
             raise serializers.ValidationError("Bio can't be more than 150 characters long.")
         return value
     
@@ -76,6 +79,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Uploaded file must be an image.")
         return value
     
+    #returns the fields you're allowed to update
     def to_representation(self, instance):
         representaion = super().to_representation(instance)
         request = self.context.get('request')
@@ -85,6 +89,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
             representaion.pop('email')
         return representaion
 
+# A custom behaviour to verify and return accounts
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
         username = attrs.get("username")

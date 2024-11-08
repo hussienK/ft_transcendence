@@ -19,6 +19,8 @@ from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.utils.encoding import force_bytes, force_str
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
+from django_otp.plugins.otp_totp.models import TOTPDevice
+from .models import TranscendenceUser
 
 User = get_user_model()
 
@@ -77,8 +79,28 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
         
         return super().update(request, *args, **kwargs)
     
-class CustomTokenObtainPairView(TokenObtainPairView):
-    serializer_class = CustomTokenObtainPairSerializer
+
+class LoginView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        username = request.data.get('username')
+        password = request.data.get('password')
+        user = authenticate(request, username=username, password=password)
+        
+        if user is not None:
+            if user.two_factor_enabled:
+                request.session['temp_user_id'] = user.id
+                return Response({"detail": "2FA required"}, status=status.HTTP_202_ACCEPTED)
+            
+            refresh = RefreshToken.for_user(user)
+            return Response({
+                "refresh": str(refresh),
+                "access": str(refresh.access_token)
+            })
+        else:
+            return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
+
 
 class LogoutView(APIView):
     def post(self, request):
@@ -91,6 +113,15 @@ class LogoutView(APIView):
         except:
             return Response(status=status.HTTP_400_BAD_REQUEST)
         
+class UserDeleteView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def delete(self, request):
+        user = request.user
+
+        user.delete()
+        return Response({"detail": "Your account has been deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
+
 class VerifyEmailView(APIView):
     permission_classes = [AllowAny]
 
@@ -130,16 +161,7 @@ class PasswordResetRequestView(APIView):
         except User.DoesNotExist:
             return Response({"detail": "Password reset email has been sent."}, status=status.HTTP_200_OK)
         
-from django.shortcuts import render
-from rest_framework import serializers, status
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from django.contrib.auth.tokens import default_token_generator
-from django.utils.http import urlsafe_base64_decode
-from django.utils.encoding import force_str
-from django.contrib.auth import get_user_model
-from django.core.exceptions import ValidationError as DjangoValidationError
-from django.contrib.auth.password_validation import validate_password
+
 
 User = get_user_model()
 
@@ -154,7 +176,7 @@ class PasswordResetConfirmView(APIView):
             
             try:
                 validate_password(data['new_password'])
-            except DjangoValidationError as e:
+            except ValidationError as e:
                 raise serializers.ValidationError({"new_password": e.messages})
             return data
 
@@ -188,3 +210,82 @@ class PasswordResetConfirmView(APIView):
         
         except (TypeError, ValueError, OverflowError, User.DoesNotExist):
             return render(request, 'password_reset_error.html', status=status.HTTP_400_BAD_REQUEST)
+
+
+class TwoFactorSetupView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+        if user.two_factor_enabled:
+            return Response({"error": "Already 2FA Enabled"}, status=status.HTTP_400_BAD_REQUEST)
+        device, created = TOTPDevice.objects.get_or_create(user=user, confirmed=False)
+
+        qr_code_url = device.config_url
+
+        return Response({"qr_code_url": qr_code_url}, status=status.HTTP_200_OK)
+    
+class TwoFactorVerifyView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        username = request.data.get('username')
+        otp_code = request.data.get("otp_code")
+
+        if not username:
+             return Response({"error": "No username found in request"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            user = User.objects.get(username=username)
+            device = TOTPDevice.objects.get(user=user, confirmed=True)
+
+            if device.verify_token(otp_code):
+                refresh = RefreshToken.for_user(user)
+
+                return Response({
+                    "refresh": str(refresh),
+                    "access": str(refresh.access_token)
+                }, status=status.HTTP_200_OK)
+            else:
+                return Response({"error": "Invalid OTP code"}, status=status.HTTP_400_BAD_REQUEST)
+        except (TranscendenceUser.DoesNotExist, TOTPDevice.DoesNotExist) as e:
+            print(e)
+            return Response({"error": "Invalid user or no 2FA setup found"}, status=status.HTTP_404_NOT_FOUND)
+
+class TwoFactorVerifySetupView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+        otp_code = request.data.get("otp_code")
+
+        try:
+            device = TOTPDevice.objects.get(user=user, confirmed=False)
+
+            if device.verify_token(otp_code):
+                device.confirmed = True
+                device.save()
+                user.two_factor_enabled = True  
+                user.save()
+
+                return Response({"status": "2FA setup confirmed successfully"}, status=status.HTTP_200_OK)
+            else:
+                return Response({"error": "Invalid OTP code for setup"}, status=status.HTTP_400_BAD_REQUEST)
+        except TOTPDevice.DoesNotExist:
+            return Response({"error": "No unconfirmed 2FA device found"}, status=status.HTTP_404_NOT_FOUND)
+
+
+class TwoFactorDeleteView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+
+        try:
+            device = TOTPDevice.objects.get(user=user, confirmed=True)
+            device.delete()
+            user.two_factor_enabled = False
+            user.save()
+            return Response({"status": "2FA disabled successfully"}, status=status.HTTP_200_OK)
+        except TOTPDevice.DoesNotExist:
+            return Response({"error": "No 2FA device found"}, status=status.HTTP_404_NOT_FOUND)

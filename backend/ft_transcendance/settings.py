@@ -42,7 +42,6 @@ INSTALLED_APPS = [
     'rest_framework',
     'core',
     'users',
-    'forty_two_oauth',
 ]
 
 MIDDLEWARE = [
@@ -160,16 +159,6 @@ AUTHENTICATION_BACKENDS = (
     'allauth.account.auth_backends.AuthenticationBackend',
 )
 
-SOCIALACCOUNT_PROVIDERS = {
-    '42': {
-        'APP': {
-            'client_id': 'u-s4t2ud-009de41b1ff9fe6bdd8378465e520c0b92a4e8ec3647cdc1d5020a4e80003130',
-            'secret': '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',
-            'key': ''
-        }
-    }
-}
-
 INSTALLED_APPS += [
     'sslserver',
 ]
@@ -189,3 +178,41 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 # EMAIL_USE_SSL = False
 # EMAIL_HOST_PASSWORD = 'eb5ab526c677154911acb7373ebde34c'
 DEFAULT_FROM_MAIL = 'husseinkanaan93@gmail.com'
+
+INSTALLED_APPS += [
+    'django_otp',
+    'django_otp.plugins.otp_totp',  
+    'two_factor',                    
+]
+
+MIDDLEWARE += [
+    'django_otp.middleware.OTPMiddleware',
+]
+
+TWO_FACTOR_AUTHENTICATION = {
+    'LOGIN_URL': 'two_factor:login',
+    'TOTP_ISSUER': 'ft_transcendence',
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+FORM_SETTINGS = {
+    'username_length_min': 3,
+    'username_length_max': 15,
+    'displayname_length_min': 3,
+    'displayname_length_max': 15,
+    'bio_length_max': 15,
+}
