@@ -3,10 +3,10 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from .serializers import UserRegistrationSerializer, UserProfileSerializer
 from rest_framework.permissions import AllowAny
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model, authenticate
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken
-from .serializers import CustomTokenObtainPairSerializer
+from .serializers import CustomTokenObtainPairSerializer, FriendRequestSerializer, AcceptFriendRequestSerializer, DeleteFriendRequestSerializer, GetFriendsSerializer
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.urls import reverse
@@ -20,7 +20,8 @@ from django.utils.encoding import force_bytes, force_str
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from django_otp.plugins.otp_totp.models import TOTPDevice
-from .models import TranscendenceUser
+from .models import TranscendenceUser, FriendRequest
+from django.db.models import Q
 
 User = get_user_model()
 
@@ -289,3 +290,130 @@ class TwoFactorDeleteView(APIView):
             return Response({"status": "2FA disabled successfully"}, status=status.HTTP_200_OK)
         except TOTPDevice.DoesNotExist:
             return Response({"error": "No 2FA device found"}, status=status.HTTP_404_NOT_FOUND)
+
+# Friend Requests
+class SendFriendRequestView(generics.CreateAPIView):
+    serializer_class = FriendRequestSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        receiver_username=request.data.get("receiver")
+        if not receiver_username:
+            return Response({"error": "receiver Username is required."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        receiver = get_object_or_404(User, username=receiver_username)
+
+        if FriendRequest.objects.filter(sender=request.user, receiver=receiver).exists() or \
+           FriendRequest.objects.filter(sender=receiver, receiver=request.user).exists():
+            return Response({"error": "A friend request already exists between you and this user."},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        if request.user == receiver:
+            return Response({"error": "You cannot send a friend request to yourself."},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        friend_request = FriendRequest.objects.create(sender=request.user, receiver=receiver)
+        serializer = self.get_serializer(friend_request)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+class AcceptFriendRequestView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        serializer = AcceptFriendRequestSerializer(data=request.data)
+        if serializer.is_valid():
+            friend_request = serializer.validated_data['friend_request_id']
+
+            if friend_request.receiver != request.user:
+                return Response({"error": "You can only accept requests sent to you."}, status=status.HTTP_403_FORBIDDEN)
+            
+            friend_request.accept()
+            return Response({"status": "Friend request accepted"}, status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    
+class DeclineFriendRequestView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        serializer = AcceptFriendRequestSerializer(data=request.data)
+        if serializer.is_valid():
+            friend_request = serializer.validated_data['friend_request_id']
+
+            if friend_request.receiver != request.user:
+                return Response({"error": "You can only decline requests sent to you."}, status=status.HTTP_403_FORBIDDEN)
+            
+            friend_request.delete()
+
+            return Response({"status": "Friend request decline"}, status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class CancelFriendRequestView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        serializer = AcceptFriendRequestSerializer(data=request.data)
+        if serializer.is_valid():
+            friend_request = serializer.validated_data['friend_request_id']
+
+            # print(friend_request.sender + '|')
+            # print(request.user.username + "|")
+            if friend_request.sender != request.user:
+                return Response({"error": "You can only Cancel friend requests you sent."}, status=status.HTTP_403_FORBIDDEN)
+            
+            friend_request.delete()
+            
+            return Response({"status": "Friend request cancelled"}, status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class DeleteFriendshipView(APIView):
+    """
+    Deletes a friendship between the authenticated user and another user.
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def delete(self, request):
+        serializer = DeleteFriendRequestSerializer(data=request.data)
+        if serializer.is_valid():
+            # Get the friend user by username
+            friend_request = serializer.validated_data['friend_request_id']
+
+
+            if not friend_request:
+                return Response({"error": "Friendship does not exist."}, status=status.HTTP_404_NOT_FOUND)
+
+            # Delete the friendship
+            friend_request.delete()
+
+            return Response({"status": "Friendship successfully deleted."}, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
+class GetFriends(generics.ListAPIView):
+    serializer_class = GetFriendsSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        return FriendRequest.objects.filter(
+        (Q(sender=user) & Q(accepted=True)) | (Q(receiver=user) & Q(accepted=True)))
+    
+
+class GetSentFriendRequests(generics.ListAPIView):
+    serializer_class = GetFriendsSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        return  (FriendRequest.objects.filter(accepted=False, sender=user))
+    
+class GetReceivedFriendRequests(generics.ListAPIView):
+    serializer_class = GetFriendsSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        return  FriendRequest.objects.filter(accepted=False, receiver=user)
