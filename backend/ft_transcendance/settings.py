@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'core',
     'users',
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
@@ -53,6 +54,8 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'allauth.account.middleware.AccountMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware',
 ]
 
 ROOT_URLCONF = 'ft_transcendance.urls'
@@ -194,8 +197,10 @@ TWO_FACTOR_AUTHENTICATION = {
     'TOTP_ISSUER': 'ft_transcendence',
 }
 
-
-
+CORS_ALLOWED_ORIGINS = [
+    "http://127.0.0.1:5500",
+]
+CORS_ALLOW_ALL_ORIGINS = True
 
 
 
