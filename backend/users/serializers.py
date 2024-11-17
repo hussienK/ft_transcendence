@@ -96,6 +96,8 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
 
         try:
             user = User.objects.get(username=username) if username else None
+            if not user:
+                user = User.objects.get(email=username) if username else None
         except:
             user = None
         if user and not user.is_verified:
