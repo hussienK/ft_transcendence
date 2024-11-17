@@ -133,7 +133,6 @@ class LoginView(APIView):
 
         user = authenticate(request, username=username, password=password)
         
-        #TODO: RETURN ALL USER INFO
         if user is not None:
             if user.two_factor_enabled:
                 request.session['temp_user_id'] = user.id
