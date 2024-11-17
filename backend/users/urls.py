@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import UserRegistrationView, UserProfileView, LoginView, LogoutView, UserDeleteView, VerifyEmailView, PasswordResetConfirmView, PasswordResetRequestView, TwoFactorSetupView, TwoFactorVerifyView, TwoFactorVerifySetupView, TwoFactorDeleteView, SendFriendRequestView, AcceptFriendRequestView, DeclineFriendRequestView, GetFriends, CancelFriendRequestView, DeleteFriendshipView, GetSentFriendRequests, GetReceivedFriendRequests
+from .views import UserRegistrationView, UserProfileView, LoginView, LogoutView, UserDeleteView, VerifyEmailView, PasswordResetConfirmView, PasswordResetRequestView, TwoFactorSetupView, TwoFactorVerifyView, TwoFactorVerifySetupView, TwoFactorDeleteView, SendFriendRequestView, AcceptFriendRequestView, DeclineFriendRequestView, GetFriends, CancelFriendRequestView, DeleteFriendshipView, GetSentFriendRequests, GetReceivedFriendRequests, TokenVerifyView
 from rest_framework_simplejwt.views import TokenRefreshView
 
 urlpatterns = [
@@ -9,7 +9,7 @@ urlpatterns = [
     path('signin/', LoginView.as_view(), name='token_obtain_pair'),
     path('delete/', UserDeleteView.as_view(), name='user_delete'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-    path('token/verify/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('token/verify/', TokenVerifyView.as_view(), name='token_refresh'),
     path('logout/', LogoutView.as_view(), name='logout'),
     path('verify-email/<int:uid>/<str:token>/', VerifyEmailView.as_view(), name='email-verify'),
     path('password-reset/', PasswordResetRequestView.as_view(), name="password-reset"),
