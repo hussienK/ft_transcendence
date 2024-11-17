@@ -1,23 +1,36 @@
-function loadPage(page) {
-  fetch(`./views/${page}.html`)
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error("Page not found");
-      }
-      return response.text();
-    })
-    .then((html) => {
-      document.getElementById("main-content").innerHTML = html;
-    })
-    .catch((error) => {
-      console.log("Error loading page:", error);
-      document.getElementById("main-content").innerHTML =
-        "<p>Page not found.</p>";
+async function loadPage(page) {
+  try {
+    const response = await axios.get(`./views/${page}.html`, {
+      headers: {
+        "Content-Type": "text/html",
+      },
     });
+
+    document.getElementById("main-content").innerHTML = response.data;
+
+    if (page === "signup") {
+      attachSignUpFormEventListeners();
+    } else if (page === "login") {
+      attachSigninFormEventListeners();
+    } else {
+      if (!verifyUser()) {
+        window.location.hash = "login";
+        return;
+      }
+
+      if (page === "home") {
+        attachHomeEventListeners();
+      }
+    }
+  } catch (error) {
+    console.error("Error loading page:", error);
+    document.getElementById("main-content").innerHTML =
+      "<p>Page not found.</p>";
+  }
 }
+
 window.addEventListener("load", () => {
   const initialPage = window.location.hash.substring(1) || "home";
-  console.log(initialPage);
   loadPage(initialPage);
 });
 window.addEventListener("hashchange", () => {
