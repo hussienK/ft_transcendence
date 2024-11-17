@@ -69,14 +69,14 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
             try:
                 return User.objects.get(username=username)
             except User.DoesNotExist:
-                return Response({"Details": "User Not Found."}, status=status.HTTP_404_NOT_FOUND)
+                return Response({"detail": "User Not Found."}, status=status.HTTP_404_NOT_FOUND)
             
         return self.request.user
 
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
         if instance != request.user:
-            return Response({"Details": "You do not have permission to edit this profile."}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response({"detail": "You do not have permission to edit this profile."}, status=status.HTTP_401_UNAUTHORIZED)
         
         return super().update(request, *args, **kwargs)
     
@@ -97,7 +97,8 @@ class LoginView(APIView):
             refresh = RefreshToken.for_user(user)
             return Response({
                 "refresh": str(refresh),
-                "access": str(refresh.access_token)
+                "access": str(refresh.access_token),
+                "username": username
             })
         else:
             return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
