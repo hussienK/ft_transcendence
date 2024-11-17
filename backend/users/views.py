@@ -22,6 +22,7 @@ from django.core.exceptions import ValidationError
 from django_otp.plugins.otp_totp.models import TOTPDevice
 from .models import TranscendenceUser, FriendRequest
 from django.db.models import Q
+import re
 
 User = get_user_model()
 
@@ -36,6 +37,12 @@ class UserRegistrationView(APIView):
             expiration_period = timedelta(days=3)
             if existing_user.date_joined + expiration_period < timezone.now():
                 existing_user.delete()
+
+        password_regex = r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%?&_-])[A-Za-z\d@$!%?&_-]{8,}$'
+        
+        if not re.match(password_regex, request.data.get("password")):
+            return Response({"error": "Password does not meet complexity requirements."}, 
+                            status=status.HTTP_400_BAD_REQUEST)
 
         serializer = UserRegistrationSerializer(data=request.data)
         if serializer.is_valid():
@@ -87,6 +94,13 @@ class LoginView(APIView):
     def post(self, request):
         username = request.data.get('username')
         password = request.data.get('password')
+
+        password_regex = r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%?&_-])[A-Za-z\d@$!%?&_-]{8,}$'
+        
+        if not re.match(password_regex, password):
+            return Response({"error": "Password does not meet complexity requirements."}, 
+                            status=status.HTTP_400_BAD_REQUEST)
+
         user = authenticate(request, username=username, password=password)
         
         if user is not None:
