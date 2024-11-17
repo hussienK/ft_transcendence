@@ -108,6 +108,8 @@ class LoginView(APIView):
             return Response({"error": "Password does not meet complexity requirements."}, 
                             status=status.HTTP_400_BAD_REQUEST)
 
+        user_instance = None
+
         try:
             validate_email(identifier)
             is_email = True
@@ -119,10 +121,15 @@ class LoginView(APIView):
                 user_instance = User.objects.get(email=identifier)
                 username = user_instance.username
             except User.DoesNotExist:
-                return Response({"error": "User with this email does not exist."}, 
+                return Response({"error": "Invalid Credentials"}, 
                                 status=status.HTTP_401_UNAUTHORIZED)
         else:
             username = identifier
+            try:
+                user_instance = User.objects.get(username=identifier)
+            except User.DoesNotExist:
+                return Response({"error": "Invalid Credentials"}, 
+                                status=status.HTTP_401_UNAUTHORIZED)
 
         user = authenticate(request, username=username, password=password)
         
@@ -136,7 +143,11 @@ class LoginView(APIView):
             return Response({
                 "refresh": str(refresh),
                 "access": str(refresh.access_token),
-                "username": username
+                "userInfo": {
+                    "username": user_instance.username,
+                    "email": user_instance.email,
+                    "display_name": user_instance.display_name                   
+                }
             })
         else:
             return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
