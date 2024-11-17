@@ -23,8 +23,15 @@ from django_otp.plugins.otp_totp.models import TOTPDevice
 from .models import TranscendenceUser, FriendRequest
 from django.db.models import Q
 import re
+from django.core.validators import validate_email
 
 User = get_user_model()
+
+class TokenVerifyView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        return Response({"detail": "Success!"}, status=status.HTTP_200_OK)
 
 class UserRegistrationView(APIView):
     permission_classes = [AllowAny]
@@ -92,7 +99,7 @@ class LoginView(APIView):
     permission_classes = [permissions.AllowAny]
 
     def post(self, request):
-        username = request.data.get('username')
+        identifier = request.data.get('username')
         password = request.data.get('password')
 
         password_regex = r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%?&_-])[A-Za-z\d@$!%?&_-]{8,}$'
@@ -101,8 +108,25 @@ class LoginView(APIView):
             return Response({"error": "Password does not meet complexity requirements."}, 
                             status=status.HTTP_400_BAD_REQUEST)
 
+        try:
+            validate_email(identifier)
+            is_email = True
+        except ValidationError:
+            is_email = False
+
+        if is_email:
+            try:
+                user_instance = User.objects.get(email=identifier)
+                username = user_instance.username
+            except User.DoesNotExist:
+                return Response({"error": "User with this email does not exist."}, 
+                                status=status.HTTP_401_UNAUTHORIZED)
+        else:
+            username = identifier
+
         user = authenticate(request, username=username, password=password)
         
+        #TODO: RETURN ALL USER INFO
         if user is not None:
             if user.two_factor_enabled:
                 request.session['temp_user_id'] = user.id
