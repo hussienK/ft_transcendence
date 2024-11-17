@@ -24,6 +24,7 @@ from .models import TranscendenceUser, FriendRequest
 from django.db.models import Q
 import re
 from django.core.validators import validate_email
+from django.contrib.auth.signals import user_logged_in, user_logged_out
 
 User = get_user_model()
 
@@ -70,7 +71,7 @@ class UserRegistrationView(APIView):
             )
 
             return Response({"detail": "Registration successful. Please check your email to verify your account."}, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'error': serializer.errors[next(iter(serializer.errors))]}, status=status.HTTP_400_BAD_REQUEST)
 
 class UserProfileView(generics.RetrieveUpdateAPIView):
     serializer_class = UserProfileSerializer
@@ -138,6 +139,7 @@ class LoginView(APIView):
                 request.session['temp_user_id'] = user.id
                 return Response({"detail": "2FA required"}, status=status.HTTP_202_ACCEPTED)
             
+            user_logged_in.send(sender=user.__class__, request=request, user=user)
             refresh = RefreshToken.for_user(user)
             return Response({
                 "refresh": str(refresh),
@@ -159,9 +161,10 @@ class LogoutView(APIView):
             token = RefreshToken(refresh_token)
             token.blacklist()
 
+            user_logged_out.send(sender=request.user.__class__, request=request, user=request.user)
             return Response(status=status.HTTP_205_RESET_CONTENT)
-        except:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({'error': e}, status=status.HTTP_400_BAD_REQUEST,)
         
 class UserDeleteView(APIView):
     permission_classes = [permissions.IsAuthenticated]
