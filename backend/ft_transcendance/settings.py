@@ -176,14 +176,14 @@ SIMPLE_JWT = {
     'BLACKLIST_AFTER_ROTATION': True,
 }
 
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-# EMAIL_HOST = 'live.smtp.mailtrap.io'
-# EMAIL_PORT = 587
-# EMAIL_HOST_USER = 'api'
-# EMAIL_USE_TLS = True
-# EMAIL_USE_SSL = False
-# EMAIL_HOST_PASSWORD = 'eb5ab526c677154911acb7373ebde34c'
-DEFAULT_FROM_MAIL = 'husseinkanaan93@gmail.com'
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'transcendence.42beirut@gmail.com'
+EMAIL_HOST_PASSWORD = 'wfgpzseqlkeayady'  # Generated from Google's App Passwords
+DEFAULT_FROM_MAIL = 'transcendence.42beirut@gmail.com'
+
 
 INSTALLED_APPS += [
     'django_otp',

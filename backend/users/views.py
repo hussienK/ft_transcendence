@@ -62,7 +62,7 @@ class UserRegistrationView(APIView):
             verification_url = request.build_absolute_uri(
                 reverse('email-verify', args=[user.pk, token])
             )
-
+            print("Email Verify Link: ", {verification_url})
             send_mail(
                 subject="Verify Your Email",
                 message=f"Please Click The link to verify your email: {verification_url}",
@@ -203,6 +203,7 @@ class PasswordResetRequestView(APIView):
             reset_url = request.build_absolute_uri(
                 reverse('password-reset-confirm', args=[uid, token])
             )
+            print("Password Reset Link: ", {reset_url})
             send_mail(
                 subject="Password Reset Request",
                 message=f"Please click the link to reset your password : {reset_url}",
