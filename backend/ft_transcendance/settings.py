@@ -43,6 +43,8 @@ INSTALLED_APPS = [
     'core',
     'users',
     'corsheaders',
+    'channels',
+    'game',
 ]
 
 MIDDLEWARE = [
@@ -211,4 +213,17 @@ FORM_SETTINGS = {
     'displayname_length_min': 3,
     'displayname_length_max': 15,
     'bio_length_max': 15,
+}
+
+# Game
+
+ASGI_APPLICATION = 'ft_transcendance.routing.application'
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            'hosts': [('127.0.0.1', 6379)],
+        },
+    },
 }

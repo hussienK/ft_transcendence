@@ -30,10 +30,10 @@ function attachSigninFormEventListeners() {
 
       const accessToken = response.data.access;
       const refreshToken = response.data.refresh;
-      // const username  = response.data.username;
+      const userInfo  = response.data.userInfo;
       localStorage.setItem("accessToken", accessToken);
       localStorage.setItem("refreshToken", refreshToken);
-      // localStorage.setItem("userInfo", JSON.stringify(userInfo));
+      localStorage.setItem("userInfo", JSON.stringify(userInfo));
 
       window.location.hash = "home";
     } catch (error) {
