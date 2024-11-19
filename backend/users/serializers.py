@@ -42,8 +42,8 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'display_name', 'bio', 'avatar', 'created_at')
-        read_only_fields = ('id', 'username', 'email', 'created_at')
+        fields = ('id', 'username', 'email', 'display_name', 'bio', 'avatar', 'created_at', "is_online")
+        read_only_fields = ('id', 'username', 'email', 'created_at', "is_online")
 
     def validate_username(self, value):
         if len(value) < settings.FORM_SETTINGS['username_length_min']:

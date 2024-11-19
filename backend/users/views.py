@@ -103,11 +103,15 @@ class LoginView(APIView):
         identifier = request.data.get('username')
         password = request.data.get('password')
 
-        password_regex = r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%?&_-])[A-Za-z\d@$!%?&_-]{8,}$'
-        
-        if not re.match(password_regex, password):
-            return Response({"error": "Password does not meet complexity requirements."}, 
-                            status=status.HTTP_400_BAD_REQUEST)
+        try:
+            password_regex = r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%?&_-])[A-Za-z\d@$!%?&_-]{8,}$'
+            
+            if not re.match(password_regex, password):
+                return Response({"error": "Password does not meet complexity requirements."}, 
+                                status=status.HTTP_400_BAD_REQUEST)
+        except:
+            return Response({"error": "Invalid Credentials"}, 
+                        status=status.HTTP_401_UNAUTHORIZED)
 
         user_instance = None
 

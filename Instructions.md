@@ -10,4 +10,4 @@
 ## Testing and debugging tips:
 
 - for sending an email to test, after running container in a seperate terminal, `docker exec -it ft_transcendance_app_dev bash`, `from django.core.mail import send_mail`, `send_mail ('test mail', 'helloooooo', 'transcendence.42beirut@gmail.com', ['hussienkenaan93@gmail.com'])`
-
+- for creating an admin user to test, after running container in a seperate terminal, `docker exec -it ft_transcendance_app_dev bash`, `python manage.py createsuperuser`

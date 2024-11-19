@@ -104,3 +104,6 @@ channels-redis==4.2.1
 django-cors-headers==4.6.0
 uvicorn==0.32.0
 psycopg2-binary>=2.9
+celery
+django-celery-beat
+django-celery-results

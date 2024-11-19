@@ -99,6 +99,9 @@ DATABASES = {
         'PASSWORD': 'postgres',      # Your PostgreSQL password
         'HOST': 'db',                # Hostname of your database service (matches Docker Compose)
         'PORT': '5432',              # Default PostgreSQL port
+        'OPTIONS': {
+            'connect_timeout': 10,  # Retry for 10 seconds
+        },
     }
 }
 
@@ -170,7 +173,7 @@ INSTALLED_APPS += [
 ]
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=1),
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
@@ -205,6 +208,10 @@ CORS_ALLOWED_ORIGINS = [
 ]
 CORS_ALLOW_ALL_ORIGINS = True
 
+MIDDLEWARE += [
+	'users.tasks.UpdateLastActivityMiddleware',
+]
+
 
 
 
@@ -237,3 +244,17 @@ CHANNEL_LAYERS = {
         },
     },
 }
+
+INSTALLED_APPS += [
+    'django_celery_results',
+	'django_celery_beat',
+]
+
+# Celery settings
+CELERY_BROKER_URL = 'redis://localhost:6379/0'  # URL for Redis or RabbitMQ
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_BACKEND = 'redis://redis:6379/0'
+
+# Optional: Use time zone-aware tasks
+CELERY_TIMEZONE = 'UTC'
