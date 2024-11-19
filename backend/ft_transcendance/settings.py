@@ -243,7 +243,7 @@ CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
-            'hosts': [('127.0.0.1', 6379)],
+            'hosts': [('redis', 6379)],
         },
     },
 }
@@ -254,7 +254,7 @@ INSTALLED_APPS += [
 ]
 
 # Celery settings
-CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_BROKER_URL = 'redis://redis:6379/0'
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_BACKEND = 'redis://redis:6379/0'
@@ -270,5 +270,5 @@ SECURE_HSTS_PRELOAD = True
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'ft_transcendance.com']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 

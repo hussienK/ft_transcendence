@@ -1,16 +1,12 @@
 FROM nginx:alpine
 
-#copy nginx config
+# Copy Nginx config and SSL certificates directly into the image
 COPY ./nginx/nginx.conf /etc/nginx/nginx.conf
-
-# Copy custom site configuration
 COPY ./nginx/conf.d/default.conf /etc/nginx/conf.d/default.conf
-
-#copy SSL certificates
 COPY ./nginx/ssl/server.crt /etc/ssl/server.crt
 COPY ./nginx/ssl/server.key /etc/ssl/server.key
 
-
+# Copy frontend files into the image
 COPY ./frontend/ /usr/share/nginx/html
 
 EXPOSE 80 443

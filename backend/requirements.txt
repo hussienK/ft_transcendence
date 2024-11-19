@@ -107,3 +107,4 @@ psycopg2-binary>=2.9
 celery
 django-celery-beat
 django-celery-results
+websockets
