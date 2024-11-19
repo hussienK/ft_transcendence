@@ -51,7 +51,6 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -139,7 +138,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework.authentication.SessionAuthentication',
+        'users.permissions.CsrfExemptSessionAuthentication',
         'rest_framework.authentication.BasicAuthentication',
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
@@ -205,7 +204,11 @@ TWO_FACTOR_AUTHENTICATION = {
 
 CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:5500",
+    "http://localhost:5000",
+    "https://localhost",
 ]
+
+
 CORS_ALLOW_ALL_ORIGINS = True
 
 MIDDLEWARE += [
@@ -251,10 +254,21 @@ INSTALLED_APPS += [
 ]
 
 # Celery settings
-CELERY_BROKER_URL = 'redis://localhost:6379/0'  # URL for Redis or RabbitMQ
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_BACKEND = 'redis://redis:6379/0'
 
 # Optional: Use time zone-aware tasks
 CELERY_TIMEZONE = 'UTC'
+
+
+SECURE_SSL_REDIRECT = True
+SECURE_HSTS_SECONDS = 31536000
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
+
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'ft_transcendance.com']
+

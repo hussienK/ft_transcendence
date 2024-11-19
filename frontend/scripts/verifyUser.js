@@ -11,7 +11,7 @@ async function verifyUser() {
 
   try {
     const response = await axios.post(
-      "http://127.0.0.1:8000/api/users/token/verify/",
+      "https://localhost/api/users/token/verify/",
       {},
       {
         headers: {
@@ -25,7 +25,7 @@ async function verifyUser() {
 
     try {
       const refreshResponse = await axios.post(
-        "http://127.0.0.1:8000/api/users/token/refresh/",
+        "http://localhost/api/users/token/refresh/",
         {
           refresh: refreshToken,
         }
