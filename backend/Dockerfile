@@ -12,9 +12,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . /app
 
-# Ensure non-root user can access /app
 RUN useradd -m backenduser && chown -R backenduser:backenduser /app
 USER backenduser
 
+#use port 8000
 EXPOSE 8000
-CMD ["sh", "-c", "python manage.py makemigrations && python manage.py migrate && uvicorn ft_transcendance.asgi:application --host 0.0.0.0 --port 8000 --reload"]
+
+#migrate, create_admin user through a task, collects static data, starts the app with uvicorn
+CMD ["sh", "-c", "python manage.py makemigrations && python manage.py migrate && python manage.py create_admin && python manage.py collectstatic --noinput && uvicorn ft_transcendance.asgi:application --host 0.0.0.0 --port 8000 --reload"]

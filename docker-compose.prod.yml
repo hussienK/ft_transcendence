@@ -1,0 +1,84 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile  # Builds the backend service from the Dockerfile in the ./backend directory
+    container_name: django-backend
+    command: >  # Runs necessary Django commands and starts the app using uvicorn
+      sh -c "python manage.py makemigrations &&
+             python manage.py migrate &&  # Applies database migrations
+             python manage.py create_admin &&  # Creates a default admin user (custom command)
+             python manage.py collectstatic --noinput &&  # Collects static files for Nginx to serve
+             uvicorn ft_transcendance.asgi:application --host 0.0.0.0 --port 8000 --reload"
+    environment:
+      - DJANGO_SETTINGS_MODULE=ft_transcendance.settings  # Specifies the Django settings module
+    volumes:
+      - ./backend/staticfiles:/app/staticfiles  # Mounts static files for Nginx to access
+    depends_on:
+      - db  # Ensures the backend waits for the database to start
+    restart: always
+
+  nginx:
+    build:
+      context: .
+      dockerfile: ./nginx/Dockerfile  # Builds the Nginx reverse proxy from the provided Dockerfile
+    container_name: nginx-server
+    ports:
+      - "80:80"  # Exposes HTTP on port 80
+      - "443:443"  # Exposes HTTPS on port 443
+    volumes:
+      - ./backend/staticfiles:/app/staticfiles  # Mounts backend static files for serving
+    depends_on:
+      - backend  # Ensures the backend service starts before Nginx
+    restart: always
+
+  db:
+    image: postgres:15  # Uses the official PostgreSQL 15 image
+    container_name: postgres-db
+    environment:
+      POSTGRES_DB: ft_transcendance  # Default database to be created
+      POSTGRES_USER: postgres  # Default admin user
+      POSTGRES_PASSWORD: postgres  # Password for the admin user
+    volumes:
+      - /goinfre/postgres-data:/var/lib/postgresql/data  # Persistent storage for the database
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql  # Runs a script to initialize the database
+    restart: always
+
+  redis:
+    image: redis:6  # Uses the official Redis image (for caching and Celery)
+    container_name: redis
+    ports:
+      - "6379:6379"  # Exposes Redis on the default port
+    restart: always
+
+  celery-worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile  # Builds the Celery worker from the same backend Dockerfile
+    container_name: celery-worker
+    command: celery -A ft_transcendance worker --loglevel=info  # Starts a Celery worker
+    environment:
+      - DJANGO_SETTINGS_MODULE=ft_transcendance.settings  # Django settings for Celery
+      - CELERY_BROKER_URL=redis://redis:6379/0  # URL for Redis as the message broker
+    depends_on:
+      - redis  # Ensures Redis starts before the worker
+      - backend  # Waits for the backend to start
+    restart: always
+
+  celery-beat:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile  # Builds the Celery beat service from the backend Dockerfile
+    container_name: celery-beat
+    command: >  # Runs custom setup and starts the Celery beat scheduler
+      sh -c "python manage.py setup_celery_beat &&  # Custom command to initialize beat tasks
+             celery -A ft_transcendance beat --loglevel=info --schedule=/app/data/celerybeat-schedule"
+    environment:
+      - DJANGO_SETTINGS_MODULE=ft_transcendance.settings  # Django settings for Celery beat
+      - CELERY_BROKER_URL=redis://redis:6379/0  # URL for Redis as the message broker
+    depends_on:
+      - redis  # Ensures Redis starts before the beat service
+      - backend  # Waits for the backend to start
+    volumes:
+      - /goinfre/celery-beat-data:/app/data  # Persistent storage for the Celery beat schedule
+    restart: always

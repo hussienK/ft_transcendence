@@ -130,6 +130,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
@@ -272,3 +273,10 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
+
+# Redirects users to /api/accounts/login/ for login
+LOGIN_URL = '/api/accounts/login/'
+
+# Redirects users after successful login
+LOGIN_REDIRECT_URL = '/api/accounts/profile/'
+LOGOUT_REDIRECT_URL = '/api/accounts/login/'
