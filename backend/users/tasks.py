@@ -23,7 +23,6 @@ class UpdateLastActivityMiddleware:
         try:
             user, token = self.jwt_authenticator.authenticate(request)
             if user:
-                # Update last activity
                 time_threshold = timezone.now() - timedelta(seconds=30)
                 if user.last_activity is None or user.last_activity < time_threshold:
                     user.last_activity = now()
@@ -31,6 +30,5 @@ class UpdateLastActivityMiddleware:
                     user.save()
         except:
             user = None
-        # Proceed with the request
         response = self.get_response(request)
         return response
