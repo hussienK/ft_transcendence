@@ -5,7 +5,8 @@ services:
       dockerfile: Dockerfile  # Builds the backend service from the Dockerfile in the ./backend directory
     container_name: django-backend
     command: >  # Runs necessary Django commands and starts the app using uvicorn
-      sh -c "python manage.py makemigrations &&
+      sh -c "./wait-for-db.sh db &&
+             python manage.py makemigrations &&
              python manage.py migrate &&  # Applies database migrations
              python manage.py create_admin &&  # Creates a default admin user (custom command)
              python manage.py collectstatic --noinput &&  # Collects static files for Nginx to serve
@@ -15,8 +16,11 @@ services:
     volumes:
       - ./backend:/app  # Mounts the backend code into the container for development
       - ./backend/staticfiles:/app/staticfiles  # Mounts static files for Nginx to access
+      - ./wait-for-db.sh:/app/wait-for-db.sh
     depends_on:
       - db  # Ensures the backend waits for the database to start
+    env_file:
+      - .env
     restart: always
 
   nginx:
@@ -34,16 +38,21 @@ services:
       - backend  # Ensures the backend service starts before Nginx
     restart: always
 
-  db:
+  db: 
     image: postgres:15  # Uses the official PostgreSQL 15 image
     container_name: postgres-db
     environment:
-      POSTGRES_DB: ft_transcendance  # Default database to be created
+      POSTGRES_DB: ft_transcendence  # Default database to be created
       POSTGRES_USER: postgres  # Default admin user
-      POSTGRES_PASSWORD: postgres  # Password for the admin user
+      POSTGRES_PASSWORD: HK@12345@42Student  # Password for the admin user
     volumes:
-      - /goinfre/postgres-data:/var/lib/postgresql/data  # Persistent storage for the database
+      - ./dbdata/:/var/lib/postgresql/data  # Persistent storage for the database
       - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql  # Runs a script to initialize the database
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     restart: always
 
   redis:
@@ -65,6 +74,8 @@ services:
     depends_on:
       - redis  # Ensures Redis starts before the worker
       - backend  # Waits for the backend to start
+    env_file:
+      - .env
     restart: always
 
   celery-beat:
@@ -73,7 +84,7 @@ services:
       dockerfile: Dockerfile  # Builds the Celery beat service from the backend Dockerfile
     container_name: celery-beat
     command: >  # Runs custom setup and starts the Celery beat scheduler
-      sh -c "python manage.py setup_celery_beat &&  # Custom command to initialize beat tasks
+      sh -c "./wait-for-db.sh db && python manage.py setup_celery_beat &&  # Custom command to initialize beat tasks
              celery -A ft_transcendance beat --loglevel=info --schedule=/app/data/celerybeat-schedule"
     environment:
       - DJANGO_SETTINGS_MODULE=ft_transcendance.settings  # Django settings for Celery beat
@@ -81,6 +92,9 @@ services:
     depends_on:
       - redis  # Ensures Redis starts before the beat service
       - backend  # Waits for the backend to start
+    env_file:
+      - .env
     volumes:
       - /goinfre/celery-beat-data:/app/data  # Persistent storage for the Celery beat schedule
+      - ./wait-for-db.sh:/app/wait-for-db.sh
     restart: always

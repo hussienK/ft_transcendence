@@ -13,14 +13,17 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 from pathlib import Path
 from datetime import timedelta
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Secret key and debug mode
-SECRET_KEY = 'django-insecure-n_5o#6@j5_d)c_v^!9lu0^3on6+(+wmnuw=v#=j*rm*g2^wko&'  # Secret key for cryptographic signing
-DEBUG = True  # Should be False in production
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']  # Allowed hosts for deployment
+SECRET_KEY = os.getenv('SECRET_KEY')  # Secret key for cryptographic signing
+DEBUG = os.getenv('DEBUG') == 'True'  # Should be False in production
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',') # Allowed hosts for deployment
 
 # Installed apps
 INSTALLED_APPS = [
@@ -78,11 +81,11 @@ ASGI_APPLICATION = 'ft_transcendance.routing.application'  # Required for WebSoc
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',  # PostgreSQL backend
-        'NAME': 'ft_transcendance',  # Database name
-        'USER': 'postgres',  # PostgreSQL user
-        'PASSWORD': 'postgres',  # PostgreSQL password
-        'HOST': 'db',  # Database host (Docker Compose service name)
-        'PORT': '5432',  # PostgreSQL port
+        'NAME': os.getenv('DB_NAME'),  # Database name
+        'USER': os.getenv('DB_USER'),  # PostgreSQL user
+        'PASSWORD': os.getenv('DB_PASSWORD'),  # PostgreSQL password
+        'HOST': os.getenv('DB_HOST'),  # Database host (Docker Compose service name)
+        'PORT': os.getenv('DB_PORT'),  # PostgreSQL port
         'OPTIONS': {
             'connect_timeout': 10,  # Retry connection for 10 seconds
         },
@@ -138,20 +141,20 @@ AUTHENTICATION_BACKENDS = (
     'allauth.account.auth_backends.AuthenticationBackend',  # OAuth2 backend
 )
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
-    'ROTATE_REFRESH_TOKENS': True,
-    'BLACKLIST_AFTER_ROTATION': True,
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=int(os.getenv('ACCESS_TOKEN_LIFETIME'))),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=int(os.getenv('REFRESH_TOKEN_LIFETIME'))),
+    'ROTATE_REFRESH_TOKENS': os.getenv('ROTATE_REFRESH_TOKENS') == 'True',
+    'BLACKLIST_AFTER_ROTATION': os.getenv('BLACKLIST_AFTER_ROTATION') == 'True',
 }
 
 # Email settings (using Gmail SMTP)
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'transcendence.42beirut@gmail.com'
-EMAIL_HOST_PASSWORD = 'wfgpzseqlkeayady'  # App-specific password for Gmail
-DEFAULT_FROM_MAIL = 'transcendence.42beirut@gmail.com'
+EMAIL_HOST = os.getenv('EMAIL_HOST')
+EMAIL_PORT = int(os.getenv('EMAIL_PORT'))
+EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS') == 'True'
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')  # App-specific password for Gmail
+DEFAULT_FROM_MAIL = os.getenv('DEFAULT_FROM_MAIL')
 
 # Two-factor authentication
 INSTALLED_APPS += [
@@ -168,11 +171,8 @@ TWO_FACTOR_AUTHENTICATION = {
 }
 
 # CORS settings (Cross-Origin Resource Sharing)
-CORS_ALLOWED_ORIGINS = [
-    "http://127.0.0.1:5500",
-    "http://localhost:5000",
-    "https://localhost",
-]
+CORS_ALLOWED_ORIGINS = os.getenv('CORS_ALLOWED_ORIGINS', '').split(',')
+
 CORS_ALLOW_ALL_ORIGINS = True
 
 # Middleware for tracking last activity
@@ -189,25 +189,24 @@ FORM_SETTINGS = {
     'bio_length_max': 15,
 }
 
-# Channel layers (Redis for WebSockets)
-CHANNEL_LAYERS = {
-    'default': {
-        'BACKEND': 'channels_redis.core.RedisChannelLayer',
-        'CONFIG': {
-            'hosts': [('redis', 6379)],  # Redis service
-        },
-    },
-}
-
 # Celery configuration (task queue)
 INSTALLED_APPS += [
     'django_celery_results',  # Stores Celery task results
     'django_celery_beat',  # Periodic task scheduler
 ]
-CELERY_BROKER_URL = 'redis://redis:6379/0'  # Redis broker
+
+CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL')
+CELERY_RESULT_BACKEND = os.getenv('CELERY_RESULT_BACKEND')
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            'hosts': [os.getenv('REDIS_HOST'), int(os.getenv('REDIS_PORT'))],
+        },
+    },
+}
 CELERY_ACCEPT_CONTENT = ['json']  # Accept JSON task data
 CELERY_TASK_SERIALIZER = 'json'  # Serialize tasks in JSON
-CELERY_RESULT_BACKEND = 'redis://redis:6379/0'  # Store task results in Redis
 CELERY_TIMEZONE = 'UTC'  # Timezone for Celery
 
 # Security settings for HTTPS

@@ -299,7 +299,7 @@ class PasswordResetConfirmView(APIView):
 
 
 class TwoFactorSetupView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsVerified]
 
     def post(self, request):
         user = request.user
@@ -312,7 +312,7 @@ class TwoFactorSetupView(APIView):
         return Response({"qr_code_url": qr_code_url}, status=status.HTTP_200_OK)
     
 class TwoFactorVerifyView(APIView):
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.AllowAny, IsVerified]
 
     def post(self, request):
         username = request.data.get('username')
@@ -339,7 +339,7 @@ class TwoFactorVerifyView(APIView):
             return Response({"error": "Invalid user or no 2FA setup found"}, status=status.HTTP_404_NOT_FOUND)
 
 class TwoFactorVerifySetupView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsVerified]
 
     def post(self, request):
         user = request.user
@@ -362,7 +362,7 @@ class TwoFactorVerifySetupView(APIView):
 
 
 class TwoFactorDeleteView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsVerified]
 
     def post(self, request):
         user = request.user
@@ -379,7 +379,7 @@ class TwoFactorDeleteView(APIView):
 # Friend Requests
 class SendFriendRequestView(generics.CreateAPIView):
     serializer_class = FriendRequestSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsVerified]
 
     def post(self, request):
         receiver_username=request.data.get("receiver")
@@ -402,7 +402,7 @@ class SendFriendRequestView(generics.CreateAPIView):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 class AcceptFriendRequestView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsVerified]
 
     def post(self, request):
         serializer = AcceptFriendRequestSerializer(data=request.data)
@@ -419,7 +419,7 @@ class AcceptFriendRequestView(APIView):
 
     
 class DeclineFriendRequestView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsVerified]
 
     def post(self, request):
         serializer = AcceptFriendRequestSerializer(data=request.data)
@@ -436,15 +436,13 @@ class DeclineFriendRequestView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class CancelFriendRequestView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsVerified]
 
     def post(self, request):
         serializer = AcceptFriendRequestSerializer(data=request.data)
         if serializer.is_valid():
             friend_request = serializer.validated_data['friend_request_id']
 
-            # print(friend_request.sender + '|')
-            # print(request.user.username + "|")
             if friend_request.sender != request.user:
                 return Response({"error": "You can only Cancel friend requests you sent."}, status=status.HTTP_403_FORBIDDEN)
             
@@ -458,7 +456,7 @@ class DeleteFriendshipView(APIView):
     """
     Deletes a friendship between the authenticated user and another user.
     """
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsVerified]
 
     def delete(self, request):
         serializer = DeleteFriendRequestSerializer(data=request.data)
@@ -479,7 +477,7 @@ class DeleteFriendshipView(APIView):
 
 class GetFriends(generics.ListAPIView):
     serializer_class = GetFriendsSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsVerified]
 
     def get_queryset(self):
         user = self.request.user
@@ -489,7 +487,7 @@ class GetFriends(generics.ListAPIView):
 
 class GetSentFriendRequests(generics.ListAPIView):
     serializer_class = GetFriendsSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsVerified]
 
     def get_queryset(self):
         user = self.request.user
@@ -497,7 +495,7 @@ class GetSentFriendRequests(generics.ListAPIView):
     
 class GetReceivedFriendRequests(generics.ListAPIView):
     serializer_class = GetFriendsSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsVerified]
 
     def get_queryset(self):
         user = self.request.user

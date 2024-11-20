@@ -36,9 +36,9 @@ services:
     image: postgres:15  # Uses the official PostgreSQL 15 image
     container_name: postgres-db
     environment:
-      POSTGRES_DB: ft_transcendance  # Default database to be created
+      POSTGRES_DB: ft_transcendence  # Default database to be created
       POSTGRES_USER: postgres  # Default admin user
-      POSTGRES_PASSWORD: postgres  # Password for the admin user
+      POSTGRES_PASSWORD: HK@12345@42Student  # Password for the admin user
     volumes:
       - /goinfre/postgres-data:/var/lib/postgresql/data  # Persistent storage for the database
       - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql  # Runs a script to initialize the database
