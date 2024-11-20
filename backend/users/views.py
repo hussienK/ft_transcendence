@@ -25,43 +25,56 @@ from django.db.models import Q
 import re
 from django.core.validators import validate_email
 from django.contrib.auth.signals import user_logged_in, user_logged_out
+from .permissions import IsVerified
 
 User = get_user_model()
 
+### Token Verification View ###
 class TokenVerifyView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    '''Called by Frontend to verify if a Token is available or no'''
+    permission_classes = [permissions.IsAuthenticated, IsVerified]
 
     def post(self, request):
         return Response({"detail": "Success!"}, status=status.HTTP_200_OK)
 
+### User Registration View ###
 class UserRegistrationView(APIView):
+    '''Lets User Register to Website'''
     permission_classes = [AllowAny]
 
     def post(self, request):
+        #Matches with email
         email = request.data.get("email")
         existing_user = User.objects.filter(email=email, is_verified=False).first()
 
+        #if a user with email exists and isn't verified yet for a certain time, it delete the old account or asks user to verify
         if existing_user:
             expiration_period = timedelta(days=3)
             if existing_user.date_joined + expiration_period < timezone.now():
                 existing_user.delete()
+            else:
+                return Response({"error": "Please Verify This Email First"}, status=status.HTTP_401_UNAUTHORIZED)
 
+        #password regex enforces secuirity measures
         password_regex = r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%?&_-])[A-Za-z\d@$!%?&_-]{8,}$'
         
         if not re.match(password_regex, request.data.get("password")):
             return Response({"error": "Password does not meet complexity requirements."}, 
                             status=status.HTTP_400_BAD_REQUEST)
 
+        # Validates the Data
         serializer = UserRegistrationSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
             user.is_active = False
             user.save()
 
+            # Generate Verify Email and sends the email
             token = default_token_generator.make_token(user)
             verification_url = request.build_absolute_uri(
                 reverse('email-verify', args=[user.pk, token])
             )
+            # only if in development
             print("Email Verify Link: ", {verification_url})
             send_mail(
                 subject="Verify Your Email",
@@ -69,14 +82,16 @@ class UserRegistrationView(APIView):
                 from_email=settings.DEFAULT_FROM_MAIL,
                 recipient_list=[user.email],
             )
-
             return Response({"detail": "Registration successful. Please check your email to verify your account."}, status=status.HTTP_201_CREATED)
         return Response({'error': serializer.errors[next(iter(serializer.errors))]}, status=status.HTTP_400_BAD_REQUEST)
 
+### User Profile View ###
 class UserProfileView(generics.RetrieveUpdateAPIView):
+    '''Allows users to view profiles or update theirs'''
     serializer_class = UserProfileSerializer
     permission_classes = [permissions.IsAuthenticated, IsVerified]
 
+    # returns the object based on username or the current user if no username
     def get_object(self):
         username = self.kwargs.get('username')
 
@@ -88,6 +103,7 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
             
         return self.request.user
 
+    # updates a user
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
         if instance != request.user:
@@ -95,14 +111,17 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
         
         return super().update(request, *args, **kwargs)
     
-
+### A view For Logging IN ###
 class LoginView(APIView):
+    '''Let's users login to our website'''
     permission_classes = [permissions.AllowAny]
 
     def post(self, request):
+        #get the credentials
         identifier = request.data.get('username')
         password = request.data.get('password')
 
+        #enforce regex on password
         try:
             password_regex = r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%?&_-])[A-Za-z\d@$!%?&_-]{8,}$'
             
@@ -115,6 +134,7 @@ class LoginView(APIView):
 
         user_instance = None
 
+        # tries to get user either through their name or email
         try:
             validate_email(identifier)
             is_email = True
@@ -138,11 +158,13 @@ class LoginView(APIView):
 
         user = authenticate(request, username=username, password=password)
         
+        # if there is a user redirects to 2FA response instead of loggin in
         if user is not None:
             if user.two_factor_enabled:
                 request.session['temp_user_id'] = user.id
                 return Response({"detail": "2FA required"}, status=status.HTTP_202_ACCEPTED)
             
+            # creates the tokens and returns them
             user_logged_in.send(sender=user.__class__, request=request, user=user)
             refresh = RefreshToken.for_user(user)
             return Response({
@@ -158,7 +180,9 @@ class LoginView(APIView):
             return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
 
 
+### Logout View ###
 class LogoutView(APIView):
+    '''Lets the user logout by banning their Refresh Token'''
     def post(self, request):
         try:
             refresh_token = request.data['refresh']
@@ -170,8 +194,10 @@ class LogoutView(APIView):
         except Exception as e:
             return Response({'error': e}, status=status.HTTP_400_BAD_REQUEST,)
         
+### User Delete View ###
 class UserDeleteView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    '''Delete's a users account'''
+    permission_classes = [permissions.IsAuthenticated, IsVerified]
 
     def delete(self, request):
         user = request.user
@@ -179,6 +205,7 @@ class UserDeleteView(APIView):
         user.delete()
         return Response({"detail": "Your account has been deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
 
+### Email Verify View ###
 class VerifyEmailView(APIView):
     permission_classes = [AllowAny]
 
@@ -193,6 +220,7 @@ class VerifyEmailView(APIView):
         else:
             return render(request, 'email_verify_invalid_token.html', status=status.HTTP_400_BAD_REQUEST)
         
+### Password Reset View ###
 class PasswordResetRequestView(APIView):
     permission_classes = [AllowAny]
 

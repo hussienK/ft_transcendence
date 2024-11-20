@@ -17,55 +17,48 @@ import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Secret key and debug mode
+SECRET_KEY = 'django-insecure-n_5o#6@j5_d)c_v^!9lu0^3on6+(+wmnuw=v#=j*rm*g2^wko&'  # Secret key for cryptographic signing
+DEBUG = True  # Should be False in production
+ALLOWED_HOSTS = ['localhost', '127.0.0.1']  # Allowed hosts for deployment
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-n_5o#6@j5_d)c_v^!9lu0^3on6+(+wmnuw=v#=j*rm*g2^wko&'
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-ALLOWED_HOSTS = []
-
-
-# Application definition
-
+# Installed apps
 INSTALLED_APPS = [
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-    'rest_framework',
-    'core',
-    'users',
-    'corsheaders',
-    'channels',
-    'game',
+    'django.contrib.admin',  # Admin panel
+    'django.contrib.auth',  # Authentication framework
+    'django.contrib.contenttypes',  # Content types framework
+    'django.contrib.sessions',  # Session framework
+    'django.contrib.messages',  # Messaging framework
+    'django.contrib.staticfiles',  # Static files app
+    'rest_framework',  # Django REST Framework for API development
+    'core',  # Core application
+    'users',  # Custom user management
+    'corsheaders',  # Cross-Origin Resource Sharing (CORS) headers
+    'channels',  # Django Channels for WebSockets
+    'game',  # Game logic
 ]
 
+# Middleware
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'allauth.account.middleware.AccountMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
-    'django.middleware.common.CommonMiddleware',
+    'django.middleware.security.SecurityMiddleware',  # Security enhancements
+    'django.contrib.sessions.middleware.SessionMiddleware',  # Session management
+    'django.middleware.common.CommonMiddleware',  # General HTTP middleware
+    'django.contrib.auth.middleware.AuthenticationMiddleware',  # Authentication middleware
+    'django.contrib.messages.middleware.MessageMiddleware',  # Messaging middleware
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',  # Clickjacking protection
+    'allauth.account.middleware.AccountMiddleware',  # Middleware for 3rd-party OAuth
+    'corsheaders.middleware.CorsMiddleware',  # CORS headers middleware
+    'django.middleware.common.CommonMiddleware',  # Handles common HTTP request/response
 ]
 
-ROOT_URLCONF = 'ft_transcendance.urls'
+ROOT_URLCONF = 'ft_transcendance.urls'  # Main URL configuration
 
+# Templates
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'templates')],
-        'APP_DIRS': True,
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],  # Path to template files
+        'APP_DIRS': True,  # Enable auto-loading of app templates
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.debug',
@@ -77,81 +70,58 @@ TEMPLATES = [
     },
 ]
 
+# WSGI and ASGI applications
 WSGI_APPLICATION = 'ft_transcendance.wsgi.application'
+ASGI_APPLICATION = 'ft_transcendance.routing.application'  # Required for WebSockets
 
-
-# Database
-# https://docs.djangoproject.com/en/4.2/ref/settings/#databases
-
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
-
+# Database configuration (PostgreSQL)
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'ft_transcendance',  # Your database name
-        'USER': 'postgres',          # Your PostgreSQL username
-        'PASSWORD': 'postgres',      # Your PostgreSQL password
-        'HOST': 'db',                # Hostname of your database service (matches Docker Compose)
-        'PORT': '5432',              # Default PostgreSQL port
+        'ENGINE': 'django.db.backends.postgresql',  # PostgreSQL backend
+        'NAME': 'ft_transcendance',  # Database name
+        'USER': 'postgres',  # PostgreSQL user
+        'PASSWORD': 'postgres',  # PostgreSQL password
+        'HOST': 'db',  # Database host (Docker Compose service name)
+        'PORT': '5432',  # PostgreSQL port
         'OPTIONS': {
-            'connect_timeout': 10,  # Retry for 10 seconds
+            'connect_timeout': 10,  # Retry connection for 10 seconds
         },
     }
 }
 
 # Password validation
-# https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
-
 AUTH_PASSWORD_VALIDATORS = [
     {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',  # Enforces password length
     },
 ]
 
-
-# Internationalization
-# https://docs.djangoproject.com/en/4.2/topics/i18n/
-
+# Internationalization settings
 LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = 'UTC'
-
 USE_I18N = True
-
 USE_TZ = True
 
+# Static files settings
+STATIC_URL = 'static/'  # URL prefix for static files
+STATIC_ROOT = BASE_DIR / 'staticfiles'  # Directory to collect static files for production
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/4.2/howto/static-files/
-
-STATIC_URL = 'static/'
-STATIC_ROOT = BASE_DIR / 'staticfiles'
-
-# Default primary key field type
-# https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
-
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
+# REST Framework settings
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'users.permissions.CsrfExemptSessionAuthentication',
-        'rest_framework.authentication.BasicAuthentication',
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'users.permissions.CsrfExemptSessionAuthentication',  # Custom CSRF-exempt auth
+        'rest_framework.authentication.BasicAuthentication',  # Basic authentication
+        'rest_framework_simplejwt.authentication.JWTAuthentication',  # JWT-based auth
     ),
     'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
+        'rest_framework.permissions.IsAuthenticatedOrReadOnly',  # Authenticated users can write; others read-only
     )
 }
 
-#related to auth
+# Custom user model
 AUTH_USER_MODEL = 'users.TranscendenceUser'
 
-#42 Oauth
+# 42 OAuth integration
 INSTALLED_APPS += [
     'django.contrib.sites',
     'allauth',
@@ -161,17 +131,12 @@ INSTALLED_APPS += [
     'rest_framework_simplejwt.token_blacklist',
 ]
 
+# OAuth and JWT settings
 SITE_ID = 1
-
 AUTHENTICATION_BACKENDS = (
-    'django.contrib.auth.backends.ModelBackend',
-    'allauth.account.auth_backends.AuthenticationBackend',
+    'django.contrib.auth.backends.ModelBackend',  # Default auth backend
+    'allauth.account.auth_backends.AuthenticationBackend',  # OAuth2 backend
 )
-
-INSTALLED_APPS += [
-    'sslserver',
-]
-
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
@@ -179,55 +144,43 @@ SIMPLE_JWT = {
     'BLACKLIST_AFTER_ROTATION': True,
 }
 
+# Email settings (using Gmail SMTP)
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'transcendence.42beirut@gmail.com'
-EMAIL_HOST_PASSWORD = 'wfgpzseqlkeayady'  # Generated from Google's App Passwords
+EMAIL_HOST_PASSWORD = 'wfgpzseqlkeayady'  # App-specific password for Gmail
 DEFAULT_FROM_MAIL = 'transcendence.42beirut@gmail.com'
 
-
+# Two-factor authentication
 INSTALLED_APPS += [
     'django_otp',
-    'django_otp.plugins.otp_totp',  
-    'two_factor',                    
+    'django_otp.plugins.otp_totp',  # TOTP-based 2FA
+    'two_factor',  # Two-factor authentication
 ]
-
 MIDDLEWARE += [
-    'django_otp.middleware.OTPMiddleware',
+    'django_otp.middleware.OTPMiddleware',  # Middleware for OTP validation
 ]
-
 TWO_FACTOR_AUTHENTICATION = {
-    'LOGIN_URL': 'two_factor:login',
-    'TOTP_ISSUER': 'ft_transcendence',
+    'LOGIN_URL': 'two_factor:login',  # Redirect URL for 2FA login
+    'TOTP_ISSUER': 'ft_transcendence',  # Issuer for OTP
 }
 
+# CORS settings (Cross-Origin Resource Sharing)
 CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:5500",
     "http://localhost:5000",
     "https://localhost",
 ]
-
-
 CORS_ALLOW_ALL_ORIGINS = True
 
+# Middleware for tracking last activity
 MIDDLEWARE += [
-	'users.tasks.UpdateLastActivityMiddleware',
+    'users.tasks.UpdateLastActivityMiddleware',
 ]
 
-
-
-
-
-
-
-
-
-
-
-
-
+# Custom form settings
 FORM_SETTINGS = {
     'username_length_min': 3,
     'username_length_max': 15,
@@ -236,47 +189,35 @@ FORM_SETTINGS = {
     'bio_length_max': 15,
 }
 
-# Game
-
-ASGI_APPLICATION = 'ft_transcendance.routing.application'
-
+# Channel layers (Redis for WebSockets)
 CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
-            'hosts': [('redis', 6379)],
+            'hosts': [('redis', 6379)],  # Redis service
         },
     },
 }
 
+# Celery configuration (task queue)
 INSTALLED_APPS += [
-    'django_celery_results',
-	'django_celery_beat',
+    'django_celery_results',  # Stores Celery task results
+    'django_celery_beat',  # Periodic task scheduler
 ]
+CELERY_BROKER_URL = 'redis://redis:6379/0'  # Redis broker
+CELERY_ACCEPT_CONTENT = ['json']  # Accept JSON task data
+CELERY_TASK_SERIALIZER = 'json'  # Serialize tasks in JSON
+CELERY_RESULT_BACKEND = 'redis://redis:6379/0'  # Store task results in Redis
+CELERY_TIMEZONE = 'UTC'  # Timezone for Celery
 
-# Celery settings
-CELERY_BROKER_URL = 'redis://redis:6379/0'
-CELERY_ACCEPT_CONTENT = ['json']
-CELERY_TASK_SERIALIZER = 'json'
-CELERY_RESULT_BACKEND = 'redis://redis:6379/0'
-
-# Optional: Use time zone-aware tasks
-CELERY_TIMEZONE = 'UTC'
-
-
-SECURE_SSL_REDIRECT = True
-SECURE_HSTS_SECONDS = 31536000
+# Security settings for HTTPS
+SECURE_SSL_REDIRECT = True  # Redirect all HTTP requests to HTTPS
+SECURE_HSTS_SECONDS = 31536000  # HTTP Strict Transport Security (1 year)
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')  # Trust SSL from a proxy
 
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']
-
-
-# Redirects users to /api/accounts/login/ for login
-LOGIN_URL = '/api/accounts/login/'
-
-# Redirects users after successful login
-LOGIN_REDIRECT_URL = '/api/accounts/profile/'
-LOGOUT_REDIRECT_URL = '/api/accounts/login/'
+# Authentication flow
+LOGIN_URL = '/api/accounts/login/'  # Login URL
+LOGIN_REDIRECT_URL = '/api/accounts/profile/'  # Redirect after login
+LOGOUT_REDIRECT_URL = '/api/accounts/login/'  # Redirect after logout

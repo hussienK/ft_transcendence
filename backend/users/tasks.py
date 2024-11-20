@@ -6,14 +6,15 @@ from celery import shared_task
 from datetime import timedelta
 from django.utils.deprecation import MiddlewareMixin
 from rest_framework_simplejwt.authentication import JWTAuthentication
+from django.utils.timezone import now
 
+# The task that marks the user offline if they've been inactive for a ceretain time, called by celery
 @shared_task
 def mark_users_offline():
     timeout = timezone.now() - timedelta(minutes=1)
     User.objects.filter(last_activity__lt=timeout, is_online=True).update(is_online=False)
 
-from django.utils.timezone import now
-
+# A custom middleware to update user's online status on any activity with their token in it, Has a timer to make sure we aren't innefcient with db requests.
 class UpdateLastActivityMiddleware:
     def __init__(self, get_response):
         self.get_response = get_response

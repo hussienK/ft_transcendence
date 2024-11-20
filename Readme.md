@@ -8,6 +8,8 @@
 - to build on production (no live updates) `docker-compose --f docker-compose.prod.yml up --build`
 - to build on development (enable live udpates) `docker-compose docker-compose.dev.yml up --build`
 
+## Chosen Modules
+
 ## Explanations
 
 ### Dockerization
@@ -40,7 +42,37 @@ This Nginx configuration sets up a reverse proxy for a Django backend and serves
 - **Frontend Files:** Served from /usr/share/nginx/html/ with caching disabled.
 - **HTTPS Configuration:** Includes SSL certificate and key for secure communication.
 
-## Testing and debugging tips:
+#### DRF
 
-- for sending an email to test, after running container in a seperate terminal, `docker exec -it ft_transcendance_app_dev bash`, `from django.core.mail import send_mail`, `send_mail ('test mail', 'helloooooo', 'transcendence.42beirut@gmail.com', ['hussienkenaan93@gmail.com'])`
-- for creating an admin user to test, after running container in a seperate terminal, `docker exec -it ft_transcendance_app_dev bash`, `python manage.py createsuperuser`
+DRF connects your Django models to a RESTful API, handling serialization, routing, views, and security seamless
+
+1. **Serializers:** Convert complex data types (e.g., Django models) to JSON for API responses and validate incoming JSON data for requests.
+2. **Views:** Handle HTTP methods (GET, POST, PUT, DELETE) and process requests. These can be function-based or class-based (e.g., APIView, GenericAPIView, or viewsets).
+3. **Routers:** Automatically generate URL patterns for your views, especially for viewsets.
+4. **Authentication & Permissions:** Provide built-in tools for securing APIs (e.g., token-based auth, session auth, or custom permissions).
+5. **Browsable API:** Offers a web-based interface to test and explore your API.
+
+#### Backend Apps
+
+##### ft_transendance
+
+- Contains our app's settings that tell the app how everything should behave
+- Contains the routes that redirect into all other apps
+- Contains ASGI the routes into websocket requests
+
+##### Users
+
+- Manages the users and everything related to them
+- We have a few custom permissions, isEmail Verified, is2FA Enabled
+- We have 2 mains db models, Friends and Friend requests
+- User being Online/Offline is detected through signals on his logout/login. To make it more accurate we also use Celery to schedule auto tasks every duration to make user offline if not using the app
+- Every user action passes through a Middleware to detect the Authentication Token and update the last activity accordingly
+- Includes a verifyToken view for the frontend to call to make sure the token is valid and not expired before rendering any pages
+
+##### Core
+
+Currently Only for testing
+
+##### Game
+
+Under Development
