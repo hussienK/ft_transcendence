@@ -19,3 +19,8 @@ __pyache__/
 
 # Ignore vs code stuff
 .vscode/
+
+/staticfiles/
+
+wait-for-db.sh
+wait-for-backend.sh

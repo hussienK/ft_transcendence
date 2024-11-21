@@ -106,8 +106,8 @@ USE_I18N = True
 USE_TZ = True
 
 # Static files settings
-STATIC_URL = 'static/'  # URL prefix for static files
-STATIC_ROOT = BASE_DIR / 'staticfiles'  # Directory to collect static files for production
+STATIC_URL = '/static/'  # URL prefix for static files
+STATIC_ROOT =  '/app/staticfiles'  # Directory to collect static files for production
 
 # REST Framework settings
 REST_FRAMEWORK = {

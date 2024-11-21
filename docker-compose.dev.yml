@@ -6,7 +6,7 @@ services:
     container_name: django-backend
     command: >  # Runs necessary Django commands and starts the app using uvicorn
       sh -c "./wait-for-db.sh db &&
-             python manage.py makemigrations &&
+             python manage.py makemigrations && 
              python manage.py migrate &&  # Applies database migrations
              python manage.py create_admin &&  # Creates a default admin user (custom command)
              python manage.py collectstatic --noinput &&  # Collects static files for Nginx to serve
@@ -15,8 +15,8 @@ services:
       - DJANGO_SETTINGS_MODULE=ft_transcendance.settings  # Specifies the Django settings module
     volumes:
       - ./backend:/app  # Mounts the backend code into the container for development
-      - ./backend/staticfiles:/app/staticfiles  # Mounts static files for Nginx to access
-      - ./wait-for-db.sh:/app/wait-for-db.sh
+      - ./staticfiles:/app/staticfiles  # Mounts static files for Nginx to access
+      - ./scripts/wait-for-db.sh:/app/wait-for-db.sh
     depends_on:
       - db  # Ensures the backend waits for the database to start
     env_file:
@@ -33,7 +33,7 @@ services:
       - "443:443"  # Exposes HTTPS on port 443
     volumes:
       - ./frontend:/usr/share/nginx/html  # Mounts the frontend static files
-      - ./backend/staticfiles:/app/staticfiles  # Mounts backend static files for serving
+      - ./staticfiles:/app/staticfiles  # Mounts backend static files for serving
     depends_on:
       - backend  # Ensures the backend service starts before Nginx
     restart: always
@@ -96,5 +96,5 @@ services:
       - .env
     volumes:
       - /goinfre/celery-beat-data:/app/data  # Persistent storage for the Celery beat schedule
-      - ./wait-for-db.sh:/app/wait-for-db.sh
+      - ./scripts/wait-for-db.sh:/app/wait-for-db.
     restart: always
