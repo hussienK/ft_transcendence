@@ -24,58 +24,74 @@ from .models import TranscendenceUser, FriendRequest
 from django.db.models import Q
 import re
 from django.core.validators import validate_email
+from django.contrib.auth.signals import user_logged_in, user_logged_out
+from .permissions import IsVerified
 
 User = get_user_model()
 
+### Token Verification View ###
 class TokenVerifyView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    '''Called by Frontend to verify if a Token is available or no'''
+    permission_classes = [permissions.IsAuthenticated, IsVerified]
 
     def post(self, request):
         return Response({"detail": "Success!"}, status=status.HTTP_200_OK)
 
+### User Registration View ###
 class UserRegistrationView(APIView):
+    '''Lets User Register to Website'''
     permission_classes = [AllowAny]
 
     def post(self, request):
+        #Matches with email
         email = request.data.get("email")
         existing_user = User.objects.filter(email=email, is_verified=False).first()
 
+        #if a user with email exists and isn't verified yet for a certain time, it delete the old account or asks user to verify
         if existing_user:
             expiration_period = timedelta(days=3)
             if existing_user.date_joined + expiration_period < timezone.now():
                 existing_user.delete()
+            else:
+                return Response({"error": "Please Verify This Email First"}, status=status.HTTP_401_UNAUTHORIZED)
 
+        #password regex enforces secuirity measures
         password_regex = r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%?&_-])[A-Za-z\d@$!%?&_-]{8,}$'
         
         if not re.match(password_regex, request.data.get("password")):
             return Response({"error": "Password does not meet complexity requirements."}, 
                             status=status.HTTP_400_BAD_REQUEST)
 
+        # Validates the Data
         serializer = UserRegistrationSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
             user.is_active = False
             user.save()
 
+            # Generate Verify Email and sends the email
             token = default_token_generator.make_token(user)
             verification_url = request.build_absolute_uri(
                 reverse('email-verify', args=[user.pk, token])
             )
-
+            # only if in development
+            print("Email Verify Link: ", {verification_url})
             send_mail(
                 subject="Verify Your Email",
                 message=f"Please Click The link to verify your email: {verification_url}",
                 from_email=settings.DEFAULT_FROM_MAIL,
                 recipient_list=[user.email],
             )
-
             return Response({"detail": "Registration successful. Please check your email to verify your account."}, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'error': serializer.errors[next(iter(serializer.errors))]}, status=status.HTTP_400_BAD_REQUEST)
 
+### User Profile View ###
 class UserProfileView(generics.RetrieveUpdateAPIView):
+    '''Allows users to view profiles or update theirs'''
     serializer_class = UserProfileSerializer
     permission_classes = [permissions.IsAuthenticated, IsVerified]
 
+    # returns the object based on username or the current user if no username
     def get_object(self):
         username = self.kwargs.get('username')
 
@@ -87,6 +103,7 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
             
         return self.request.user
 
+    # updates a user
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
         if instance != request.user:
@@ -94,22 +111,30 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
         
         return super().update(request, *args, **kwargs)
     
-
+### A view For Logging IN ###
 class LoginView(APIView):
+    '''Let's users login to our website'''
     permission_classes = [permissions.AllowAny]
 
     def post(self, request):
+        #get the credentials
         identifier = request.data.get('username')
         password = request.data.get('password')
 
-        password_regex = r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%?&_-])[A-Za-z\d@$!%?&_-]{8,}$'
-        
-        if not re.match(password_regex, password):
-            return Response({"error": "Password does not meet complexity requirements."}, 
-                            status=status.HTTP_400_BAD_REQUEST)
+        #enforce regex on password
+        try:
+            password_regex = r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%?&_-])[A-Za-z\d@$!%?&_-]{8,}$'
+            
+            if not re.match(password_regex, password):
+                return Response({"error": "Password does not meet complexity requirements."}, 
+                                status=status.HTTP_400_BAD_REQUEST)
+        except:
+            return Response({"error": "Invalid Credentials"}, 
+                        status=status.HTTP_401_UNAUTHORIZED)
 
         user_instance = None
 
+        # tries to get user either through their name or email
         try:
             validate_email(identifier)
             is_email = True
@@ -133,11 +158,14 @@ class LoginView(APIView):
 
         user = authenticate(request, username=username, password=password)
         
+        # if there is a user redirects to 2FA response instead of loggin in
         if user is not None:
             if user.two_factor_enabled:
                 request.session['temp_user_id'] = user.id
                 return Response({"detail": "2FA required"}, status=status.HTTP_202_ACCEPTED)
             
+            # creates the tokens and returns them
+            user_logged_in.send(sender=user.__class__, request=request, user=user)
             refresh = RefreshToken.for_user(user)
             return Response({
                 "refresh": str(refresh),
@@ -152,19 +180,24 @@ class LoginView(APIView):
             return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
 
 
+### Logout View ###
 class LogoutView(APIView):
+    '''Lets the user logout by banning their Refresh Token'''
     def post(self, request):
         try:
             refresh_token = request.data['refresh']
             token = RefreshToken(refresh_token)
             token.blacklist()
 
+            user_logged_out.send(sender=request.user.__class__, request=request, user=request.user)
             return Response(status=status.HTTP_205_RESET_CONTENT)
-        except:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({'error': e}, status=status.HTTP_400_BAD_REQUEST,)
         
+### User Delete View ###
 class UserDeleteView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    '''Delete's a users account'''
+    permission_classes = [permissions.IsAuthenticated, IsVerified]
 
     def delete(self, request):
         user = request.user
@@ -172,6 +205,7 @@ class UserDeleteView(APIView):
         user.delete()
         return Response({"detail": "Your account has been deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
 
+### Email Verify View ###
 class VerifyEmailView(APIView):
     permission_classes = [AllowAny]
 
@@ -186,6 +220,7 @@ class VerifyEmailView(APIView):
         else:
             return render(request, 'email_verify_invalid_token.html', status=status.HTTP_400_BAD_REQUEST)
         
+### Password Reset View ###
 class PasswordResetRequestView(APIView):
     permission_classes = [AllowAny]
 
@@ -200,6 +235,7 @@ class PasswordResetRequestView(APIView):
             reset_url = request.build_absolute_uri(
                 reverse('password-reset-confirm', args=[uid, token])
             )
+            print("Password Reset Link: ", {reset_url})
             send_mail(
                 subject="Password Reset Request",
                 message=f"Please click the link to reset your password : {reset_url}",
@@ -263,7 +299,7 @@ class PasswordResetConfirmView(APIView):
 
 
 class TwoFactorSetupView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsVerified]
 
     def post(self, request):
         user = request.user
@@ -276,7 +312,7 @@ class TwoFactorSetupView(APIView):
         return Response({"qr_code_url": qr_code_url}, status=status.HTTP_200_OK)
     
 class TwoFactorVerifyView(APIView):
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.AllowAny, IsVerified]
 
     def post(self, request):
         username = request.data.get('username')
@@ -303,7 +339,7 @@ class TwoFactorVerifyView(APIView):
             return Response({"error": "Invalid user or no 2FA setup found"}, status=status.HTTP_404_NOT_FOUND)
 
 class TwoFactorVerifySetupView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsVerified]
 
     def post(self, request):
         user = request.user
@@ -326,7 +362,7 @@ class TwoFactorVerifySetupView(APIView):
 
 
 class TwoFactorDeleteView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsVerified]
 
     def post(self, request):
         user = request.user
@@ -343,7 +379,7 @@ class TwoFactorDeleteView(APIView):
 # Friend Requests
 class SendFriendRequestView(generics.CreateAPIView):
     serializer_class = FriendRequestSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsVerified]
 
     def post(self, request):
         receiver_username=request.data.get("receiver")
@@ -366,7 +402,7 @@ class SendFriendRequestView(generics.CreateAPIView):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 class AcceptFriendRequestView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsVerified]
 
     def post(self, request):
         serializer = AcceptFriendRequestSerializer(data=request.data)
@@ -383,7 +419,7 @@ class AcceptFriendRequestView(APIView):
 
     
 class DeclineFriendRequestView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsVerified]
 
     def post(self, request):
         serializer = AcceptFriendRequestSerializer(data=request.data)
@@ -400,15 +436,13 @@ class DeclineFriendRequestView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class CancelFriendRequestView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsVerified]
 
     def post(self, request):
         serializer = AcceptFriendRequestSerializer(data=request.data)
         if serializer.is_valid():
             friend_request = serializer.validated_data['friend_request_id']
 
-            # print(friend_request.sender + '|')
-            # print(request.user.username + "|")
             if friend_request.sender != request.user:
                 return Response({"error": "You can only Cancel friend requests you sent."}, status=status.HTTP_403_FORBIDDEN)
             
@@ -422,7 +456,7 @@ class DeleteFriendshipView(APIView):
     """
     Deletes a friendship between the authenticated user and another user.
     """
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsVerified]
 
     def delete(self, request):
         serializer = DeleteFriendRequestSerializer(data=request.data)
@@ -443,7 +477,7 @@ class DeleteFriendshipView(APIView):
 
 class GetFriends(generics.ListAPIView):
     serializer_class = GetFriendsSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsVerified]
 
     def get_queryset(self):
         user = self.request.user
@@ -453,7 +487,7 @@ class GetFriends(generics.ListAPIView):
 
 class GetSentFriendRequests(generics.ListAPIView):
     serializer_class = GetFriendsSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsVerified]
 
     def get_queryset(self):
         user = self.request.user
@@ -461,7 +495,7 @@ class GetSentFriendRequests(generics.ListAPIView):
     
 class GetReceivedFriendRequests(generics.ListAPIView):
     serializer_class = GetFriendsSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsVerified]
 
     def get_queryset(self):
         user = self.request.user

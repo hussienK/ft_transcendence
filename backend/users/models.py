@@ -4,7 +4,7 @@ from django.contrib.auth import get_user_model
 from django.utils import timezone
 from django_otp.plugins.otp_totp.models import TOTPDevice
 
-# The Basic user model
+# The Basic user model for our website
 class TranscendenceUser(AbstractUser):
     display_name = models.CharField(max_length=30, unique=True)
     avatar = models.ImageField(upload_to='avatars', default='avatars/default.jpg')
@@ -32,6 +32,7 @@ class TranscendenceUser(AbstractUser):
 
 User = get_user_model()
 
+# A mode for friend requests
 class FriendRequest(models.Model):
     sender = models.ForeignKey(User, related_name="sent_friend_requests", on_delete=models.CASCADE)
     receiver = models.ForeignKey(User, related_name="received_friend_requests", on_delete=models.CASCADE)

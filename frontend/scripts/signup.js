@@ -42,7 +42,7 @@ function attachSignUpFormEventListeners() {
     // signup action
     try {
       const response = await axios.post(
-        "http://localhost:8000/api/users/register/",
+        "https://localhost/api/users/register/",
         userData
       );
 

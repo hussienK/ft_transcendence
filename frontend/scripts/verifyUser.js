@@ -1,27 +1,45 @@
 async function verifyUser() {
   const accessToken = localStorage.getItem("accessToken");
-  console.log(accessToken);
-  if (!accessToken) {
+  const refreshToken = localStorage.getItem("refreshToken");
+
+  if (!accessToken || !refreshToken) {
     window.location.hash = "login";
     localStorage.clear();
-    console.log("Invalid User token");
+    console.log("Invalid User tokens");
     return;
   }
 
   try {
     const response = await axios.post(
-      "http://127.0.0.1:8000/api/users/token/verify/",
+      "https://localhost/api/users/token/verify/",
       {},
       {
         headers: {
-          Authorization: `Bearer ${accessToken}`, // Authorization header with Bearer token
+          Authorization: `Bearer ${accessToken}`,
         },
       }
     );
-    console.log("valid user");
+    console.log("Valid user");
   } catch (error) {
-    console.log("Invalid User token");
-    window.location.hash = "login";
-    localStorage.clear();
+    console.log("Access token expired or invalid. Attempting refresh...");
+
+    try {
+      const refreshResponse = await axios.post(
+        "http://localhost/api/users/token/refresh/",
+        {
+          refresh: refreshToken,
+        }
+      );
+
+      const newAccessToken = refreshResponse.data.access;
+      localStorage.setItem("accessToken", newAccessToken);
+
+      console.log("Access token refreshed successfully");
+
+    } catch (refreshError) {
+      console.log("Invalid refresh token. Redirecting to login...");
+      window.location.hash = "login";
+      localStorage.clear();
+    }
   }
 }
