@@ -3,3 +3,14 @@ body {
   padding: 0;
   font-family: sans-serif;
 }
+#homePage {
+  height: 100vh; 
+}
+
+.sidebar {
+  height: 100%; /* Full height for sidebar */
+}
+
+.bg-active-tab {
+  background-color: rgba(255, 255, 255, 0.1);
+}
