@@ -11,7 +11,7 @@ async function verifyUser() {
 
   try {
     const response = await axios.post(
-      "https://localhost/api/users/token/verify/",
+      "https://localhost:8443/api/users/token/verify/",
       {},
       {
         headers: {
