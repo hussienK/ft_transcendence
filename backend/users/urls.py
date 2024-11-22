@@ -2,7 +2,6 @@ from django.urls import path
 from .views import (
     UserRegistrationView, UserProfileView, LoginView, LogoutView, UserDeleteView,
     VerifyEmailView, PasswordResetConfirmView, PasswordResetRequestView,
-    TwoFactorSetupView, TwoFactorVerifyView, TwoFactorVerifySetupView, TwoFactorDeleteView,
     SendFriendRequestView, AcceptFriendRequestView, DeclineFriendRequestView,
     GetFriends, CancelFriendRequestView, DeleteFriendshipView, 
     GetSentFriendRequests, GetReceivedFriendRequests, TokenVerifyView
@@ -29,12 +28,6 @@ urlpatterns = [
     # Password reset
     path('password-reset/', PasswordResetRequestView.as_view(), name="password-reset"),  # Request password reset
     path('password-reset-confirm/<str:uidb64>/<str:token>/', PasswordResetConfirmView.as_view(), name="password-reset-confirm"),  # Confirm password reset
-
-    # Two-factor authentication (2FA)
-    path('tfa/setup/', TwoFactorSetupView.as_view(), name="2fa_setup"),  # Set up 2FA
-    path('tfa/verify/', TwoFactorVerifyView.as_view(), name="2fa_verify"),  # Verify 2FA during login
-    path('tfa/verify-setup/', TwoFactorVerifySetupView.as_view(), name="2fa_verify_setup"),  # Verify 2FA setup process
-    path('tfa/delete/', TwoFactorDeleteView.as_view(), name="2fa_delete"),  # Disable 2FA
 
     # Friend request operations
     path('friend-request/send/', SendFriendRequestView.as_view(), name='send_friend_request'),  # Send a friend request

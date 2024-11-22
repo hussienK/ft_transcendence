@@ -18,8 +18,6 @@ from django.utils import timezone
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.utils.encoding import force_bytes, force_str
 from django.contrib.auth.password_validation import validate_password
-from django.core.exceptions import ValidationError
-from django_otp.plugins.otp_totp.models import TOTPDevice
 from .models import TranscendenceUser, FriendRequest
 from django.db.models import Q
 import re
@@ -114,6 +112,8 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
     
 ### A view For Logging IN ###
 class LoginView(APIView):
+    skip_otp_verification = True
+
     '''Let's users login to our website'''
     permission_classes = [permissions.AllowAny]
 
@@ -298,84 +298,6 @@ class PasswordResetConfirmView(APIView):
         except (TypeError, ValueError, OverflowError, User.DoesNotExist):
             return render(request, 'password_reset_error.html', status=status.HTTP_400_BAD_REQUEST)
 
-
-class TwoFactorSetupView(APIView):
-    permission_classes = [permissions.IsAuthenticated, IsVerified]
-
-    def post(self, request):
-        user = request.user
-        if user.two_factor_enabled:
-            return Response({"error": "Already 2FA Enabled"}, status=status.HTTP_400_BAD_REQUEST)
-        device, created = TOTPDevice.objects.get_or_create(user=user, confirmed=False)
-
-        qr_code_url = device.config_url
-
-        return Response({"qr_code_url": qr_code_url}, status=status.HTTP_200_OK)
-    
-class TwoFactorVerifyView(APIView):
-    permission_classes = [permissions.AllowAny, IsVerified]
-
-    def post(self, request):
-        username = request.data.get('username')
-        otp_code = request.data.get("otp_code")
-
-        if not username:
-             return Response({"error": "No username found in request"}, status=status.HTTP_400_BAD_REQUEST)
-        
-        try:
-            user = User.objects.get(username=username)
-            device = TOTPDevice.objects.get(user=user, confirmed=True)
-
-            if device.verify_token(otp_code):
-                refresh = RefreshToken.for_user(user)
-
-                return Response({
-                    "refresh": str(refresh),
-                    "access": str(refresh.access_token)
-                }, status=status.HTTP_200_OK)
-            else:
-                return Response({"error": "Invalid OTP code"}, status=status.HTTP_400_BAD_REQUEST)
-        except (TranscendenceUser.DoesNotExist, TOTPDevice.DoesNotExist) as e:
-            print(e)
-            return Response({"error": "Invalid user or no 2FA setup found"}, status=status.HTTP_404_NOT_FOUND)
-
-class TwoFactorVerifySetupView(APIView):
-    permission_classes = [permissions.IsAuthenticated, IsVerified]
-
-    def post(self, request):
-        user = request.user
-        otp_code = request.data.get("otp_code")
-
-        try:
-            device = TOTPDevice.objects.get(user=user, confirmed=False)
-
-            if device.verify_token(otp_code):
-                device.confirmed = True
-                device.save()
-                user.two_factor_enabled = True  
-                user.save()
-
-                return Response({"status": "2FA setup confirmed successfully"}, status=status.HTTP_200_OK)
-            else:
-                return Response({"error": "Invalid OTP code for setup"}, status=status.HTTP_400_BAD_REQUEST)
-        except TOTPDevice.DoesNotExist:
-            return Response({"error": "No unconfirmed 2FA device found"}, status=status.HTTP_404_NOT_FOUND)
-
-
-class TwoFactorDeleteView(APIView):
-    permission_classes = [permissions.IsAuthenticated, IsVerified]
-
-    def post(self, request):
-        user = request.user
-
-        try:
-            device = TOTPDevice.objects.get(user=user, confirmed=True)
-            device.delete()
-            user.two_factor_enabled = False
-            user.save()
-            return Response({"status": "2FA disabled successfully"}, status=status.HTTP_200_OK)
-        except TOTPDevice.DoesNotExist:
-            return Response({"error": "No 2FA device found"}, status=status.HTTP_404_NOT_FOUND)
 
 # Friend Requests
 class SendFriendRequestView(generics.CreateAPIView):

@@ -46,6 +46,7 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',  # Security enhancements
     'django.middleware.common.CommonMiddleware',  # General HTTP middleware
     'django.contrib.sessions.middleware.SessionMiddleware',  # Session management
+    'django.middleware.common.CommonMiddleware',  # General HTTP middleware
     'django.contrib.auth.middleware.AuthenticationMiddleware',  # Authentication middleware
     'django.contrib.messages.middleware.MessageMiddleware',  # Messaging middleware
     'django.middleware.clickjacking.XFrameOptionsMiddleware',  # Clickjacking protection
@@ -156,20 +157,6 @@ EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS') == 'True'
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')  # App-specific password for Gmail
 DEFAULT_FROM_MAIL = os.getenv('DEFAULT_FROM_MAIL')
-
-# Two-factor authentication
-INSTALLED_APPS += [
-    'django_otp',
-    'django_otp.plugins.otp_totp',  # TOTP-based 2FA
-    'two_factor',  # Two-factor authentication
-]
-MIDDLEWARE += [
-    'django_otp.middleware.OTPMiddleware',  # Middleware for OTP validation
-]
-TWO_FACTOR_AUTHENTICATION = {
-    'LOGIN_URL': 'two_factor:login',  # Redirect URL for 2FA login
-    'TOTP_ISSUER': 'ft_transcendence',  # Issuer for OTP
-}
 
 # CORS settings (Cross-Origin Resource Sharing)
 CORS_ALLOWED_ORIGINS = os.getenv('CORS_ALLOWED_ORIGINS', '').split(',')

@@ -2,7 +2,6 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth import get_user_model
 from django.utils import timezone
-from django_otp.plugins.otp_totp.models import TOTPDevice
 
 # The Basic user model for our website
 class TranscendenceUser(AbstractUser):
@@ -14,7 +13,6 @@ class TranscendenceUser(AbstractUser):
     losses = models.IntegerField(default=0)
     is_verified = models.BooleanField(default=False)
     two_factor_enabled = models.BooleanField(default=False)
-    otp_device = models.ForeignKey(TOTPDevice, on_delete=models.SET_NULL, null=True, blank=True)
     last_activity = models.DateTimeField(default=timezone.now)
     created_at = models.DateTimeField(default=timezone.now)
 
