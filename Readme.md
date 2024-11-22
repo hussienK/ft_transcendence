@@ -10,6 +10,17 @@
 
 ## Chosen Modules
 
+ ◦ Major module: Use a Framework as backend.
+ ◦ Minor module: Use a front-end framework or toolkit.
+ ◦ Minor module: Use a database for the backend.
+  Major module: Standard user management, authentication, users across
+ tournaments.
+ • Major module: Remote players
+• Minor module: User and Game Stats Dashboards.
+ • Major module: Implement Two-Factor Authentication (2FA) and JWT.
+• Major module: Replacing Basic Pong with Server-Side Pong and Implementing
+ an API.
+ • Minor module: Expanding Browser Compatibility.
 ## Explanations
 
 ### Dockerization

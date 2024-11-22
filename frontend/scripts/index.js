@@ -12,7 +12,9 @@ async function loadPage(page) {
       attachSignUpFormEventListeners();
     } else if (page === "login") {
       attachSigninFormEventListeners();
-    } else {
+    } 
+
+    else {
       if (!verifyUser()) {
         window.location.hash = "login";
         return;
@@ -20,6 +22,10 @@ async function loadPage(page) {
 
       if (page === "home") {
         attachHomeEventListeners();
+      }    else if (page === 'game'){
+        attachGameEventListeners();
+      }else if (page === 'game2'){
+        attachGameEventListeners2();
       }
     }
   } catch (error) {
