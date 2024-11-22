@@ -26,6 +26,7 @@ import re
 from django.core.validators import validate_email
 from django.contrib.auth.signals import user_logged_in, user_logged_out
 from .permissions import IsVerified
+from rest_framework_simplejwt.tokens import AccessToken
 
 User = get_user_model()
 
@@ -382,11 +383,19 @@ class SendFriendRequestView(generics.CreateAPIView):
     permission_classes = [permissions.IsAuthenticated, IsVerified]
 
     def post(self, request):
+        auth_header = request.headers.get('Authorization')  # Preferred way
+        # Alternatively (case-insensitive headers)
+        # auth_header = request.META.get('HTTP_AUTHORIZATION')
+
         receiver_username=request.data.get("receiver")
         if not receiver_username:
             return Response({"error": "receiver Username is required."}, status=status.HTTP_400_BAD_REQUEST)
         
-        receiver = get_object_or_404(User, username=receiver_username)
+        try:
+            receiver = get_object_or_404(User, username=receiver_username)
+        except:
+            return Response({"error": "User Not Found."},
+                            status=status.HTTP_404_NOT_FOUND)
 
         if FriendRequest.objects.filter(sender=request.user, receiver=receiver).exists() or \
            FriendRequest.objects.filter(sender=receiver, receiver=request.user).exists():

@@ -15,6 +15,9 @@ function attachHomeEventListeners() {
       });
 
       document.getElementById("home-display").innerHTML = response.data;
+      if(page === "friends"){
+        attachFriendsEventListeners()
+      }
     } catch (error) {
       console.error("Error loading page:", error);
       document.getElementById("main-content").innerHTML =
@@ -23,6 +26,7 @@ function attachHomeEventListeners() {
   }
 
   function setActiveLink(activeLink) {
+    
     navItems.forEach((link) => {
       const parent = link.parentElement; // Get the parent `li` of the link
       if (link === activeLink) {
@@ -45,6 +49,7 @@ function attachHomeEventListeners() {
     e.preventDefault();
     setActiveLink(friendsLink);
     loadSection("friends");
+    
   });
-
+  
 }

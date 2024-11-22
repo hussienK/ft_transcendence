@@ -33,3 +33,36 @@ class UpdateLastActivityMiddleware:
             user = None
         response = self.get_response(request)
         return response
+
+
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from django.utils.functional import SimpleLazyObject
+
+class JWTMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        request.user = SimpleLazyObject(lambda: self.get_user_from_jwt(request))
+        if request.user:
+            print(request.user.id)
+        return self.get_response(request)
+
+    def get_user_from_jwt(self, request):
+        # Extract token from Authorization header
+        auth_header = request.headers.get('Authorization')
+        if auth_header and auth_header.startswith('Bearer '):
+            token = auth_header.split(' ')[1]
+            jwt_auth = JWTAuthentication()
+            try:
+                validated_token = jwt_auth.get_validated_token(token)
+                return jwt_auth.get_user(validated_token)
+            except Exception as e:
+                print(f"JWT authentication failed: {e}")
+        return None  # If no valid token is found
+
+class CustomJWTAuthentication(JWTAuthentication):
+    def authenticate(self, request):
+        # Call the default authenticate method
+        user, token = super().authenticate(request)
+        return user, token

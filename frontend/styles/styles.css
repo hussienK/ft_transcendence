@@ -14,3 +14,20 @@ body {
 .bg-active-tab {
   background-color: rgba(255, 255, 255, 0.1);
 }
+
+.btn {
+  border: none !important;
+  outline: none !important;
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out; 
+  height: 48px;
+}
+
+.btn:active {
+  transform: scale(0.95); 
+  box-shadow: none; 
+}
+
+.btn:hover,
+.btn:focus {
+  box-shadow: none; 
+}

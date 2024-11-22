@@ -44,14 +44,15 @@ INSTALLED_APPS = [
 # Middleware
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',  # Security enhancements
-    'django.contrib.sessions.middleware.SessionMiddleware',  # Session management
     'django.middleware.common.CommonMiddleware',  # General HTTP middleware
+    'django.contrib.sessions.middleware.SessionMiddleware',  # Session management
     'django.contrib.auth.middleware.AuthenticationMiddleware',  # Authentication middleware
     'django.contrib.messages.middleware.MessageMiddleware',  # Messaging middleware
     'django.middleware.clickjacking.XFrameOptionsMiddleware',  # Clickjacking protection
     'allauth.account.middleware.AccountMiddleware',  # Middleware for 3rd-party OAuth
     'corsheaders.middleware.CorsMiddleware',  # CORS headers middleware
     'django.middleware.common.CommonMiddleware',  # Handles common HTTP request/response
+	'users.tasks.JWTMiddleware',
 ]
 
 ROOT_URLCONF = 'ft_transcendance.urls'  # Main URL configuration
@@ -113,13 +114,13 @@ STATIC_ROOT =  '/app/staticfiles'  # Directory to collect static files for produ
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'users.permissions.CsrfExemptSessionAuthentication',  # Custom CSRF-exempt auth
-        'rest_framework.authentication.BasicAuthentication',  # Basic authentication
-        'rest_framework_simplejwt.authentication.JWTAuthentication',  # JWT-based auth
+        'users.tasks.CustomJWTAuthentication',  # JWT-based auth
     ),
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticatedOrReadOnly',  # Authenticated users can write; others read-only
     )
 }
+
 
 # Custom user model
 AUTH_USER_MODEL = 'users.TranscendenceUser'
