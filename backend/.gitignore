@@ -1,5 +1,7 @@
 # Ignore all virtual envs
-env/
+/env/
+
+/venv/
 
 # Ignore cache files
 __pyache__/

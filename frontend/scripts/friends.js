@@ -1,5 +1,5 @@
 function attachFriendsEventListeners() {
-	console.log("hi")
+	
 	const onlineLink = document.getElementById("onlineFriends-link");
 	const allLink = document.getElementById("allFriends-link");
 	const pendingLink = document.getElementById("pendingFriends-link");
@@ -18,7 +18,10 @@ function attachFriendsEventListeners() {
 		
 		document.getElementById("friends-page-main").innerHTML = response.data;
 		if (page === "addFriend"){
-			attachAddFriendsEventListeners()
+			attachAddFriendsEventListeners();
+		}
+		if (page === "suggestedFriends"){
+			attachSuggestedFriendsEven1tListeners();
 		}
 
 	  } catch (error) {

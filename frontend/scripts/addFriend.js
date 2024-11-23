@@ -5,7 +5,7 @@
 		const username = document.getElementById("sendFriendRequestInput").value;
 		try {
 			// Await the axios.post call
-			const response = await axios.post('https://localhost/api/users/friend-request/send/', {
+			const response = await axios.post('https://localhost:8443/api/users/friend-request/send/', {
 				receiver: username
 			},
 			{

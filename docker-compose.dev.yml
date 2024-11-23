@@ -54,7 +54,7 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: HK@12345@42Student
     volumes:
-      - dbdata:/var/lib/postgresql/data
+      - ./dbdata:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "postgres"]
       interval: 10s

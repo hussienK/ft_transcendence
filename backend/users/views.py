@@ -25,6 +25,7 @@ from django.core.validators import validate_email
 from django.contrib.auth.signals import user_logged_in, user_logged_out
 from .permissions import IsVerified
 from rest_framework_simplejwt.tokens import AccessToken
+from django.core.exceptions import ValidationError
 
 User = get_user_model()
 
