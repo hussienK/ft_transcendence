@@ -157,15 +157,28 @@ class DeleteFriendRequestSerializer(serializers.Serializer):
 
 # Serializer for listing friends
 class GetFriendsSerializer(serializers.ModelSerializer):
-    friend = serializers.SerializerMethodField()
+    display_name = serializers.SerializerMethodField()
+    username = serializers.SerializerMethodField()
+    avatar = serializers.SerializerMethodField()
 
     class Meta:
         model = FriendRequest
-        fields = ['id', 'friend', 'created_at']
-        
-    # Determine which user in the friend request is the friend (not the authenticated user)
-    def get_friend(self, obj):
+        fields = ['id', 'display_name', 'username', 'avatar', 'created_at']
+
+    # Get the friend's display name
+    def get_display_name(self, obj):
         request_user = self.context['request'].user
-        if obj.sender == request_user:
-            return obj.receiver.username
-        return obj.sender.username
+        friend_user = obj.receiver if obj.sender == request_user else obj.sender
+        return friend_user.display_name
+
+    # Get the friend's username
+    def get_username(self, obj):
+        request_user = self.context['request'].user
+        friend_user = obj.receiver if obj.sender == request_user else obj.sender
+        return friend_user.username
+
+    # Get the friend's avatar URL
+    def get_avatar(self, obj):
+        request_user = self.context['request'].user
+        friend_user = obj.receiver if obj.sender == request_user else obj.sender
+        return friend_user.avatar.url if friend_user.avatar else None

@@ -3,7 +3,7 @@ from .views import (
     UserRegistrationView, UserProfileView, LoginView, LogoutView, UserDeleteView,
     VerifyEmailView, PasswordResetConfirmView, PasswordResetRequestView,
     SendFriendRequestView, AcceptFriendRequestView, DeclineFriendRequestView,
-    GetFriends, CancelFriendRequestView, DeleteFriendshipView, 
+    GetFriends, CancelFriendRequestView, DeleteFriendshipView, GetFriendsOnline,
     GetSentFriendRequests, GetReceivedFriendRequests, TokenVerifyView
 )
 from rest_framework_simplejwt.views import TokenRefreshView
@@ -34,10 +34,11 @@ urlpatterns = [
     path('friend-request/accept/', AcceptFriendRequestView.as_view(), name='accept_friend_request'),  # Accept a friend request
     path('friend-request/decline/', DeclineFriendRequestView.as_view(), name='decline_friend_request'),  # Decline a friend request
     path('friend-request/cancel/', CancelFriendRequestView.as_view(), name='cancel_friend_request'),  # Cancel a sent friend request
-    path('friend-request/delete/', DeleteFriendshipView.as_view(), name='delete_friendship'),  # Remove a friend
+    path('friends/unfriend/', DeleteFriendshipView.as_view(), name='delete_friendship'),  # Remove a friend
 
     # Friends list and friend request lists
     path('friends/', GetFriends.as_view(), name='friends_list'),  # List all friends
+    path('friends/online/', GetFriendsOnline.as_view(), name='friends_list_online'),  # List all online friends
     path('friend-request/sent/', GetSentFriendRequests.as_view(), name='sent_friendship_list'),  # List sent friend requests
     path('friend-request/received/', GetReceivedFriendRequests.as_view(), name='received_friendship_list'),  # List received friend requests
 ]

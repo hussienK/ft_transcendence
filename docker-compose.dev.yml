@@ -1,8 +1,6 @@
-version: "3.9"
-
 volumes:
-  staticfiles: # Named volume for static files
-  dbdata: # Named volume for database
+  staticfiles:  # Named volume for static files
+  dbdata:       # Named volume for database
   celerybeatdata: # Named volume for Celery Beat data
 
 services:
@@ -21,12 +19,13 @@ services:
     environment:
       - DJANGO_SETTINGS_MODULE=ft_transcendance.settings
     ports:
-      - "8000:8000"  # Expose backend for live updates
+      - "8000:8000"  # Backend port
     volumes:
       - ./backend:/app  # Bind mount backend code for live updates
-      - staticfiles:/app/staticfiles  # Use named volume for static files
+      - staticfiles:/app/staticfiles  # Named volume for static files
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     env_file:
       - .env
     restart: always
@@ -37,11 +36,11 @@ services:
       dockerfile: ./nginx/Dockerfile
     container_name: nginx-server
     ports:
-      - "8080:8080"  # Map HTTP port for testing
-      - "8443:8443"  # Map HTTPS port for testing
+      - "8080:8080"  # HTTP
+      - "8443:8443"  # HTTPS
     volumes:
-      - ./frontend:/usr/share/nginx/html  # Bind mount frontend for live updates
-      - staticfiles:/app/staticfiles  # Use named volume for static files
+      - ./frontend:/usr/share/nginx/html  # Bind mount frontend
+      - staticfiles:/app/staticfiles  # Named volume for static files
     depends_on:
       - backend
     restart: always
@@ -54,7 +53,7 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: HK@12345@42Student
     volumes:
-      - ./dbdata:/var/lib/postgresql/data
+      - dbdata:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "postgres"]
       interval: 10s

@@ -345,7 +345,16 @@ class AcceptFriendRequestView(APIView):
                 return Response({"error": "You can only accept requests sent to you."}, status=status.HTTP_403_FORBIDDEN)
             
             friend_request.accept()
-            return Response({"status": "Friend request accepted"}, status=status.HTTP_200_OK)
+
+            # Fetch the updated list of received friend requests
+            received_requests = FriendRequest.objects.filter(
+                accepted=False, receiver=request.user
+            )
+            response_serializer = GetFriendsSerializer(
+                received_requests, many=True, context={"request": request}
+            )
+
+            return Response({"status": "Friend request accepted", "friends": response_serializer.data}, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -363,7 +372,17 @@ class DeclineFriendRequestView(APIView):
             
             friend_request.delete()
 
-            return Response({"status": "Friend request decline"}, status=status.HTTP_200_OK)
+
+            # Fetch the updated list of received friend requests
+            received_requests = FriendRequest.objects.filter(
+                accepted=False, receiver=request.user
+            )
+            response_serializer = GetFriendsSerializer(
+                received_requests, many=True, context={"request": request}
+            )
+
+
+            return Response({"status": "Friend request decline", "friends": response_serializer.data}, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -380,7 +399,15 @@ class CancelFriendRequestView(APIView):
             
             friend_request.delete()
             
-            return Response({"status": "Friend request cancelled"}, status=status.HTTP_200_OK)
+            # Fetch the updated list of received friend requests
+            sent_requests = FriendRequest.objects.filter(
+                accepted=False, sender=request.user
+            )
+            response_serializer = GetFriendsSerializer(
+                sent_requests, many=True, context={"request": request}
+            )
+            
+            return Response({"status": "Friend request cancelled", "friends": response_serializer.data}, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -403,7 +430,16 @@ class DeleteFriendshipView(APIView):
             # Delete the friendship
             friend_request.delete()
 
-            return Response({"status": "Friendship successfully deleted."}, status=status.HTTP_200_OK)
+            # Fetch the updated list of received friend requests
+            friends = FriendRequest.objects.filter(
+                accepted=False, sender=request.user
+            )
+            response_serializer = GetFriendsSerializer(
+                friends, many=True, context={"request": request}
+            )
+
+
+            return Response({"status": "Friendship successfully deleted.", "friends": response_serializer.data}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 
@@ -415,6 +451,15 @@ class GetFriends(generics.ListAPIView):
         user = self.request.user
         return FriendRequest.objects.filter(
         (Q(sender=user) & Q(accepted=True)) | (Q(receiver=user) & Q(accepted=True)))
+    
+class GetFriendsOnline(generics.ListAPIView):
+    serializer_class = GetFriendsSerializer
+    permission_classes = [permissions.IsAuthenticated, IsVerified]
+
+    def get_queryset(self):
+        user = self.request.user
+        return FriendRequest.objects.filter(
+        (Q(sender=user) & Q(accepted=True)) & Q(is_online=True) | (Q(receiver=user) & Q(accepted=True) & Q(is_online=True)))
     
 
 class GetSentFriendRequests(generics.ListAPIView):

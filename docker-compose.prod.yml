@@ -1,5 +1,3 @@
-version: "3.9"
-
 volumes:
   staticfiles: # Named volume for static files
   dbdata: # Named volume for database
