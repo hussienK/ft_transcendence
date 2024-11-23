@@ -7,7 +7,7 @@ function attachFriendsEventListeners() {
 	const addFriendLink = document.getElementById("addFriendLink");
 
 	const friendsTabs = [onlineLink, allLink, pendingLink, suggestionsLink, addFriendLink];
-  
+	
 	async function loadSection(page) {
 	  try {
 		const response = await axios.get(`./views/${page}.html`, {
@@ -20,10 +20,17 @@ function attachFriendsEventListeners() {
 		if (page === "addFriend"){
 			attachAddFriendsEventListeners();
 		}
-		if (page === "suggestedFriends"){
+		else if (page === "suggestedFriends"){
 			attachSuggestedFriendsEven1tListeners();
 		}
-
+		else if (page === "pendingFriends"){
+			attachPendingFriendsEventListeners();
+		}
+		else if (page === "allFriends"){
+			attachAllFriendsEventListeners();
+		}else {
+			attachOnlineFriendsEventListeners();
+		}
 	  } catch (error) {
 		console.error("Error loading page:", error);
 		document.getElementById("friends-page-main").innerHTML =
@@ -72,4 +79,6 @@ function attachFriendsEventListeners() {
 		setActiveLink(addFriendLink);
 		loadSection("addFriend");
 	  });
+
+	loadSection("onlineFriends")
   }

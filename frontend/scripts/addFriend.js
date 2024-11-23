@@ -1,7 +1,6 @@
  function attachAddFriendsEventListeners(){
 	document.getElementById("sendFriendRequestButton").addEventListener("click", async () => {
-		const token = localStorage.getItem('accessToken');
-		console.log(token)
+
 		const username = document.getElementById("sendFriendRequestInput").value;
 		try {
 			// Await the axios.post call
@@ -10,7 +9,7 @@
 			},
 			{
 				headers: {
-					Authorization: `Bearer ${token}` 
+					Authorization: `Bearer ${localStorage.getItem('accessToken')}`
 				}
 			});
 			showAlert("Friend Request sent Successfully", "success");

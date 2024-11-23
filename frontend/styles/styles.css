@@ -31,3 +31,70 @@ body {
 .btn:focus {
   box-shadow: none; 
 }
+
+
+#suggested-friends-container, #pending-friends-container, #all-friends-container, #online-friends-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 900px;
+  margin-top: 30px;
+}
+
+.friend-suggestion, .pending-friend, .all-friend, .online-friend  {
+  display: flex;
+  align-items: center;
+  align-items: "center";
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: #f9f9f9d7;
+}
+
+
+.friend-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  overflow: hidden;
+  margin-right: 10px;
+}
+
+.friend-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.friend-info {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.friend-info > p {
+  margin: 0;
+}
+
+.friend-displayname {
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.friend-username {
+  font-size: 0.9em;
+  color: #555;
+}
+
+.btn {
+  min-width: 100px;
+}
+.add-friend-btn {
+  margin-left: auto;
+  padding: 5px 10px;
+ 
+}
+
+.cancel-friend-btn {
+  margin-left: auto;
+}

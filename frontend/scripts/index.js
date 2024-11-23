@@ -15,10 +15,10 @@ async function loadPage(page) {
     } 
 
     else {
-      if (!verifyUser()) {
-        window.location.hash = "login";
-        return;
-      }
+      // if (!verifyUser()) {
+      //   window.location.hash = "login";
+      //   return;
+      // }
 
       if (page === "home") {
         attachHomeEventListeners();

@@ -17,6 +17,7 @@ function attachHomeEventListeners() {
       document.getElementById("home-display").innerHTML = response.data;
       if(page === "friends"){
         attachFriendsEventListeners()
+        
       }
     } catch (error) {
       console.error("Error loading page:", error);
