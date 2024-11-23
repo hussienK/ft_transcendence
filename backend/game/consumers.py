@@ -93,3 +93,27 @@ class PongGameConsumer(AsyncWebsocketConsumer):
                 'winner': 'player1' if game_state.score1 >= game_state.winning_score else 'player2'
             }
         )
+
+class MatchmakingConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
+        self.user = self.scope["user"]
+
+        # Create a private group for the user
+        self.user_group_name = f"user_{self.user.username}"
+        await self.channel_layer.group_add(
+            self.user_group_name,
+            self.channel_name
+        )
+        await self.accept()
+
+    async def disconnect(self, close_code):
+        # Leave the private group when the user disconnects
+        await self.channel_layer.group_discard(
+            self.user_group_name,
+            self.channel_name
+        )
+
+    async def send_match_found(self, event):
+        # Send the match details to the user
+        match_data = event["data"]
+        await self.send(text_data=json.dumps(match_data))
