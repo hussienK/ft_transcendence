@@ -25,7 +25,13 @@ function establishWebSocketConnection() {
   };
 
   socket.onmessage = (message) => {
-    // Handle incoming messages from the server
+    // {'type': 'Activity', 'username': user.username, 'display_name': user.display_name, 'message': 'offline'}
+    
+    // if (message.data["type"] === "Activity"){
+    console.log(message)
+      const feedContainer = document.getElementById('live-feeds');
+      feedContainer.innerHTML += `<p>hello</p>`
+    // }
     console.log("Received message:", message.data);
   };
 }

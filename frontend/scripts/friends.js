@@ -10,7 +10,7 @@ function attachFriendsEventListeners() {
 	
 	async function loadSection(page) {
 	  try {
-		const response = await axios.get(`./views/${page}.html`, {
+		const response = await axios.get(`./views/friends/${page}.html`, {
 		  headers: {
 			"Content-Type": "text/html",
 		  },

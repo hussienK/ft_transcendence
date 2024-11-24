@@ -26,6 +26,7 @@ from django.contrib.auth.signals import user_logged_in, user_logged_out
 from .permissions import IsVerified
 from rest_framework_simplejwt.tokens import AccessToken
 from django.core.exceptions import ValidationError
+from .tasks import send_update_to_user_sync
 
 User = get_user_model()
 
@@ -329,6 +330,7 @@ class SendFriendRequestView(generics.CreateAPIView):
 
         friend_request = FriendRequest.objects.create(sender=request.user, receiver=receiver)
         serializer = self.get_serializer(friend_request)
+        send_update_to_user_sync(receiver_username, "HIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIiii")
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 class AcceptFriendRequestView(APIView):
@@ -457,7 +459,7 @@ class GetFriendsOnline(generics.ListAPIView):
     def get_queryset(self):
         user = self.request.user
         return FriendRequest.objects.filter(
-        (Q(sender=user) & Q(accepted=True)) & Q(is_online=True) | (Q(receiver=user) & Q(accepted=True) & Q(is_online=True)))
+        (Q(sender=user) & Q(accepted=True)) | (Q(receiver=user) & Q(accepted=True)))
     
 
 class GetSentFriendRequests(generics.ListAPIView):
