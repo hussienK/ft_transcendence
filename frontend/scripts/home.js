@@ -1,8 +1,6 @@
 function attachHomeEventListeners() {
   const profileLink = document.getElementById("profile-link");
   const friendsLink = document.getElementById("friends-link");
-  const title3Link = document.getElementById("profile-title3Link");
-  const homeDisplay = document.getElementById("home-display");
 
   const navItems = [profileLink, friendsLink];
 
@@ -19,6 +17,11 @@ function attachHomeEventListeners() {
         attachFriendsEventListeners()
         
       }
+
+      if(page === "profile"){
+        attachProfileEventListeners()
+      }
+
     } catch (error) {
       console.error("Error loading page:", error);
       document.getElementById("main-content").innerHTML =

@@ -1,1 +1,135 @@
-<div id="profile-page" class="bg-dark px-0">profile</div>
+<div id="profile-page" class=" p-4" style="
+height: 100%;
+display: flex;
+flex-direction: column;
+background-color: #36393f
+">
+   
+        <div class="row" style="height: 100%;">
+            <div class="col-lg-7">
+                <div id="profile-box" class="bg-light p-4 rounded-3 d-flex flex-column gap-3">
+                    <h1>Profile</h1>
+                    <div class="d-flex flex-column gap-2">
+                        <div class="d-flex text-20">
+                            <strong style="min-width: 160px;">Display Name</strong>
+                            <span id="profile-display_name">john_doe_123</span>
+                        </div>
+                        <div class="d-flex text-20">
+                            <strong style="min-width: 160px;">Username</strong>
+                            <span id="profile-username">john_doe_123</span>
+                        </div>
+                        <div class="d-flex text-20">
+                            <strong style="min-width: 160px;">Email</strong>
+                            <span id="profile-email">john_doe_123@gmail.com</span>
+                        </div>
+                        <div class="d-flex text-20">
+                            <strong style="min-width: 160px;">Bio</strong>
+                            <span id="profile-bio" style="max-width: 80%;">Gamer, programmer, and sports enthusiast. Always up for a challenge!</span>
+                        </div>
+                    </div>
+                </div>
+                <div id="stats-box" class="bg-light p-4 rounded-3 gap-3 mt-4">
+                    <h1>Stats</h1>
+                    <div class="d-flex align-items-center">
+                        <div class="stats" style="width: 40%;">
+                          
+                            <div class="d-flex flex-column gap-3" >
+                                <div class="d-flex text-20">
+                                    <strong style="min-width: 190px;">Total Games</strong>
+                                    <span id="profile-total_games">256</span>
+                                </div>
+                                <div class="d-flex text-20">
+                                    <strong style="min-width: 190px;">Games Won</strong>
+                                    <span id="profile-games_Won">182</span>
+                                </div>
+                                <div class="d-flex text-20">
+                                    <strong style="min-width: 190px;">Games Lost</strong>
+                                    <span id="profile-games_lost">55</span>
+                                </div>
+                                <div class="d-flex text-20">
+                                    <strong style="min-width: 190px;">Points Scored</strong>
+                                    <span id="profile-points_scored">2167</span>
+                                </div>
+                                <div class="d-flex text-20">
+                                    <strong style="min-width: 190px;">Points Conceded</strong>
+                                    <span id="profile-points_conceded">817</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="progress-container" style="width: 30%; text-align: center;">
+                            <canvas id="progressCanvas1" width="200" height="200"></canvas>
+                            <div class="percentage-text" id="percentageText1">80%</div>
+                            <div class="progress-title">Win Ratio %</div>
+                        </div>
+                        <div class="progress-container" style="width: 30%; text-align: center;">
+                            <canvas id="progressCanvas2" width="200" height="200"></canvas>
+                            <div class="percentage-text" id="percentageText2">60%</div>
+                            <div class="progress-title">Points Ratio %</div>
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="col-lg-5">
+                <!-- You can add more content here, or leave it empty -->
+                <div id="history-box" class="bg-light p-4 rounded-3 d-flex flex-column gap-3" style="height: 60%;">
+                    <h1>Match History</h1>
+                    <div class="d-flex flex-column gap-2">
+                        <div id="opponent-card" class="d-flex gap-2">
+                            <div class="friend-avatar">
+                                <img src="./avatar2.png" alt="avatar">
+                            </div>
+                            <div class="friend-info">
+                                <p class="friend-displayname">hussein</p>
+                                <p class="friend-username">3 Days Ago</p>
+                            </div>
+                            <div style="margin-left: auto; width: 75px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                                <div style="background-color: rgb(37, 168, 37); display: flex; justify-content: center; align-items: center; width: 100%; color: white; font-size: 16px; font-weight: 600; border-top-left-radius: 5px; border-top-right-radius: 5px ;">
+                                    Won
+                                </div>
+                                <div style="display: flex; justify-content: center; align-items: center;">
+                                    15 - 7
+                                </div>
+                            </div>
+                        </div>
+                        <div id="opponent-card" class="d-flex gap-2">
+                            <div class="friend-avatar">
+                                <img src="./avatar2.png" alt="avatar">
+                            </div>
+                            <div class="friend-info">
+                                <p class="friend-displayname">hussein</p>
+                                <p class="friend-username">4 Days Ago</p>
+                            </div>
+                            <div style="margin-left: auto; width: 75px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                                <div style="background-color: rgb(37, 168, 37); display: flex; justify-content: center; align-items: center; width: 100%; color: white; font-size: 16px; font-weight: 600; border-top-left-radius: 5px; border-top-right-radius: 5px ;">
+                                    Won
+                                </div>
+                                <div style="display: flex; justify-content: center; align-items: center;">
+                                    15 - 7
+                                </div>
+                            </div>
+                        </div>
+                        <div id="opponent-card" class="d-flex gap-2">
+                            <div class="friend-avatar">
+                                <img src="./avatar2.png" alt="avatar">
+                            </div>
+                            <div class="friend-info">
+                                <p class="friend-displayname">hussein</p>
+                                <p class="friend-username">9 Days Ago</p>
+                            </div>
+                            <div style="margin-left: auto; width: 75px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                                <div style="background-color: red; display: flex; justify-content: center; align-items: center; width: 100%; color: white; font-size: 16px; font-weight: 600; border-top-left-radius: 5px; border-top-right-radius: 5px ;">
+                                    Loss
+                                </div>
+                                <div style="display: flex; justify-content: center; align-items: center;">
+                                    8 - 12
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    
+</div>

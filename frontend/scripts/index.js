@@ -1,3 +1,4 @@
+
 async function loadPage(page) {
   try {
     const response = await axios.get(`./views/${page}.html`, {
