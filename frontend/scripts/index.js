@@ -1,4 +1,37 @@
+let socket = null;  // Global variable to store the WebSocket connection
 
+// Function to create a new WebSocket connection
+function establishWebSocketConnection() {
+  const ws_scheme = window.location.protocol === "https:" ? "ws" : "ws";
+  const ws_path = `${ws_scheme}://localhost:8080/ws/updates/?token=${localStorage.getItem('accessToken')}`;
+
+  if (socket) {
+    socket.close();  // Close any existing connection
+  }
+
+  socket = new WebSocket(ws_path);
+
+  // Add event listeners for WebSocket connection
+  socket.onopen = () => {
+    console.log("WebSocket connection established.");
+  };
+
+  socket.onclose = (event) => {
+    console.log("WebSocket connection closed", event);
+  };
+
+  socket.onerror = (error) => {
+    console.error("WebSocket error:", error);
+  };
+
+  socket.onmessage = (message) => {
+    // Handle incoming messages from the server
+    console.log("Received message:", message.data);
+  };
+}
+
+
+        
 async function loadPage(page) {
   try {
     const response = await axios.get(`./views/${page}.html`, {
@@ -31,6 +64,7 @@ async function loadPage(page) {
       if (page === 'lobby'){
         attachLobbyEventListeners();
       }
+      establishWebSocketConnection();
     }
   } catch (error) {
     console.error("Error loading page:", error);
