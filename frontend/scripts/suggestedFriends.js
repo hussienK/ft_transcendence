@@ -10,12 +10,12 @@ function populateSuggestedFriendsUI(friends) {
                 <img src="./avatar2.png" alt="${"a"}'s avatar">
             </div>
             <div class="friend-info">
-                <p class="friend-displayname">${friend.displayname}</p>
+                <p class="friend-displayname">${friend.display_name}</p>
                 <p class="friend-username">${friend.username}</p>
             </div>
 			<div style="margin-left: auto;">
-			 <button class="btn btn-danger decline-friend-btn" data-id="${friend.friend_request_id}">Decline</button>
-             <button class="btn btn-success add-friend-btn" data-id="${friend.friend_request_id}">Accept</button>
+			 <button class="btn btn-danger decline-friend-btn" data-id="${friend.id}">Decline</button>
+             <button class="btn btn-success add-friend-btn" data-id="${friend.id}">Accept</button>
 			<div>
         `;
         container.appendChild(friendElement);
@@ -63,27 +63,27 @@ function populateSuggestedFriendsUI(friends) {
     });
 }
 
-const dummyFriendSuggestions = [
-	{username: "John Doe1", displayname: "John Doe1", friend_request_id: 1, avatar: ""},
-	{username: "John Doe2", displayname: "John Doe2", friend_request_id: 2, avatar: ""},
-	{username: "John Doe3", displayname: "John Doe3", friend_request_id: 3, avatar: ""},
-	{username: "John Doe4", displayname: "John Doe4", friend_request_id: 4, avatar: ""},
-	{username: "John Doe5", displayname: "John Doe5", friend_request_id: 5, avatar: ""}
-]
+// const dummyFriendSuggestions = [
+// 	{username: "John Doe1", displayname: "John Doe1", friend_request_id: 1, avatar: ""},
+// 	{username: "John Doe2", displayname: "John Doe2", friend_request_id: 2, avatar: ""},
+// 	{username: "John Doe3", displayname: "John Doe3", friend_request_id: 3, avatar: ""},
+// 	{username: "John Doe4", displayname: "John Doe4", friend_request_id: 4, avatar: ""},
+// 	{username: "John Doe5", displayname: "John Doe5", friend_request_id: 5, avatar: ""}
+// ]
 async function attachSuggestedFriendsEven1tListeners(){
 	
 	 async function fetchFriendSuggestions() {
 		const token = localStorage.getItem('accessToken');
 	
 		try {
-			// const response = await axios.get('https://localhost:8443/api/users/friend-request/received/',
-			// {
-			// 	headers: {
-			// 		Authorization: `Bearer ${token}` 
-			// 	}
-			// });
-			// return response.data;
-			return dummyFriendSuggestions;
+			const response = await axios.get('https://localhost:8443/api/users/friend-request/received/',
+			{
+				headers: {
+					Authorization: `Bearer ${token}` 
+				}
+			});
+			return response.data;
+			// return dummyFriendSuggestions;
 		} catch (error) {
 		
 			showAlert(error.response?.data?.error || "An error occurred", "danger");

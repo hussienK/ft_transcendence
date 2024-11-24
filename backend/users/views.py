@@ -71,9 +71,7 @@ class UserRegistrationView(APIView):
 
             # Generate Verify Email and sends the email
             token = default_token_generator.make_token(user)
-            verification_url = request.build_absolute_uri(
-                reverse('email-verify', args=[user.pk, token])
-            )
+            verification_url = f"{request.scheme}://{request.get_host().split(':')[0]}:8443{reverse('email-verify', args=[user.pk, token])}"
             # only if in development
             print("Email Verify Link: ", {verification_url})
             send_mail(
@@ -417,7 +415,7 @@ class DeleteFriendshipView(APIView):
     """
     permission_classes = [permissions.IsAuthenticated, IsVerified]
 
-    def delete(self, request):
+    def post(self, request):
         serializer = DeleteFriendRequestSerializer(data=request.data)
         if serializer.is_valid():
             # Get the friend user by username

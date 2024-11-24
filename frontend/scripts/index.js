@@ -15,10 +15,10 @@ async function loadPage(page) {
     } 
 
     else {
-      // if (!verifyUser()) {
-      //   window.location.hash = "login";
-      //   return;
-      // }
+      if (!verifyUser()) {
+        window.location.hash = "login";
+        return;
+      }
 
       if (page === "home") {
         attachHomeEventListeners();
@@ -26,6 +26,9 @@ async function loadPage(page) {
         attachGameEventListeners();
       }else if (page === 'game2'){
         attachGameEventListeners2();
+      }
+      if (page === 'lobby'){
+        attachLobbyEventListeners();
       }
     }
   } catch (error) {

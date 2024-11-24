@@ -10,12 +10,12 @@ function populateAllFriendsUI(friends) {
                 <img src="./avatar2.png" alt="${"a"}'s avatar">
             </div>
             <div class="friend-info">
-                <p class="friend-displayname">${friend.displayname}</p>
+                <p class="friend-displayname">${friend.display_name}</p>
                 <p class="friend-username">${friend.username}</p>
             </div>
 			<div style="margin-left: auto;">
-            <button class="btn btn-primary viewProfile-btn" data-id="${friend.username}">Profile</button>
-			 <button class="btn btn-danger unFriend-btn" data-id="${friend.username}">UnFriend</button>
+            <button class="btn btn-primary viewProfile-btn" data-id="${friend.id}">Profile</button>
+			 <button class="btn btn-danger unFriend-btn" data-id="${friend.id}">UnFriend</button>
 			<div>
         `;
         container.appendChild(friendElement);
@@ -26,9 +26,9 @@ function populateAllFriendsUI(friends) {
 
     profileButtons.forEach(button => {
         button.addEventListener('click', async (e) => {
-            const friendUsername = e.target.getAttribute('data-id');
+            const friendRequestId = e.target.getAttribute('data-id');
             try {
-                const response = await axios.get(`https://localhost:8443/api/users/profile/${friendUsername}/`, {
+                const response = await axios.get(`https://localhost:8443/api/users/profile/${friendRequestId}/`, {
                     headers: {
                         Authorization: `Bearer ${localStorage.getItem('accessToken')}`
                     }
@@ -47,12 +47,12 @@ function populateAllFriendsUI(friends) {
                 const response = await axios.post('https://localhost:8443/api/users/friends/unfriend/', {
                     friend_request_id: friendRequestId
                 }, {
-                    headers: {
+					headers: {
                         Authorization: `Bearer ${localStorage.getItem('accessToken')}`
                     }
-                });
-                showAlert('unfriended successfully!', 'warning');
-                e.target.closest('.friend-suggestion').remove();
+				});
+                showAlert('unfriended successfully!', 'success');
+                e.target.closest('.all-friend').remove();
             } catch (error) {
                 showAlert(error.response?.data?.error || "An error occurred", 'danger');
             }
@@ -60,28 +60,27 @@ function populateAllFriendsUI(friends) {
     });
 }
 
-const dummyAllFriends = [
-	{username: "John Doe1", displayname: "John Doe1",  avatar: ""},
-	{username: "John Doe2", displayname: "John Doe2",  avatar: ""},
-	{username: "John Doe3", displayname: "John Doe3",  avatar: ""},
-	{username: "John Doe4", displayname: "John Doe4",  avatar: ""},
-    {username: "John Doe5", displayname: "John Doe3",  avatar: ""},
-	{username: "John Doe6", displayname: "John Doe4",  avatar: ""},
-]
+// const dummyAllFriends = [
+// 	{username: "John Doe1", displayname: "John Doe1",  avatar: ""},
+// 	{username: "John Doe2", displayname: "John Doe2",  avatar: ""},
+// 	{username: "John Doe3", displayname: "John Doe3",  avatar: ""},
+// 	{username: "John Doe4", displayname: "John Doe4",  avatar: ""},
+//     {username: "John Doe5", displayname: "John Doe3",  avatar: ""},
+// 	{username: "John Doe6", displayname: "John Doe4",  avatar: ""},
+// ]
 async function attachAllFriendsEventListeners(){
 	
 	 async function fetchAllFriends() {
 	
 		try {
-	
-			// const response = await axios.get('https://localhost:8443/api/users/friends/',
-			// 	{
-            //         headers: {
-            //             Authorization: `Bearer ${localStorage.getItem('accessToken')}`
-            //         }
-            //     });
-			// return response.data;
-			return dummyAllFriends;
+			const response = await axios.get('https://localhost:8443/api/users/friends/',
+				{
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+                    }
+                });
+			return response.data;
+			// return dummyAllFriends;
 		} catch (error) {
 		
 			showAlert(error.response?.data?.error || "An error occurred", "danger");
