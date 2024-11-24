@@ -6,13 +6,49 @@ from datetime import timedelta
 from django.utils.deprecation import MiddlewareMixin
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.utils.timezone import now
+from users.models import FriendRequest, User
+from django.db.models import Q
+
+from channels.layers import get_channel_layer
+channel_layer = get_channel_layer()
+from asgiref.sync import async_to_sync
+
+def send_message_to_friends(user, data):
+    friends = FriendRequest.objects.filter(
+        (Q(sender=user) & Q(accepted=True)))
+    for friend in friends:
+        send_update_to_user_sync(friend.receiver.username, data)
+    friends = FriendRequest.objects.filter(
+        (Q(receiver=user) & Q(accepted=True)))
+    for friend in friends:
+        send_update_to_user_sync(friend.sender.username, data)
+
+def send_update_to_user_sync(username, data):
+    # Wrap the async function with async_to_sync
+    async_to_sync(send_update_to_user)(username, data)
+
+async def send_update_to_user(username, data):
+    user_group_name = f"user_{username}"
+    await channel_layer.group_send(
+        user_group_name,
+        {
+            "type": "send_update",
+            "data": data,
+        }
+    )
 
 # The task that marks the user offline if they've been inactive for a ceretain time, called by celery
 @shared_task
 def mark_users_offline():
-    from .models import User
     timeout = timezone.now() - timedelta(minutes=1)
-    User.objects.filter(last_activity__lt=timeout, is_online=True).update(is_online=False)
+    
+    # Fetch users who are online but have been inactive
+    inactive_users = User.objects.filter(last_activity__lt=timeout, is_online=True)
+    
+    for user in inactive_users:
+        user.is_online = False
+        send_message_to_friends(user, {'type': 'Activity', 'username': user.username, 'display_name': user.display_name, 'message': 'offline'})
+        user.save()
 
 # A custom middleware to update user's online status on any activity with their token in it, Has a timer to make sure we aren't innefcient with db requests.
 class UpdateLastActivityMiddleware:
@@ -27,6 +63,9 @@ class UpdateLastActivityMiddleware:
                 time_threshold = timezone.now() - timedelta(seconds=30)
                 if user.last_activity is None or user.last_activity < time_threshold:
                     user.last_activity = now()
+                    if user.is_online == False:
+                        send_message_to_friends(user, {'type': 'Activity', 'username': user.username, 'display_name': user.display_name, 'message': 'online'})
+
                     user.is_online = True
                     user.save()
         except:
