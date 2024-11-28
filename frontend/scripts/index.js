@@ -1,5 +1,52 @@
 let socket = null;  // Global variable to store the WebSocket connection
 
+function renderFeedMessage(message_formatted){
+  const feedContainer = document.getElementById('live-feeds');
+  feedContainer.innerHTML += `<p>`
+  if (message_formatted.sender_username !== "NULL"){
+    feedContainer.innerHTML += `<b>${message_formatted.sender_username} </b>`;
+  }
+  if (message_formatted.sender_displayname !== "NULL"){
+    feedContainer.innerHTML += `<b>(${message_formatted.sender_displayname}):</b> `;
+  }
+  feedContainer.innerHTML += message_formatted.info;
+  feedContainer.innerHTML += `<\p>`
+}
+
+async function fetchFeed() {
+  try {
+      const response = await axios.get('https://localhost:8443/api/users/feed-updates/',
+          {
+              headers: {
+                  Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+              }
+          });
+      return response.data;
+  } catch (error) {
+      console.log(error.response?.data?.error || "An error occurred", "danger");
+  }
+}
+
+async function renderFeed(){
+  const data = await fetchFeed();
+  if (data)
+  {
+    data.forEach(element => {
+      // console.log(element);
+      // const message_formatted = JSON.parse(element);
+      renderFeedMessage(element);
+    });
+  }
+}
+
+function joinMatch(messageFormatted) {
+  const roomName = messageFormatted.session_id; // Extract data from the WebSocket message
+  const player = messageFormatted.player;
+  loadPage('game').then(() => {
+      attachGameEventListeners(roomName, player); // Pass parameters to game event listeners
+  });
+}
+
 // Function to create a new WebSocket connection
 function establishWebSocketConnection() {
   const ws_scheme = window.location.protocol === "https:" ? "ws" : "ws";
@@ -25,13 +72,14 @@ function establishWebSocketConnection() {
   };
 
   socket.onmessage = (message) => {
-    // {'type': 'Activity', 'username': user.username, 'display_name': user.display_name, 'message': 'offline'}
-    
-    // if (message.data["type"] === "Activity"){
-    console.log(message)
-      const feedContainer = document.getElementById('live-feeds');
-      feedContainer.innerHTML += `<p>hello</p>`
-    // }
+    const message_formatted = JSON.parse(message.data);
+    if (message_formatted.type === 'feed')
+    {
+      renderFeedMessage(message_formatted);
+    } else if (message_formatted.type === 'match_found')
+    {
+      joinMatch(message_formatted);
+    }
     console.log("Received message:", message.data);
   };
 }
@@ -62,15 +110,16 @@ async function loadPage(page) {
 
       if (page === "home") {
         attachHomeEventListeners();
-      }    else if (page === 'game'){
-        attachGameEventListeners();
-      }else if (page === 'game2'){
-        attachGameEventListeners2();
       }
       if (page === 'lobby'){
         attachLobbyEventListeners();
       }
+      if (page === "home" || page === 'lobby')
+      {
+        await renderFeed();
+      }
       establishWebSocketConnection();
+
     }
   } catch (error) {
     console.error("Error loading page:", error);

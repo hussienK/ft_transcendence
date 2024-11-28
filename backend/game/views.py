@@ -57,14 +57,14 @@ class JoinQueueView(APIView):
             channel_layer = get_channel_layer()
             game_ws_url = f"/ws/game/{session_id}/"
             match_data_player1 = {
-                'status': 'match_found',
+                'type': 'match_found',
                 'session_id': session_id,
                 'player': 'player1',
                 'opponent': player2.username,
                 'game_ws_url': game_ws_url,
             }
             match_data_player2 = {
-                'status': 'match_found',
+                'type': 'match_found',
                 'session_id': session_id,
                 'player': 'player2',
                 'opponent': player1.username,
@@ -90,10 +90,7 @@ class JoinQueueView(APIView):
             )
 
             return Response({
-                'status': 'match_found',
-                'session_id': session_id,
-                'player': 'player1',
-                'game_ws_url': game_ws_url,
+                'status': 'match_found'
             }, status=status.HTTP_200_OK)
 
         return Response(

@@ -2,7 +2,7 @@ from rest_framework import serializers
 from django.contrib.auth import get_user_model, authenticate
 from django.contrib.auth.password_validation import validate_password
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from .models import TranscendenceUser, FriendRequest
+from .models import TranscendenceUser, FriendRequest, FeedUpdate
 from django.conf import settings
 
 User = get_user_model()
@@ -182,3 +182,9 @@ class GetFriendsSerializer(serializers.ModelSerializer):
         request_user = self.context['request'].user
         friend_user = obj.receiver if obj.sender == request_user else obj.sender
         return friend_user.avatar.url if friend_user.avatar else None
+
+
+class FeedUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FeedUpdate
+        fields = ['sender_username', 'sender_displayname', 'info', 'created_at']

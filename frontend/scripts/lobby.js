@@ -1,6 +1,5 @@
 function attachLobbyEventListeners() {
 	const API_BASE_URL = 'https://localhost:8443/api/game';
-    const WEBSOCKET_URL = 'ws://localhost:8080/ws/matchmaking';
     let websocket = null;
     let isConnected = false;
 
@@ -18,7 +17,6 @@ function attachLobbyEventListeners() {
         // Join the game queue
         try {
           await joinGameQueue(token);
-          openWebSocket(token);
           connectButton.textContent = 'Cancel Connection';
           isConnected = true;
         } catch (error) {
@@ -29,7 +27,6 @@ function attachLobbyEventListeners() {
         // Leave the game queue
         try {
           await leaveGameQueue(token);
-          closeWebSocket();
           connectButton.textContent = 'Connect to Game';
           isConnected = false;
         } catch (error) {
@@ -67,31 +64,4 @@ function attachLobbyEventListeners() {
       }
     }
 
-    function openWebSocket(token) {
-      websocket = new WebSocket(`${WEBSOCKET_URL}/?token=${token}`);
-
-      websocket.onopen = () => {
-        console.log('WebSocket connection opened');
-      };
-
-      websocket.onmessage = (event) => {
-        console.log('Message from server:', event.data);
-      };
-
-      websocket.onclose = () => {
-        console.log('WebSocket connection closed');
-      };
-
-      websocket.onerror = (error) => {
-        console.error('WebSocket error:', error);
-      };
-    }
-
-    function closeWebSocket() {
-      if (websocket) {
-        websocket.close();
-        websocket = null;
-        console.log('WebSocket connection closed');
-      }
-    }
 }

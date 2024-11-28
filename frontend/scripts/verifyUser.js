@@ -25,7 +25,7 @@ async function verifyUser() {
 
     try {
       const refreshResponse = await axios.post(
-        "http://localhost:8443/api/users/token/refresh/",
+        "https://localhost:8443/api/users/token/refresh/",
         {
           refresh: refreshToken,
         }

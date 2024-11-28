@@ -4,7 +4,8 @@ from .views import (
     VerifyEmailView, PasswordResetConfirmView, PasswordResetRequestView,
     SendFriendRequestView, AcceptFriendRequestView, DeclineFriendRequestView,
     GetFriends, CancelFriendRequestView, DeleteFriendshipView, GetFriendsOnline,
-    GetSentFriendRequests, GetReceivedFriendRequests, TokenVerifyView
+    GetSentFriendRequests, GetReceivedFriendRequests, TokenVerifyView,
+	FeedUpdateView
 )
 from rest_framework_simplejwt.views import TokenRefreshView
 
@@ -41,4 +42,7 @@ urlpatterns = [
     path('friends/online/', GetFriendsOnline.as_view(), name='friends_list_online'),  # List all online friends
     path('friend-request/sent/', GetSentFriendRequests.as_view(), name='sent_friendship_list'),  # List sent friend requests
     path('friend-request/received/', GetReceivedFriendRequests.as_view(), name='received_friendship_list'),  # List received friend requests
+	
+    # Feed Updates
+	path('feed-updates/', FeedUpdateView.as_view(), name='feed-updates'),
 ]

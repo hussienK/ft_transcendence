@@ -5,191 +5,107 @@ from .game_state import GameState
 
 # Dictionary to store game loops and game states for each game
 game_loops = {}
-game_states = {}
 input_queues = {}
-
 class PongGameConsumer(AsyncWebsocketConsumer):
+    game_states = {}
+
     async def connect(self):
-        self.game_id = self.scope['url_route']['kwargs']['room_name']
-        self.game_group_name = f"game_{self.game_id}"
-
-        # Add the WebSocket connection to the group
-        try:
-            await self.channel_layer.group_add(
-                self.game_group_name,
-                self.channel_name
-            )
-            await self.accept()
-            print(f"User connected to game group {self.game_group_name}.")
-        except Exception as e:
-            print(f"Error adding user to game group {self.game_group_name}: {e}")
-            await self.close()
-            return
-
-        # Initialize game state, input queue, and game loop if they don't exist
-        if self.game_id not in game_states:
-            game_states[self.game_id] = GameState(self.game_id)
-            input_queues[self.game_id] = asyncio.Queue()
-            game_loops[self.game_id] = asyncio.create_task(
-                self.game_loop(game_states[self.game_id], input_queues[self.game_id])
-            )
-            print(f"Initialized game state and loop for game {self.game_id}.")
-
-        # Attach the existing game state to this consumer instance
-        self.game_state = game_states[self.game_id]
-
-    async def disconnect(self, close_code):
-        # Remove the WebSocket connection from the group
-        try:
-            await self.channel_layer.group_discard(
-                self.game_group_name,
-                self.channel_name
-            )
-            print(f"User disconnected from game group {self.game_group_name}.")
-        except Exception as e:
-            print(f"Error removing user from game group {self.game_group_name}: {e}")
-
-        # Clean up game state, input queue, and loop if no more players are connected
-        group = self.channel_layer.groups.get(self.game_group_name, set())
-        if not group:
-            if self.game_id in game_loops:
-                game_loops[self.game_id].cancel()
-                del game_loops[self.game_id]
-                print(f"Cancelled game loop for game {self.game_id}.")
-            if self.game_id in game_states:
-                del game_states[self.game_id]
-                print(f"Deleted game state for game {self.game_id}.")
-            if self.game_id in input_queues:
-                del input_queues[self.game_id]
-                print(f"Deleted input queue for game {self.game_id}.")
-
-    async def receive(self, text_data):
-        try:
-            data = json.loads(text_data)
-            player = data.get("player")  # "player1" or "player2"
-            direction = data.get("direction")  # "up" or "down"
-
-            if player not in ['player1', 'player2']:
-                print(f"Invalid player identifier: {player}")
-                return
-
-            if direction not in ['up', 'down']:
-                print(f"Invalid direction input: {direction}")
-                return
-
-            # Add the input to the queue for the game loop to process
-            await input_queues[self.game_id].put((player, direction))
-            print(f"Received input from {player}: {direction}")
-        except json.JSONDecodeError:
-            print("Received invalid JSON data.")
-        except Exception as e:
-            print(f"Error processing received data: {e}")
-
-    async def send_game_state(self, event):
-        try:
-            await self.send(text_data=json.dumps(event["game_state"]))
-            print(f"Sent game state to clients: {event['game_state']}")
-        except Exception as e:
-            print(f"Error sending game state: {e}")
-
-    async def game_loop(self, game_state, input_queue):
-        game_state.game_is_active = True
-        try:
-            while game_state.game_is_active:
-                # Process all inputs in the queue
-                while not input_queue.empty():
-                    player, direction = await input_queue.get()
-                    game_state.update_paddle(player, direction)
-                    print(f"Updated paddle for {player}: {direction}")
-
-                # Update ball position
-                game_state.update_ball_position()
-                print("Updated ball position.")
-
-                # Broadcast the updated game state to all players
-                await self.channel_layer.group_send(
-                    self.game_group_name,
-                    {
-                        "type": "send_game_state",
-                        "game_state": game_state.to_dict(),
-                    }
-                )
-
-                # Run the loop at 60 FPS
-                await asyncio.sleep(1 / 60)
-        except asyncio.CancelledError:
-            print(f"Game loop for {self.game_id} has been cancelled.")
-        except Exception as e:
-            print(f"Error in game loop for {self.game_id}: {e}")
-            game_state.game_is_active = False
-        finally:
-            # Notify players that the game is over
-            winner = 'player1' if game_state.score1 >= game_state.winning_score else 'player2'
-            await self.channel_layer.group_send(
-                self.game_group_name,
-                {
-                    'type': 'game_over',
-                    'winner': winner
-                }
-            )
-            print(f"Game {self.game_id} over. Winner: {winner}")
-
-    async def game_over(self, event):
-        try:
-            winner = event["winner"]
-            await self.send(text_data=json.dumps({'game_over': True, 'winner': winner}))
-            print(f"Sent game over notification to clients: Winner - {winner}")
-        except Exception as e:
-            print(f"Error sending game over notification: {e}")
-
-
-
-class MatchmakingConsumer(AsyncWebsocketConsumer):
-    async def connect(self):
+        self.room_name = self.scope['url_route']['kwargs']['room_name']
+        self.room_group_name = f'game_{self.room_name}'
         self.user = self.scope["user"]
-        if self.user.is_authenticated:
-            print(f"Authenticated user: {self.user.username}")
+        
+        # Join room group
+        await self.channel_layer.group_add(
+            self.room_group_name,
+            self.channel_name
+        )
+
+        # Initialize or retrieve GameState
+        if self.room_name not in self.game_states:
+            self.game_states[self.room_name] = GameState(
+                game_id=self.room_name,
+                channel_layer=self.channel_layer,
+                group_name=self.room_group_name
+            )
+        
+        self.game_state = self.game_states[self.room_name]
+        self.game_state.players_ready += 1
+
+        if not self.game_state.player1:
+            self.game_state.player1 = self.user
+            self.player = 'player1'
+        elif not self.game_state.player2:
+            self.game_state.player2 = self.user
+            self.player = 'player2'
         else:
             await self.close()
-            print("Unauthenticated connection rejected.")
             return
 
-        self.user_group_name = f"user_{self.user.username}"
 
-        try:
-            await self.channel_layer.group_add(
-                self.user_group_name,
-                self.channel_name
-            )
-            await self.accept()
-            print(f"User {self.user.username} connected to MatchmakingConsumer.")
-        except Exception as e:
-            print(f"Error connecting user {self.user.username} to group: {e}")
-            await self.close()
+        if self.game_state.players_ready >= 2 and not self.game_state.game_is_active:
+            self.game_state.start_game()
+
+        await self.accept()
 
     async def disconnect(self, close_code):
-            # try:
-                await self.channel_layer.group_discard(
-                    self.user_group_name,
-                    self.channel_name
-                )
-                print(f"User {self.user.username} disconnected from MatchmakingConsumer.")
+        # Leave room group
+        await self.channel_layer.group_discard(
+            self.room_group_name,
+            self.channel_name
+        )
 
-            #     # Remove user from matchmaking queue if present
-            #     async with matchmaking_lock:
-            #         if self.user in matchmaking_queue:
-            #             matchmaking_queue.remove(self.user)
-            #             print(f"User {self.user.username} removed from matchmaking queue due to disconnection.")
-            # except Exception as e:
-            #     print(f"Error during disconnection of user {self.user.username}: {e}")
+        self.game_state.players_ready -= 1
 
-    async def send_match_found(self, event):
-        try:
-            match_data = event["data"]
-            await self.send(text_data=json.dumps(match_data))
-            print(f"Sent match found data to {self.user.username}: {match_data}")
-        except Exception as e:
-            print(f"Error sending match found to {self.user.username}: {e}")
+        if self.user == self.game_state.player1:
+            self.game_state.player1 = None
+            winner = self.game_state.player2
+            loser = self.user
+        elif self.user == self.game_state.player2:
+            self.game_state.player2 = None
+            winner = self.game_state.player1
+            loser = self.user
+        else:
+            winner = None
+            loser = None
+
+        if self.game_state.players_ready < 2:
+            self.game_state.stop_game()
+
+            # Set the winner if there is one
+            if winner and loser:
+                await self.game_state.broadcast_final_state()
+
+    # Receive message from WebSocket
+    async def receive(self, text_data):
+        data = json.loads(text_data)
+        player = data.get('player')
+        direction = data.get('direction')
+
+        if player and direction:
+            # Update paddle position
+            self.game_state.update_paddle(player, direction)
+
+    # Send game state to WebSocket
+    async def send_game_state(self):
+        game_state_dict = self.game_state.to_dict()
+        await self.send(text_data=json.dumps(game_state_dict))
+
+    # Periodically send game state updates to all clients
+    async def game_loop_broadcast(self):
+        while self.game_state.game_is_active:
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    'type': 'broadcast_game_state',
+                    'game_state': self.game_state.to_dict()
+                }
+            )
+            await asyncio.sleep(0.016)  # ~60 times per second
+
+    # Handler for broadcasting game state
+    async def broadcast_game_state(self, event):
+        game_state = event['game_state']
+        await self.send(text_data=json.dumps(game_state))
 
 
 class UpdatesConsumer(AsyncWebsocketConsumer):
@@ -228,3 +144,11 @@ class UpdatesConsumer(AsyncWebsocketConsumer):
     async def send_update(self, event):
         # Send data to the client
         await self.send(text_data=json.dumps(event["data"]))
+
+    async def send_match_found(self, event):
+        try:
+            match_data = event["data"]
+            await self.send(text_data=json.dumps(match_data))
+            print(f"Sent match found data to {self.user.username}: {match_data}")
+        except Exception as e:
+            print(f"Error sending match found to {self.user.username}: {e}")

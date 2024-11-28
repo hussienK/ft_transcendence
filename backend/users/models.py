@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth import get_user_model
 from django.utils import timezone
+from django.utils.timezone import now
 
 # The Basic user model for our website
 class TranscendenceUser(AbstractUser):
@@ -47,3 +48,14 @@ class FriendRequest(models.Model):
         self.delete()
 
 User.add_to_class('friends', models.ManyToManyField('self', symmetrical=True, blank=True))
+
+
+class FeedUpdate(models.Model):
+    user = models.TextField()
+    sender_username = models.TextField()
+    sender_displayname = models.TextField()
+    info = models.TextField()
+    created_at = models.DateTimeField(default=now)
+
+    class Meta:
+        ordering = ['created_at']  # Latest updates first

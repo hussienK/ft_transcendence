@@ -6,7 +6,7 @@ from rest_framework.permissions import AllowAny
 from django.contrib.auth import get_user_model, authenticate
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken
-from .serializers import CustomTokenObtainPairSerializer, FriendRequestSerializer, AcceptFriendRequestSerializer, DeleteFriendRequestSerializer, GetFriendsSerializer
+from .serializers import CustomTokenObtainPairSerializer, FriendRequestSerializer, AcceptFriendRequestSerializer, DeleteFriendRequestSerializer, GetFriendsSerializer, FeedUpdateSerializer
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.urls import reverse
@@ -18,7 +18,7 @@ from django.utils import timezone
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.utils.encoding import force_bytes, force_str
 from django.contrib.auth.password_validation import validate_password
-from .models import TranscendenceUser, FriendRequest
+from .models import TranscendenceUser, FriendRequest, FeedUpdate
 from django.db.models import Q
 import re
 from django.core.validators import validate_email
@@ -330,7 +330,7 @@ class SendFriendRequestView(generics.CreateAPIView):
 
         friend_request = FriendRequest.objects.create(sender=request.user, receiver=receiver)
         serializer = self.get_serializer(friend_request)
-        send_update_to_user_sync(receiver_username, "HIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIiii")
+        send_update_to_user_sync(receiver_username, {"type": "feed", "sender_username": request.user.username, "sender_displayname": request.user.display_name, "info": "Sent you a friend request"})
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 class AcceptFriendRequestView(APIView):
@@ -353,9 +353,8 @@ class AcceptFriendRequestView(APIView):
             response_serializer = GetFriendsSerializer(
                 received_requests, many=True, context={"request": request}
             )
-
+            send_update_to_user_sync(friend_request.sender, {"type": "feed", "sender_username": friend_request.receiver.username, "sender_displayname": friend_request.receiver.display_name, "info": "Accepted your friend request"})
             return Response({"status": "Friend request accepted", "friends": response_serializer.data}, status=status.HTTP_200_OK)
-
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     
@@ -380,8 +379,7 @@ class DeclineFriendRequestView(APIView):
             response_serializer = GetFriendsSerializer(
                 received_requests, many=True, context={"request": request}
             )
-
-
+            send_update_to_user_sync(friend_request.sender, {"type": "feed", "sender_username": friend_request.receiver.username, "sender_displayname": friend_request.receiver.display_name, "info": "Declined your friend request"})
             return Response({"status": "Friend request decline", "friends": response_serializer.data}, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -406,7 +404,7 @@ class CancelFriendRequestView(APIView):
             response_serializer = GetFriendsSerializer(
                 sent_requests, many=True, context={"request": request}
             )
-            
+            send_update_to_user_sync(friend_request.receiver, {"type": "feed", "sender_username": friend_request.sender.username, "sender_displayname": friend_request.sender.display_name, "info": "Canceled their friend request to you"})
             return Response({"status": "Friend request cancelled", "friends": response_serializer.data}, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -432,13 +430,15 @@ class DeleteFriendshipView(APIView):
 
             # Fetch the updated list of received friend requests
             friends = FriendRequest.objects.filter(
-                accepted=False, sender=request.user
+                (Q(sender=request.user) & Q(accepted=True)) | (Q(receiver=request.user) & Q(accepted=True))
             )
             response_serializer = GetFriendsSerializer(
                 friends, many=True, context={"request": request}
             )
-
-
+            if (friend_request.sender == request.user):
+                send_update_to_user_sync(friend_request.receiver, {"type": "feed", "sender_username": friend_request.sender.username, "sender_displayname": friend_request.sender.display_name, "info": "Unfriended you"})
+            else:
+                send_update_to_user_sync(friend_request.sender, {"type": "feed", "sender_username": friend_request.receiver.username, "sender_displayname": friend_request.receiver.display_name, "info": "Unfriended you"})
             return Response({"status": "Friendship successfully deleted.", "friends": response_serializer.data}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
@@ -477,3 +477,12 @@ class GetReceivedFriendRequests(generics.ListAPIView):
     def get_queryset(self):
         user = self.request.user
         return  FriendRequest.objects.filter(accepted=False, receiver=user)
+    
+class FeedUpdateView(APIView):
+    permission_classes = [permissions.IsAuthenticated, IsVerified]
+
+    def get(self, request):
+        user = request.user
+        updates = FeedUpdate.objects.filter(user=user.username).order_by('created_at')[:10]
+        serializer = FeedUpdateSerializer(updates, many=True)
+        return Response(serializer.data)
