@@ -73,7 +73,7 @@ class PongGameConsumer(AsyncWebsocketConsumer):
 
             # Set the winner if there is one
             if winner and loser:
-                await self.game_state.broadcast_final_state()
+                await self.game_state.handle_game_end(winner, loser)
 
     # Receive message from WebSocket
     async def receive(self, text_data):

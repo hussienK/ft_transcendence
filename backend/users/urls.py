@@ -5,7 +5,8 @@ from .views import (
     SendFriendRequestView, AcceptFriendRequestView, DeclineFriendRequestView,
     GetFriends, CancelFriendRequestView, DeleteFriendshipView, GetFriendsOnline,
     GetSentFriendRequests, GetReceivedFriendRequests, TokenVerifyView,
-	FeedUpdateView
+	FeedUpdateView,
+	UserStatsAPIView
 )
 from rest_framework_simplejwt.views import TokenRefreshView
 
@@ -45,4 +46,7 @@ urlpatterns = [
 	
     # Feed Updates
 	path('feed-updates/', FeedUpdateView.as_view(), name='feed-updates'),
+	
+    #stats
+	path('stats/', UserStatsAPIView.as_view(), name='user-stats'),
 ]

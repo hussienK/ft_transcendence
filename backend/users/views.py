@@ -6,7 +6,7 @@ from rest_framework.permissions import AllowAny
 from django.contrib.auth import get_user_model, authenticate
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken
-from .serializers import CustomTokenObtainPairSerializer, FriendRequestSerializer, AcceptFriendRequestSerializer, DeleteFriendRequestSerializer, GetFriendsSerializer, FeedUpdateSerializer
+from .serializers import UserStatsSerializer, FriendRequestSerializer, AcceptFriendRequestSerializer, DeleteFriendRequestSerializer, GetFriendsSerializer, FeedUpdateSerializer
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.urls import reverse
@@ -27,6 +27,7 @@ from .permissions import IsVerified
 from rest_framework_simplejwt.tokens import AccessToken
 from django.core.exceptions import ValidationError
 from .tasks import send_update_to_user_sync
+from .utils import get_user_stats
 
 User = get_user_model()
 
@@ -485,4 +486,16 @@ class FeedUpdateView(APIView):
         user = request.user
         updates = FeedUpdate.objects.filter(user=user.username).order_by('created_at')[:10]
         serializer = FeedUpdateSerializer(updates, many=True)
+        return Response(serializer.data)
+    
+class UserStatsAPIView(APIView):
+    permission_classes = [permissions.IsAuthenticated, IsVerified]
+
+    def get(self, request):
+        # Get stats for the authenticated user
+        user = request.user
+        stats = get_user_stats(user)
+
+        # Serialize the stats
+        serializer = UserStatsSerializer(stats)
         return Response(serializer.data)

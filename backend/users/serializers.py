@@ -188,3 +188,14 @@ class FeedUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = FeedUpdate
         fields = ['sender_username', 'sender_displayname', 'info', 'created_at']
+
+class UserStatsSerializer(serializers.Serializer):
+    total_games = serializers.IntegerField()
+    games_won = serializers.IntegerField()
+    games_lost = serializers.IntegerField()
+    points_scored = serializers.IntegerField()
+    points_conceded = serializers.IntegerField()
+    win_ratio = serializers.FloatField()
+    points_ratio = serializers.FloatField()
+    longest_win_streak = serializers.IntegerField()
+    longest_loss_streak = serializers.IntegerField()

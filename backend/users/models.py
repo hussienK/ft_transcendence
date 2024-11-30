@@ -10,8 +10,6 @@ class TranscendenceUser(AbstractUser):
     avatar = models.ImageField(upload_to='avatars', default='avatars/default.jpg')
     bio = models.TextField(blank=True)
     is_online = models.BooleanField(default=False)
-    wins = models.IntegerField(default=0)
-    losses = models.IntegerField(default=0)
     is_verified = models.BooleanField(default=False)
     two_factor_enabled = models.BooleanField(default=False)
     last_activity = models.DateTimeField(default=timezone.now)

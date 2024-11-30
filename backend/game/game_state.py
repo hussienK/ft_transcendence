@@ -3,6 +3,7 @@
 import asyncio
 import math
 from django.db.models import F
+from asgiref.sync import sync_to_async
 
 class GameState:
     def __init__(self, game_id, channel_layer, group_name, canvas_width=800, canvas_height=600, paddle_width=10, paddle_height=100, ball_radius=10):
@@ -142,10 +143,22 @@ class GameState:
         await self.broadcast_final_state()
 
         try:
-            print("GAME DONE")
-            print(f"Win: {winner.username}, lose {loser.username}")
+            from .models import GameSession, MatchHistory
+
+            game_session = await sync_to_async(GameSession.objects.get)(session_id=self.game_id)
+            await sync_to_async(MatchHistory.objects.create)(
+                game_session=game_session,
+                winner=winner,
+                loser=loser,
+                player1_score=self.score1,
+                player2_score=self.score2,
+                points_scored_by_winner=self.score1 if winner == self.player1 else self.score2,
+                points_conceded_by_loser=self.score2 if loser == self.player1 else self.score1,
+            )
+
+            print("Match history updated")
         except Exception as e:
-            print(f"Error ")
+            print(f"Error {e}")
 
     async def broadcast_state(self):
         game_state_dict = self.to_dict()
