@@ -147,3 +147,12 @@ body {
   color: #555;
 }
 
+.tooltip {
+  font-size: 14px;
+}
+
+/* Add hover effect on status circle if needed */
+#profile-status-indicator {
+  cursor: pointer;
+  border: 2px solid white; /* To create a clean border around the circle */
+}

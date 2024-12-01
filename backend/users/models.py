@@ -16,12 +16,7 @@ class TranscendenceUser(AbstractUser):
     created_at = models.DateTimeField(default=timezone.now)
 
     #an auto property with some details
-    @property
-    def win_loss_ratio(self):
-        if self.losses == 0:
-            return float(self.wins)
-        return self.wins / self.losses
-    
+
     def update_activity(self):
         self.is_online = True
         self.last_activity = timezone.now()

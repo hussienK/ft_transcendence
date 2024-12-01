@@ -6,7 +6,7 @@ from rest_framework.permissions import AllowAny
 from django.contrib.auth import get_user_model, authenticate
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken
-from .serializers import UserStatsSerializer, FriendRequestSerializer, AcceptFriendRequestSerializer, DeleteFriendRequestSerializer, GetFriendsSerializer, FeedUpdateSerializer
+from .serializers import UserStatsSerializer, FriendRequestSerializer, AcceptFriendRequestSerializer, DeleteFriendRequestSerializer, GetFriendsSerializer, FeedUpdateSerializer, MatchHistorySerializer
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.urls import reverse
@@ -19,6 +19,7 @@ from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.utils.encoding import force_bytes, force_str
 from django.contrib.auth.password_validation import validate_password
 from .models import TranscendenceUser, FriendRequest, FeedUpdate
+from game.models import MatchHistory
 from django.db.models import Q
 import re
 from django.core.validators import validate_email
@@ -498,4 +499,18 @@ class UserStatsAPIView(APIView):
 
         # Serialize the stats
         serializer = UserStatsSerializer(stats)
+        return Response(serializer.data)
+    
+class UserMatchHistoryView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        user = request.user
+        # Filter match history where the user was a player (either winner, loser, or participant)
+        match_history = MatchHistory.objects.filter(
+            game_session__player1=user
+        ) | MatchHistory.objects.filter(
+            game_session__player2=user
+        )
+        serializer = MatchHistorySerializer(match_history, many=True, context={'request': request} )
         return Response(serializer.data)

@@ -98,3 +98,23 @@ class JoinQueueView(APIView):
             status=status.HTTP_200_OK
         )
 
+
+class LeaveQueueView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+
+        # Check if the user is already in the queue
+        if user not in matchmaking_queue:
+            print(f"User {user.username} Not in queue")
+            return Response({'status': 'not_in_queue'}, status=status.HTTP_200_OK)
+
+        matchmaking_queue.remove(user)
+        print(f"User {user.username} joined the matchmaking queue.")
+
+        return Response(
+            {'status': 'left_queue'},
+            status=status.HTTP_200_OK
+        )
+

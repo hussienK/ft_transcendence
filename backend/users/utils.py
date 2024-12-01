@@ -5,30 +5,41 @@ from django.db.models import Sum, Q
 def generate_verification_token(user):
     return default_token_generator.make_token(user)
 
-def calculate_streak(user, won=True):
+def calculate_streak(user):
     """
-    Calculates the longest win or loss streak for a user.
+    Calculates the longest win streak, longest loss streak, and the current streak.
+    Returns the longest win streak, longest loss streak, and current streak value
+    (positive for win streak, negative for loss streak, 0 if no streak).
     """
-    if won:
-        matches = MatchHistory.objects.filter(winner=user).order_by('created_at')
-    else:
-        matches = MatchHistory.objects.filter(loser=user).order_by('created_at')
+    # Get all matches (both wins and losses for the user)
+    matches = MatchHistory.objects.filter(Q(winner=user) | Q(loser=user)).order_by('created_at')
 
-    longest_streak = 0
-    current_streak = 0
-    last_match_date = None
+    longest_win_streak = 0
+    longest_loss_streak = 0
+    current_streak = 0  # Can be positive for wins, negative for losses
+    longest_current_streak = 0  # Tracks the ongoing streak with its sign (positive/negative)
 
     for match in matches:
-        if last_match_date and (match.created_at - last_match_date).days > 1:
-            # Streak breaks if matches are not consecutive
-            longest_streak = max(longest_streak, current_streak)
-            current_streak = 0
 
-        current_streak += 1
-        last_match_date = match.created_at
+        if match.winner == user:  # If the user won
+            current_streak += 1  # Increment streak for wins
+        elif match.loser == user:  # If the user lost
+            current_streak -= 1  # Decrement streak for losses
 
-    longest_streak = max(longest_streak, current_streak)
-    return longest_streak
+        # Track the longest streaks
+        longest_win_streak = max(longest_win_streak, current_streak) if current_streak > 0 else longest_win_streak
+        longest_loss_streak = min(longest_loss_streak, current_streak) if current_streak < 0 else longest_loss_streak
+        longest_current_streak = current_streak  # Ongoing streak value (positive/negative)
+
+
+    # Final check after loop to account for the streak at the end
+    if current_streak > 0:
+        longest_win_streak = max(longest_win_streak, current_streak)
+    elif current_streak < 0:
+        longest_loss_streak = min(longest_loss_streak, current_streak)
+
+    return longest_win_streak, longest_loss_streak, longest_current_streak
+
 
 
 def get_user_stats(user):
@@ -57,13 +68,10 @@ def get_user_stats(user):
     win_ratio = (games_won / total_games * 100) if total_games else 0
 
     # Points Ratio %
-    points_ratio = (points_scored / points_conceded * 100) if points_conceded else 0
+    points_ratio = (points_scored / (points_scored + points_conceded) * 100) if points_conceded else 0
 
-    # Longest Win Streak
-    longest_win_streak = calculate_streak(user, won=True)
-
-    # Longest Loss Streak
-    longest_loss_streak = calculate_streak(user, won=False)
+    # Longest Win Streak and Longest Current Streak
+    longest_win_streak, longest_loss_streak, longest_current_streak = calculate_streak(user)
 
     return {
         'total_games': total_games,
@@ -75,4 +83,5 @@ def get_user_stats(user):
         'points_ratio': points_ratio,
         'longest_win_streak': longest_win_streak,
         'longest_loss_streak': longest_loss_streak,
+        'longest_current_streak': longest_current_streak,
     }

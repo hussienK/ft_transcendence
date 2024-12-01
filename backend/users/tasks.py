@@ -65,10 +65,12 @@ class UpdateLastActivityMiddleware:
 				time_threshold = timezone.now() - timedelta(seconds=30)
 				if user.last_activity is None or user.last_activity < time_threshold:
 					user.last_activity = now()
-					if user.is_online == False:
-						send_message_to_friends(user, {'type': 'feed', 'sender_username': user.username, 'sender_displayname': user.display_name, 'info': 'Is now online'})
+					st = user.is_online == False
 					user.is_online = True
 					user.save()
+					if st:
+						send_message_to_friends(user, {'type': 'feed', 'sender_username': user.username, 'sender_displayname': user.display_name, 'info': 'Is now online'})
+
 		except:
 			user = None
 		response = self.get_response(request)

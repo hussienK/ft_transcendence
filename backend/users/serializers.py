@@ -3,6 +3,7 @@ from django.contrib.auth import get_user_model, authenticate
 from django.contrib.auth.password_validation import validate_password
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from .models import TranscendenceUser, FriendRequest, FeedUpdate
+from game.models import MatchHistory
 from django.conf import settings
 
 User = get_user_model()
@@ -42,10 +43,16 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 
 # Serializer for user profile updates
 class UserProfileSerializer(serializers.ModelSerializer):
+    editable = serializers.SerializerMethodField()
+
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'display_name', 'bio', 'avatar', 'created_at', "is_online")
-        read_only_fields = ('id', 'username', 'email', 'created_at', "is_online")
+        fields = ('id', 'username', 'email', 'display_name', 'bio', 'avatar', 'created_at', "is_online", "editable")
+        read_only_fields = ('id', 'username', 'email', 'created_at', "is_online", "editable")
+
+    def get_editable(self, obj):
+        request = self.context.get('request')
+        return request.user == obj
 
     # Validate username length
     def validate_username(self, value):
@@ -199,3 +206,39 @@ class UserStatsSerializer(serializers.Serializer):
     points_ratio = serializers.FloatField()
     longest_win_streak = serializers.IntegerField()
     longest_loss_streak = serializers.IntegerField()
+    longest_current_streak = serializers.IntegerField()
+
+class MatchHistorySerializer(serializers.ModelSerializer):
+    game_session_id = serializers.CharField(source='game_session.session_id')
+    result = serializers.SerializerMethodField()
+    opponent = serializers.SerializerMethodField()
+
+    class Meta:
+        model = MatchHistory
+        fields = [
+            'game_session_id',
+            'opponent',
+            'result',
+            'points_scored_by_winner',
+            'points_conceded_by_loser',
+            'created_at',
+        ]
+
+    def get_result(self, obj):
+        request_user = self.context['request'].user
+        if obj.winner == request_user:
+            return "Win"
+        elif obj.loser == request_user:
+            return "Loss"
+        else:
+            return "Not a participant"
+    
+    def get_opponent(self, obj):
+        request_user = self.context['request'].user
+        if obj.game_session.player1 == request_user:
+            return obj.game_session.player2.username
+        elif obj.game_session.player2 == request_user:
+            return obj.game_session.player1.username
+        else:
+            return "Not a participant"
+            

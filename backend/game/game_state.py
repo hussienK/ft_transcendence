@@ -24,7 +24,7 @@ class GameState:
         # Initialize ball in the center with a random direction
         self.ball_position = [canvas_width // 2, canvas_height // 2]
         angle = math.radians(30)  # Starting at 30 degrees
-        speed = 5  # Initial speed
+        speed = 30  # Initial speed
         self.ball_velocity = [speed * math.cos(angle), speed * math.sin(angle)]
 
         self.game_is_active = False
@@ -122,7 +122,7 @@ class GameState:
     def reset_ball(self):
         self.ball_position = [self.canvas_width // 2, self.canvas_height // 2]
         angle = math.radians(30)  # Reset angle
-        speed = 5  # Reset speed
+        speed = 30  # Reset speed
         self.ball_velocity = [speed * math.cos(angle), speed * math.sin(angle)]
 
     def to_dict(self):
@@ -134,7 +134,7 @@ class GameState:
             'ball_position': self.ball_position,
             'game_is_active': self.game_is_active,
             'game_over': not self.game_is_active,
-            'winner': self.winner
+            'winner': 'player1' if self.winner == self.player1 else 'player2' if self.winner == self.player2 else None
         }
 
     async def handle_game_end(self, winner, loser):
@@ -173,7 +173,7 @@ class GameState:
     async def broadcast_final_state(self):
         game_state_dict = self.to_dict()
         game_state_dict['game_over'] = True
-        game_state_dict['winner'] = self.winner
+        game_state_dict['winner'] = 'player1' if self.winner == self.player1 else 'player2'
         await self.channel_layer.group_send(
             self.group_name,
             {

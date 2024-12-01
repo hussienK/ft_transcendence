@@ -6,7 +6,7 @@ from .views import (
     GetFriends, CancelFriendRequestView, DeleteFriendshipView, GetFriendsOnline,
     GetSentFriendRequests, GetReceivedFriendRequests, TokenVerifyView,
 	FeedUpdateView,
-	UserStatsAPIView
+	UserStatsAPIView, UserMatchHistoryView
 )
 from rest_framework_simplejwt.views import TokenRefreshView
 
@@ -49,4 +49,5 @@ urlpatterns = [
 	
     #stats
 	path('stats/', UserStatsAPIView.as_view(), name='user-stats'),
+	path('match-history/', UserMatchHistoryView.as_view(), name='user-history')
 ]

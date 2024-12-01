@@ -132,7 +132,44 @@ async function delineFriendRequest(friendRequestId) {
 
 async function fetchProfile(friendRequestId){
     try {
+        if (friendRequestId === -42)
+        {
+            const response = await axios.get(`https://localhost:8443/api/users/profile/`, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+                }
+            });
+            return response.data;
+        }
         const response = await axios.get(`https://localhost:8443/api/users/profile/${friendRequestId}/`, {
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+            }
+        });
+        return response.data;
+
+    } catch (error) {
+        console.log(error.response?.data?.error || "An error occurred", 'danger');
+    }
+}
+
+async function fetchStats(){
+    try {
+        const response = await axios.get(`https://localhost:8443/api/users/stats/`, {
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+            }
+        });
+        return response.data;
+
+    } catch (error) {
+        console.log(error.response?.data?.error || "An error occurred", 'danger');
+    }
+}
+
+async function fetchMatchHistory(){
+    try {
+        const response = await axios.get(`https://localhost:8443/api/users/match-history/`, {
             headers: {
                 Authorization: `Bearer ${localStorage.getItem('accessToken')}`
             }
