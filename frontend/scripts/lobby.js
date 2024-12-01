@@ -64,4 +64,94 @@ function attachLobbyEventListeners() {
       }
     }
 
+    const statsData = [
+    ];
+
+    let currentStatIndex = 0;
+
+    function updateStat(){
+      document.getElementById('stats-container').innerHTML = statsData[currentStatIndex];
+      if (currentStatIndex === statsData.length)
+      {
+        currentStatIndex = 0;
+      }
+    }
+
+    fetchStats(-42)
+    .then(data => {
+        const stats = {
+            longest_current_streak: data.longest_current_streak || 0,
+            longest_win_streak: data.longest_win_streak || 0,
+            games_won: data.games_won || 0,
+            games_lost: data.games_lost || 0,
+            total_games: data.total_games || 0,
+        };
+
+        let statsHTML = "<h2>Stats</h2>"; // Initialize an empty string
+
+        Object.keys(stats).forEach(key => {
+            statsHTML += `
+                <div class="stat-item">
+                    <strong>${key.replace(/_/g, " ")}</strong><br> ${stats[key]}
+                </div>
+            `;
+        });
+
+        statsData.push(statsHTML);
+        updateStat();
+    })
+    .catch(error => {
+        showAlert(error.response?.data?.error || "An error occurred", "danger");
+    });
+
+
+    fetchMatchHistory(-42)
+    .then(data => {
+        let historyHTML = "<h2>History</h2>"; // Initialize an empty string
+
+        data.forEach(element => {
+            const opponentUsername = element.opponent || 'Unknown';
+            const winnerPoints = element.points_scored_by_winner || 0;
+            const loserPoints = element.points_conceded_by_loser || 0;
+            const result = element.result || 'Not Available';
+            const isWinner = result === "Win";
+            historyHTML += `
+            <div id="opponent-card" class="d-flex gap-2">
+                <div class="friend-avatar">
+                    <img src="${element.opponent_avatar || './assets/default_avatar.png'}" alt="avatar">
+                </div>
+                <div class="friend-info">
+                    <p class="friend-displayname">${opponentUsername}</p>
+                    <p class="friend-username">3 Days Ago</p> <!-- Replace with actual timestamp if available -->
+                </div>
+                <div style="margin-left: auto; width: 75px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                    <div style="background-color: ${isWinner ? 'rgb(37, 168, 37)' : 'rgb(168, 37, 37)'}; 
+                                display: flex; justify-content: center; align-items: center; 
+                                width: 100%; color: white; font-size: 16px; font-weight: 600; 
+                                border-top-left-radius: 5px; border-top-right-radius: 5px;">
+                        ${isWinner ? 'Won' : 'Lost'}
+                    </div>
+                    <div style="display: flex; justify-content: center; align-items: center;">
+                        ${isWinner ? `${winnerPoints} - ${loserPoints}` : `${loserPoints} - ${winnerPoints}`}
+                    </div>
+                </div>
+            </div>
+            `;
+        });
+
+        statsData.push(historyHTML);
+        updateStat();
+    })
+    .catch(error => {
+        showAlert(error.response?.data?.error || "An error occurred", "danger");
+    });
+
+
+    function auto_update()
+    {
+      currentStatIndex = (currentStatIndex + 1) % statsData.length;
+      updateStat();
+    }
+
+    setInterval(auto_update, 5000);
 }

@@ -159,14 +159,14 @@ async function fetchStats(friendName){
     try {
         if (friendName === -42)
         {
-            const response = await axios.get(`https://localhost:8443/api/users/match-history/`, {
+            const response = await axios.get(`https://localhost:8443/api/users/stats/`, {
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem('accessToken')}`
                 }
             });
             return response.data;
         }
-        const response = await axios.get(`https://localhost:8443/api/users/match-history/${friendName}/`, {
+        const response = await axios.get(`https://localhost:8443/api/users/stats/${friendName}/`, {
             headers: {
                 Authorization: `Bearer ${localStorage.getItem('accessToken')}`
             }

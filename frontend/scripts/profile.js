@@ -110,7 +110,7 @@ function attachProfileEventListeners(userName = -42) {
             document.getElementById("profile-username").innerHTML = data.username || "";
             document.getElementById("profile-bio").innerHTML = data.bio || "";
             document.getElementById("profile-email").innerHTML = data.email || "";
-            document.getElementById("profile-avatar").src = data.avatar_url || "./default_avatar.png";
+            document.getElementById("profile-avatar").src = data.avatar_url || "./assets/default_avatar.png";
 
             const statusIndicator = document.getElementById("profile-status-indicator");
             if (data.is_online) {
@@ -144,7 +144,7 @@ function attachProfileEventListeners(userName = -42) {
                 HistoryContainer.innerHTML += `
                 <div id="opponent-card" class="d-flex gap-2">
                     <div class="friend-avatar">
-                        <img src="${element.opponent_avatar || './default_avatar.png'}" alt="avatar">
+                        <img src="${element.opponent_avatar || './assets/default_avatar.png'}" alt="avatar">
                     </div>
                     <div class="friend-info">
                         <p class="friend-displayname">${opponentUsername}</p>

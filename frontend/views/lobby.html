@@ -1,8 +1,22 @@
-<div id="lobby-page">
-<h1>Game Matchmaking</h1>
-<div style="display: flex; justify-content: space-between;">
-	<button id="connectButton" style="max-width: 200px; max-height: 40px;">Connect to Game</button>
-	<div id="live-feeds" class="col-md-3 col-lg-2 bg-light p-3 overflow-auto" style="height: 100vh;">
-		<h5 class="mb-4">Live Feeds</h5>
-</div>
+<div id="lobby-page" class=" p-4" style="height: 100%; display: flex; flex-direction: column; background-color: #36393f">
+	
+	<div class="col-md-6 col-lg-8 px-0 d-flex justify-content-center align-items-start" style="width: 100%;">
+		<img src="./assets/home_bg.webp" 
+		class="img-fluid rounded" 
+		style="width: 80%; height: 350px; margin-top: 20px; border-radius: 10px; box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.8); object-fit: cover; object-position: top">
+	</div>
+
+	<div class="d-flex justify-content-between align-items-center mt-4">
+		<div id="stats-carousel" class="d-flex justify-content-center align-items-center" style="width: 50%;">
+			<div id="stats-container" class="carousel-content text-center" style="width: 80%; border: 1px solid #ccc; border-radius: 10px; padding: 20px; box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);">
+				
+			</div>
+		</div>
+		<div style="width: 50%;">
+			<button id="connectButton" class="btn btn-primary" style="padding: 10px 20px; font-size: 1rem; border-radius: 8px; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);">
+				Connect to Game
+			</button>
+		</div>
+	</div>
+	
 </div>

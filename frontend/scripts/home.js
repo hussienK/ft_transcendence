@@ -1,10 +1,13 @@
 function attachHomeEventListeners() {
+  const lobbyLink = document.getElementById("lobby-link");
   const profileLink = document.getElementById("profile-link");
   const friendsLink = document.getElementById("friends-link");
 
-  const navItems = [profileLink, friendsLink];
+  loadSection('lobby');
 
-  async function loadSection(page) {
+  const navItems = [profileLink, friendsLink, lobbyLink];
+
+  async function loadSection(page = 'lobby') {
     try {
       const response = await axios.get(`./views/${page}.html`, {
         headers: {
@@ -13,6 +16,11 @@ function attachHomeEventListeners() {
       });
 
       document.getElementById("home-display").innerHTML = response.data;
+
+      if (page === 'lobby'){
+        attachLobbyEventListeners();
+      }
+
       if(page === "friends"){
         attachFriendsEventListeners()
         
@@ -43,6 +51,12 @@ function attachHomeEventListeners() {
     });
   }
 
+  lobbyLink.addEventListener("click", (e) => {
+    e.preventDefault();
+    setActiveLink(lobbyLink);
+    loadSection("lobby");
+  });
+
   profileLink.addEventListener("click", (e) => {
     e.preventDefault();
     setActiveLink(profileLink);
@@ -53,7 +67,6 @@ function attachHomeEventListeners() {
     e.preventDefault();
     setActiveLink(friendsLink);
     loadSection("friends");
-    
   });
   
 }

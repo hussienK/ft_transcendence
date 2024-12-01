@@ -111,10 +111,7 @@ async function loadPage(page) {
       if (page === "home") {
         attachHomeEventListeners();
       }
-      if (page === 'lobby'){
-        attachLobbyEventListeners();
-      }
-      if (page === "home" || page === 'lobby')
+      if (page === "home")
       {
         await renderFeed();
       }
