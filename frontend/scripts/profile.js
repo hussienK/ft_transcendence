@@ -24,7 +24,9 @@ const dummyProfile = {
     ],
 };
 
-function attachProfileEventListeners() {
+function attachProfileEventListeners(userName = -42) {
+    const isCurrentUser = userName === -42;
+
     // Get the canvases and the percentage text elements for each progress bar
     const canvas1 = document.getElementById('progressCanvas1');
     const ctx1 = canvas1.getContext('2d');
@@ -84,85 +86,86 @@ function attachProfileEventListeners() {
         }
     }
 
-    fetchStats()
+    fetchStats(userName)
+    .then(data => {
+        document.getElementById("profile-total_games").innerHTML = data.total_games || 0;
+        document.getElementById("profile-games_Won").innerHTML = data.games_won || 0;
+        document.getElementById("profile-games_lost").innerHTML = data.games_lost || 0;
+        document.getElementById("profile-current_streak").innerHTML = data.longest_current_streak || 0;
+        document.getElementById("profile-win_streak").innerHTML = data.longest_win_streak || 0;
+        document.getElementById("profile-lose_streak").innerHTML = data.longest_loss_streak || 0;
+        document.getElementById("profile-points_scored").innerHTML = data.points_scored || 0;
+        document.getElementById("profile-points_conceded").innerHTML = data.points_conceded || 0;
+        const pointsRatio = data.points_ratio ? Math.round(data.points_ratio) : 0;
+        const winRatio = data.win_ratio ? Math.round(data.win_ratio) : 0;
+        updateProgress(winRatio, pointsRatio);
+    })
+    .catch(error => {
+        showAlert(error.response?.data.error, "danger");
+    });
+
+    fetchProfile(userName)
         .then(data => {
-            document.getElementById("profile-total_games").innerHTML = data.total_games || 0;
-            document.getElementById("profile-games_Won").innerHTML = data.games_won || 0;
-            document.getElementById("profile-games_lost").innerHTML = data.games_lost || 0;
-            document.getElementById("profile-current_streak").innerHTML = data.longest_current_streak || 0;
-            document.getElementById("profile-win_streak").innerHTML = data.longest_win_streak || 0;
-            document.getElementById("profile-lose_streak").innerHTML = data.longest_loss_streak || 0;
-            document.getElementById("profile-points_scored").innerHTML = data.points_scored || 0;
-            document.getElementById("profile-points_conceded").innerHTML = data.points_conceded || 0;
-            const pointsRatio = data.points_ratio ? Math.round(data.points_ratio) : 0;
-            const winRatio = data.win_ratio ? Math.round(data.win_ratio) : 0;
-            updateProgress(winRatio, pointsRatio)
+            document.getElementById("profile-display_name").innerHTML = data.display_name || "";
+            document.getElementById("profile-username").innerHTML = data.username || "";
+            document.getElementById("profile-bio").innerHTML = data.bio || "";
+            document.getElementById("profile-email").innerHTML = data.email || "";
+            document.getElementById("profile-avatar").src = data.avatar_url || "./default_avatar.png";
+
+            const statusIndicator = document.getElementById("profile-status-indicator");
+            if (data.is_online) {
+                statusIndicator.style.backgroundColor = "green";
+                statusIndicator.setAttribute("title", "Online");
+            } else {
+                statusIndicator.style.backgroundColor = "gray";
+                statusIndicator.setAttribute("title", "Offline");
+            }
+
+            if (!data.editable) {
+                document.getElementById("edit-profile-btn").style.display = "none";
+            } else {
+                document.getElementById("edit-profile-btn").style.display = "block";
+            }
         })
         .catch(error => {
             showAlert(error.response?.data.error, "danger");
         });
 
-    fetchProfile(-42)
-    .then(data => {
-        document.getElementById("profile-display_name").innerHTML = data.display_name || "";
-        document.getElementById("profile-username").innerHTML = data.username || "";
-        document.getElementById("profile-bio").innerHTML = data.bio || "";
-        document.getElementById("profile-email").innerHTML = data.email || "";
-        const is_online = data.is_online || False;
-        const statusIndicator = document.getElementById("profile-status-indicator");
-        if (is_online) {
-            statusIndicator.style.backgroundColor = "green";
-            statusIndicator.setAttribute("title", "Online");
-        } else {
-            statusIndicator.style.backgroundColor = "gray";
-            statusIndicator.setAttribute("title", "Offline");
-        }
-        const is_editable = data.editable || False;
-        if (is_editable == false)
-        {
-            document.getElementById("edit-profile-btn").style.display = "none";
-        }
-    })
-    .catch(error => {
-        showAlert(error.response?.data.error, "danger");
-    });
-
-    fetchMatchHistory()
-    .then(data => {
-        console.log(data);
-        const HistoryContainer = document.getElementById("matches-container");
-        data.forEach(element => {
-            const opponentUsername = element.opponent || 'Unknown';
-            const winnerPoints = element.points_scored_by_winner || 0;
-            const loserPoints = element.points_conceded_by_loser || 0;
-            const result = element.result || 'Not Available';
-            const isWinner = result === "Win";
-            HistoryContainer.innerHTML += `
-            <div id="opponent-card" class="d-flex gap-2">
-                <div class="friend-avatar">
-                    <img src="./avatar2.png" alt="avatar">
-                </div>
-                <div class="friend-info">
-                    <p class="friend-displayname">${opponentUsername}</p>
-                    <p class="friend-username">3 Days Ago</p> <!-- Replace with actual timestamp if available -->
-                </div>
-                <div style="margin-left: auto; width: 75px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
-                    <div style="background-color: ${isWinner ? 'rgb(37, 168, 37)' : 'rgb(168, 37, 37)'}; 
-                                display: flex; justify-content: center; align-items: center; 
-                                width: 100%; color: white; font-size: 16px; font-weight: 600; 
-                                border-top-left-radius: 5px; border-top-right-radius: 5px;">
-                        ${isWinner ? 'Won' : 'Lost'}
+    fetchMatchHistory(userName)
+        .then(data => {
+            const HistoryContainer = document.getElementById("matches-container");
+            HistoryContainer.innerHTML = "";
+            data.forEach(element => {
+                const opponentUsername = element.opponent || 'Unknown';
+                const winnerPoints = element.points_scored_by_winner || 0;
+                const loserPoints = element.points_conceded_by_loser || 0;
+                const result = element.result || 'Not Available';
+                const isWinner = result === "Win";
+                HistoryContainer.innerHTML += `
+                <div id="opponent-card" class="d-flex gap-2">
+                    <div class="friend-avatar">
+                        <img src="${element.opponent_avatar || './default_avatar.png'}" alt="avatar">
                     </div>
-                    <div style="display: flex; justify-content: center; align-items: center;">
-                        ${isWinner ? `${winnerPoints} - ${loserPoints}` : `${loserPoints} - ${winnerPoints}`}
+                    <div class="friend-info">
+                        <p class="friend-displayname">${opponentUsername}</p>
+                        <p class="friend-username">3 Days Ago</p> <!-- Replace with actual timestamp if available -->
+                    </div>
+                    <div style="margin-left: auto; width: 75px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                        <div style="background-color: ${isWinner ? 'rgb(37, 168, 37)' : 'rgb(168, 37, 37)'}; 
+                                    display: flex; justify-content: center; align-items: center; 
+                                    width: 100%; color: white; font-size: 16px; font-weight: 600; 
+                                    border-top-left-radius: 5px; border-top-right-radius: 5px;">
+                            ${isWinner ? 'Won' : 'Lost'}
+                        </div>
+                        <div style="display: flex; justify-content: center; align-items: center;">
+                            ${isWinner ? `${winnerPoints} - ${loserPoints}` : `${loserPoints} - ${winnerPoints}`}
+                        </div>
                     </div>
                 </div>
-            </div>
-            `;
+                `;
+            });
+        })
+        .catch(error => {
+            showAlert(error.response?.data.error, "danger");
         });
-        
-    })
-    .catch(error => {
-        showAlert(error.response?.data.error, "danger");
-    });
 }

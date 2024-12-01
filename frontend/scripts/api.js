@@ -130,9 +130,9 @@ async function delineFriendRequest(friendRequestId) {
     }
 }
 
-async function fetchProfile(friendRequestId){
+async function fetchProfile(friendName){
     try {
-        if (friendRequestId === -42)
+        if (friendName === -42)
         {
             const response = await axios.get(`https://localhost:8443/api/users/profile/`, {
                 headers: {
@@ -141,7 +141,7 @@ async function fetchProfile(friendRequestId){
             });
             return response.data;
         }
-        const response = await axios.get(`https://localhost:8443/api/users/profile/${friendRequestId}/`, {
+        const response = await axios.get(`https://localhost:8443/api/users/profile/${friendName}/`, {
             headers: {
                 Authorization: `Bearer ${localStorage.getItem('accessToken')}`
             }
@@ -153,9 +153,18 @@ async function fetchProfile(friendRequestId){
     }
 }
 
-async function fetchStats(){
+async function fetchStats(friendName){
     try {
-        const response = await axios.get(`https://localhost:8443/api/users/stats/`, {
+        if (friendName === -42)
+        {
+            const response = await axios.get(`https://localhost:8443/api/users/match-history/`, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+                }
+            });
+            return response.data;
+        }
+        const response = await axios.get(`https://localhost:8443/api/users/match-history/${friendName}/`, {
             headers: {
                 Authorization: `Bearer ${localStorage.getItem('accessToken')}`
             }
@@ -167,9 +176,18 @@ async function fetchStats(){
     }
 }
 
-async function fetchMatchHistory(){
+async function fetchMatchHistory(friendName){
     try {
-        const response = await axios.get(`https://localhost:8443/api/users/match-history/`, {
+        if (friendName === -42)
+        {
+            const response = await axios.get(`https://localhost:8443/api/users/match-history/`, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+                }
+            });
+            return response.data;
+        }
+        const response = await axios.get(`https://localhost:8443/api/users/match-history/${friendName}/`, {
             headers: {
                 Authorization: `Bearer ${localStorage.getItem('accessToken')}`
             }

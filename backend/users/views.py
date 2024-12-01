@@ -97,12 +97,12 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
         username = self.kwargs.get('username')
 
         if username:
-            try:
-                return User.objects.get(username=username)
-            except User.DoesNotExist:
-                return Response({"detail": "User Not Found."}, status=status.HTTP_404_NOT_FOUND)
-            
+            # Let `get_object_or_404` handle non-existent users
+            return get_object_or_404(User, username=username)
+
+        # Default to the current user if no username is provided
         return self.request.user
+
 
     # updates a user
     def update(self, request, *args, **kwargs):

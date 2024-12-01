@@ -7,7 +7,7 @@ function populateSuggestedFriendsUI(friends) {
         friendElement.classList.add('friend-suggestion');
         friendElement.innerHTML = `
             <div class="friend-avatar">
-                <img src="./avatar2.png" alt="${"a"}'s avatar">
+                <img src="./default_avatar.png" alt="${"a"}'s avatar">
             </div>
             <div class="friend-info">
                 <p class="friend-displayname">${friend.display_name}</p>

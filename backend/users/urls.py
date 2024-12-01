@@ -14,8 +14,8 @@ from rest_framework_simplejwt.views import TokenRefreshView
 urlpatterns = [
     # User registration, profile, and authentication
     path('register/', UserRegistrationView.as_view(), name='user-register'),  # Register a new user
-    path('profile/<str:username>/', UserProfileView.as_view(), name='user-profile-detail'),  # View user profile by username
     path('profile/', UserProfileView.as_view(), name='user-profile'),  # View/update own profile
+    path('profile/<str:username>/', UserProfileView.as_view(), name='user-profile-detail'),  # View user profile by username
     path('signin/', LoginView.as_view(), name='token_obtain_pair'),  # User login (JWT)
     path('delete/', UserDeleteView.as_view(), name='user_delete'),  # Delete user account
     path('logout/', LogoutView.as_view(), name='logout'),  # Logout user
@@ -49,7 +49,7 @@ urlpatterns = [
 	
     #stats
 	path('stats/', UserStatsAPIView.as_view(), name='user-stats'),
-	path('stats/<str:username>', UserStatsAPIView.as_view(), name='user-stats-by-username'),
+	path('stats/<str:username>/', UserStatsAPIView.as_view(), name='user-stats-by-username'),
 	path('match-history/', UserMatchHistoryView.as_view(), name='user-history'),
-	path('match-history/<str:username>', UserMatchHistoryView.as_view(), name='user-history-by-username'),
+	path('match-history/<str:username>/', UserMatchHistoryView.as_view(), name='user-history-by-username'),
 ]

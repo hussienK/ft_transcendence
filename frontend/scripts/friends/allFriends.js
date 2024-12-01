@@ -7,14 +7,14 @@ function populateAllFriendsUI(friends) {
         friendElement.classList.add('all-friend');
         friendElement.innerHTML = `
             <div class="friend-avatar">
-                <img src="./avatar2.png" alt="${"a"}'s avatar">
+                <img src="./default_avatar.png" alt="${"a"}'s avatar">
             </div>
             <div class="friend-info">
                 <p class="friend-displayname">${friend.display_name}</p>
                 <p class="friend-username">${friend.username}</p>
             </div>
 			<div style="margin-left: auto;">
-            <button class="btn btn-primary viewProfile-btn" data-id="${friend.id}">Profile</button>
+            <button class="btn btn-primary viewProfile-btn" data-id="${friend.username}">Profile</button>
 			 <button class="btn btn-danger unFriend-btn" data-id="${friend.id}">UnFriend</button>
 			<div>
         `;
@@ -26,8 +26,20 @@ function populateAllFriendsUI(friends) {
 
     profileButtons.forEach(button => {
         button.addEventListener('click', async (e) => {
-            const friendRequestId = e.target.getAttribute('data-id');
-            const profileInfo = await fetchProfile(friendRequestId);
+            const friendId = e.target.getAttribute('data-id');
+            try {
+                const response = await axios.get(`../views/profile.html`, {
+                  headers: {
+                    "Content-Type": "text/html",
+                  },
+                });
+                document.getElementById("home-display").innerHTML = response.data;
+                attachProfileEventListeners(friendId);
+              } catch (error) {
+                console.error("Error loading page:", error);
+                document.getElementById("main-content").innerHTML =
+                  "<p>Page not found.</p>";
+              }
         });
     });
 
@@ -35,7 +47,7 @@ function populateAllFriendsUI(friends) {
         button.addEventListener('click', async (e) => {
             const friendRequestId = e.target.getAttribute('data-id');
             await unFriend(friendRequestId);
-            e.target.closest('.online-friend').remove();
+            e.target.closest('.all-friend').remove();
         });
     });
 }
