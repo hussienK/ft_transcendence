@@ -28,6 +28,7 @@ function populateSuggestedFriendsUI(friends) {
         button.addEventListener('click', async (e) => {
             const friendRequestId = e.target.getAttribute('data-id');
             await acceptFriendRequest(friendRequestId);
+            e.target.closest('.friend-suggestion').remove();
         });
     });
 

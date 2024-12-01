@@ -65,8 +65,9 @@ async function unFriend(friendRequestId) {
                 Authorization: `Bearer ${localStorage.getItem('accessToken')}`
             }
         });
+        showAlert('Friend removed!', 'success');
     } catch (error) {
-        console.log(error.response?.data?.error || "An error occurred", 'danger');
+        showAlert(error.response?.data?.error || "An error occurred", 'danger');
     }
 }
 
@@ -80,9 +81,9 @@ async function addFriend(username) {
                 Authorization: `Bearer ${localStorage.getItem('accessToken')}`
             }
         });
-        showAlert("Friend Request sent Successfully", "success");
+        showAlert("Friend request sent successfully", "success");
     } catch (error) {
-        console.error(error.response?.data?.error || "An error occurred", "danger");
+        showAlert(error.response?.data?.error || "An error occurred", "danger");
     }    
 }
 
@@ -95,8 +96,9 @@ async function cancelFriendRequest(friendRequestId) {
                 Authorization: `Bearer ${localStorage.getItem('accessToken')}`
             }
         });
+        showAlert('Friend request cancelled!', 'success');
     } catch (error) {
-        console.log(error.response?.data?.error || "An error occurred", 'danger');
+        showAlert(error.response?.data?.error || "An error occurred", 'danger');
     }
 }
 
@@ -110,7 +112,6 @@ async function acceptFriendRequest(friendRequestId) {
             }
         });
         showAlert('Friend request accepted!', 'success');
-        e.target.closest('.friend-suggestion').remove();
     } catch (error) {
         showAlert(error.response?.data?.error || "An error occurred", 'danger');
     }
@@ -125,8 +126,9 @@ async function delineFriendRequest(friendRequestId) {
                 Authorization: `Bearer ${localStorage.getItem('accessToken')}`
             }
         });
+        showAlert('Friend request declined!', 'success');
     } catch (error) {
-        console.log(error.response?.data?.error || "An error occurred", 'danger');
+        showAlert(error.response?.data?.error || "An error occurred", 'danger');
     }
 }
 
