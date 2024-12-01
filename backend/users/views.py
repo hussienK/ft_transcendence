@@ -492,25 +492,42 @@ class FeedUpdateView(APIView):
 class UserStatsAPIView(APIView):
     permission_classes = [permissions.IsAuthenticated, IsVerified]
 
-    def get(self, request):
-        # Get stats for the authenticated user
-        user = request.user
+    def get(self, request, *args, **kwargs):
+        username = self.kwargs.get('username', None)
+        
+        if username:
+            try:
+                user = User.objects.get(username=username)
+            except User.DoesNotExist:
+                return Response({"detail": "User Not Found."}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            user = request.user
+        
         stats = get_user_stats(user)
 
-        # Serialize the stats
         serializer = UserStatsSerializer(stats)
         return Response(serializer.data)
+
     
 class UserMatchHistoryView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
-        user = request.user
-        # Filter match history where the user was a player (either winner, loser, or participant)
+        username = self.kwargs.get('username', None)
+
+        if username:
+            try:
+                user = User.objects.get(username=username)
+            except User.DoesNotExist:
+                return Response({"detail": "User Not Found."}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            user = request.user
+
         match_history = MatchHistory.objects.filter(
             game_session__player1=user
         ) | MatchHistory.objects.filter(
             game_session__player2=user
         )
-        serializer = MatchHistorySerializer(match_history, many=True, context={'request': request} )
+
+        serializer = MatchHistorySerializer(match_history, many=True, context={'request': request})
         return Response(serializer.data)

@@ -49,5 +49,7 @@ urlpatterns = [
 	
     #stats
 	path('stats/', UserStatsAPIView.as_view(), name='user-stats'),
-	path('match-history/', UserMatchHistoryView.as_view(), name='user-history')
+	path('stats/<str:username>', UserStatsAPIView.as_view(), name='user-stats-by-username'),
+	path('match-history/', UserMatchHistoryView.as_view(), name='user-history'),
+	path('match-history/<str:username>', UserMatchHistoryView.as_view(), name='user-history-by-username'),
 ]
