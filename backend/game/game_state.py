@@ -24,7 +24,7 @@ class GameState:
         # Initialize ball in the center with a random direction
         self.ball_position = [canvas_width // 2, canvas_height // 2]
         angle = math.radians(30)  # Starting at 30 degrees
-        speed = 30  # Initial speed
+        speed = 1  # Initial speed
         self.ball_velocity = [speed * math.cos(angle), speed * math.sin(angle)]
 
         self.game_is_active = False
@@ -122,7 +122,7 @@ class GameState:
     def reset_ball(self):
         self.ball_position = [self.canvas_width // 2, self.canvas_height // 2]
         angle = math.radians(30)  # Reset angle
-        speed = 30  # Reset speed
+        speed = 1  # Reset speed
         self.ball_velocity = [speed * math.cos(angle), speed * math.sin(angle)]
 
     def to_dict(self):

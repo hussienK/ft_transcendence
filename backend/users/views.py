@@ -531,3 +531,69 @@ class UserMatchHistoryView(APIView):
 
         serializer = MatchHistorySerializer(match_history, many=True, context={'request': request})
         return Response(serializer.data)
+
+class UserRankView(APIView):
+    permission_classes = [permissions.IsAuthenticated]  # Ensure the user is authenticated
+
+    def get_player_rank(self, user):
+        all_users = User.objects.all()
+
+        # Collect stats for all players
+        results = []
+        for player in all_users:
+            stats = get_user_stats(player)
+            total_games = stats['total_games']
+            games_won = stats['games_won']
+            points_scored = stats['points_scored']
+            points_conceded = stats['points_conceded']
+
+            # Calculate win ratio and points scored ratio
+            win_ratio = (games_won / total_games * 100) if total_games > 0 else 0
+            points_ratio = (
+                (points_scored / (points_scored + points_conceded) * 100)
+                if (points_scored + points_conceded) > 0
+                else 0
+            )
+
+            obj = {
+                'player': player.username,
+                'player_id': player.id,
+                'total_games': total_games,
+                'games_won': games_won,
+                'games_lost': stats['games_lost'],
+                'points_scored': points_scored,
+                'points_conceded': points_conceded,
+                'win_ratio': win_ratio,
+                'points_ratio': points_ratio,
+            }
+            results.append(obj)
+
+        # Rank players based on points_scored, then win_ratio, then points_ratio
+        ranked_results = sorted(
+            results,
+            key=lambda x: (x['points_scored'], x['win_ratio'], x['points_ratio'], -x['player_id']),
+            reverse=True,  # Higher values should come first
+        )
+
+        # Determine rank of the current user
+        rank = next(
+            (index + 1 for index, obj in enumerate(ranked_results) if obj['player'] == user.username),
+            None,
+        )
+
+        return {
+            'rank': rank,
+            'total_players': len(ranked_results),
+        }
+
+    def get(self, request):
+        # Get the rank for the authenticated user
+        user = request.user
+        rank_info = self.get_player_rank(user)
+
+        return Response({
+            'user': user.username,
+            'avatar': user.avatar.url,
+            'rank': rank_info['rank'],
+            'total_players': rank_info['total_players'],
+        })

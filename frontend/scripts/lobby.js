@@ -71,10 +71,6 @@ function attachLobbyEventListeners() {
 
     function updateStat(){
       document.getElementById('stats-container').innerHTML = statsData[currentStatIndex];
-      if (currentStatIndex === statsData.length)
-      {
-        currentStatIndex = 0;
-      }
     }
 
     fetchStats(-42)
@@ -131,7 +127,7 @@ function attachLobbyEventListeners() {
                                 border-top-left-radius: 5px; border-top-right-radius: 5px;">
                         ${isWinner ? 'Won' : 'Lost'}
                     </div>
-                    <div style="display: flex; justify-content: center; align-items: center;">
+                    <div style="display: flex; justify-content: center; align-items: center; background-color: white;">
                         ${isWinner ? `${winnerPoints} - ${loserPoints}` : `${loserPoints} - ${winnerPoints}`}
                     </div>
                 </div>
@@ -154,4 +150,19 @@ function attachLobbyEventListeners() {
     }
 
     setInterval(auto_update, 5000);
+
+
+    //Rank Related
+    fetchRank()
+    .then(data => {
+      const RankItem = document.getElementById("rank-container");
+      RankItem.innerHTML += `<div class="friend-avatar" style="width: 100px; height: 100px;">
+      <img src="./assets/default_avatar.png" alt="${data.user}'s avatar">
+  </div>`;
+      RankItem.innerHTML += `<h3>Rank: ${data.rank}<br>${data.total_players} Players Total</h3>`;
+    })
+    .catch(error => {
+      console.log(error);
+        showAlert(error.response?.data?.error || "An error occurred", "danger");
+    });
 }

@@ -200,3 +200,16 @@ async function fetchMatchHistory(friendName){
         console.log(error.response?.data?.error || "An error occurred", 'danger');
     }
 }
+
+async function fetchRank(){
+    try{
+        const response = await axios.get(`https://localhost:8443/api/users/player-rank/`, {
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.log(error.response?.data?.error || "An error occurred", 'danger');
+    }
+}

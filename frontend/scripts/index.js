@@ -2,15 +2,18 @@ let socket = null;  // Global variable to store the WebSocket connection
 
 function renderFeedMessage(message_formatted){
   const feedContainer = document.getElementById('live-feeds');
-  feedContainer.innerHTML += `<p>`
+  let text = '';
+  text += `<p style="padding: 0 8px;">`;
+  text += '- '
   if (message_formatted.sender_username !== "NULL"){
-    feedContainer.innerHTML += `<b>${message_formatted.sender_username} </b>`;
+    text += `<b>${message_formatted.sender_username} </b>`;
   }
   if (message_formatted.sender_displayname !== "NULL"){
-    feedContainer.innerHTML += `<b>(${message_formatted.sender_displayname}):</b> `;
+    text += `<b>(${message_formatted.sender_displayname}):</b> `;
   }
-  feedContainer.innerHTML += message_formatted.info;
-  feedContainer.innerHTML += `<\p>`
+  text += message_formatted.info;
+  text += `<\p>`;
+  feedContainer.innerHTML += text;
 }
 
 async function fetchFeed() {
