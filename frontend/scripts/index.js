@@ -50,6 +50,13 @@ function joinMatch(messageFormatted) {
   });
 }
 
+function joinMatchLocal(messageFormatted) {
+  const roomName = messageFormatted.session_id; // Extract data from the WebSocket message
+  loadPage('game_local').then(() => {
+      attachLocalGameEventListeners(roomName); // Pass parameters to game event listeners
+  });
+}
+
 // Function to create a new WebSocket connection
 function establishWebSocketConnection() {
   const ws_scheme = window.location.protocol === "https:" ? "ws" : "ws";
@@ -82,6 +89,10 @@ function establishWebSocketConnection() {
     } else if (message_formatted.type === 'match_found')
     {
       joinMatch(message_formatted);
+    }
+    else if (message_formatted.type === 'match_found_local')
+    {
+      joinMatchLocal(message_formatted);
     }
     console.log("Received message:", message.data);
   };

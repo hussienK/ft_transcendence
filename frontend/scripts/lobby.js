@@ -64,6 +64,24 @@ function attachLobbyEventListeners() {
       }
     }
 
+    const localButton = document.getElementById('localButton');
+
+    localButton.addEventListener('click', async () => {
+      const token = localStorage.getItem('accessToken');
+
+      if (!token) {
+        alert('Access token is missing in localStorage');
+        return;
+      }
+
+      try{
+        await startLocalGame(token);
+      }
+      catch (error) {
+        console.error('Error disconnecting from the game:', error);
+      }
+    });
+
     const statsData = [
     ];
 

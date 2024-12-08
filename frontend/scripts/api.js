@@ -213,3 +213,17 @@ async function fetchRank(){
         console.log(error.response?.data?.error || "An error occurred", 'danger');
     }
 }
+
+async function startLocalGame(){
+    try{
+        const response = await axios.post('https://localhost:8443/api/game/join-local/', {
+        }, {
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.log(error.response?.data?.error || "An error occurred", 'danger');
+    }
+}

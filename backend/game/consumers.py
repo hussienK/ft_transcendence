@@ -2,6 +2,7 @@ import asyncio
 from channels.generic.websocket import AsyncWebsocketConsumer
 import json
 from .game_state import GameState
+from urllib.parse import parse_qs
 
 # Dictionary to store game loops and game states for each game
 game_loops = {}
@@ -13,7 +14,11 @@ class PongGameConsumer(AsyncWebsocketConsumer):
         self.room_name = self.scope['url_route']['kwargs']['room_name']
         self.room_group_name = f'game_{self.room_name}'
         self.user = self.scope["user"]
-        
+
+        query_params = parse_qs(self.scope['query_string'].decode('utf-8'))
+        is_local = query_params.get('is_local', ['false'])[0].lower() == 'true'
+
+        self.is_local = True
         # Join room group
         await self.channel_layer.group_add(
             self.room_group_name,
@@ -29,20 +34,24 @@ class PongGameConsumer(AsyncWebsocketConsumer):
             )
         
         self.game_state = self.game_states[self.room_name]
-        self.game_state.players_ready += 1
 
-        if not self.game_state.player1:
-            self.game_state.player1 = self.user
-            self.player = 'player1'
-        elif not self.game_state.player2:
-            self.game_state.player2 = self.user
-            self.player = 'player2'
+        if not self.is_local:
+            self.game_state.players_ready += 1
+
+            if not self.game_state.player1:
+                self.game_state.player1 = self.user
+                self.player = 'player1'
+            elif not self.game_state.player2:
+                self.game_state.player2 = self.user
+                self.player = 'player2'
+            else:
+                await self.close()
+                return
+
+            if self.game_state.players_ready >= 2 and not self.game_state.game_is_active:
+                self.game_state.start_game()
         else:
-            await self.close()
-            return
-
-
-        if self.game_state.players_ready >= 2 and not self.game_state.game_is_active:
+            self.game_state.is_local = True
             self.game_state.start_game()
 
         await self.accept()
@@ -54,26 +63,27 @@ class PongGameConsumer(AsyncWebsocketConsumer):
             self.channel_name
         )
 
-        self.game_state.players_ready -= 1
+        if not self.is_local:
+            self.game_state.players_ready -= 1
 
-        if self.user == self.game_state.player1:
-            self.game_state.player1 = None
-            winner = self.game_state.player2
-            loser = self.user
-        elif self.user == self.game_state.player2:
-            self.game_state.player2 = None
-            winner = self.game_state.player1
-            loser = self.user
-        else:
-            winner = None
-            loser = None
+            if self.user == self.game_state.player1:
+                self.game_state.player1 = None
+                winner = self.game_state.player2
+                loser = self.user
+            elif self.user == self.game_state.player2:
+                self.game_state.player2 = None
+                winner = self.game_state.player1
+                loser = self.user
+            else:
+                winner = None
+                loser = None
 
-        if self.game_state.players_ready < 2:
-            self.game_state.stop_game()
+            if self.game_state.players_ready < 2:
+                self.game_state.stop_game()
 
-            # Set the winner if there is one
-            if winner and loser:
-                await self.game_state.handle_game_end(winner, loser)
+                # Set the winner if there is one
+                if winner and loser:
+                    await self.game_state.handle_game_end(winner, loser)
 
     # Receive message from WebSocket
     async def receive(self, text_data):

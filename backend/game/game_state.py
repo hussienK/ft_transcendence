@@ -1,12 +1,9 @@
-# game_state.py
-
 import asyncio
 import math
-from django.db.models import F
 from asgiref.sync import sync_to_async
 
 class GameState:
-    def __init__(self, game_id, channel_layer, group_name, canvas_width=800, canvas_height=600, paddle_width=10, paddle_height=100, ball_radius=10):
+    def __init__(self, game_id, channel_layer, group_name, is_local=False, canvas_width=800, canvas_height=600, paddle_width=10, paddle_height=100, ball_radius=10):
         self.game_id = game_id
         self.score1 = 0
         self.score2 = 0
@@ -24,7 +21,7 @@ class GameState:
         # Initialize ball in the center with a random direction
         self.ball_position = [canvas_width // 2, canvas_height // 2]
         angle = math.radians(30)  # Starting at 30 degrees
-        speed = 1  # Initial speed
+        speed = 30  # Initial speed
         self.ball_velocity = [speed * math.cos(angle), speed * math.sin(angle)]
 
         self.game_is_active = False
@@ -35,13 +32,15 @@ class GameState:
         self.channel_layer = channel_layer
         self.group_name = group_name
 
-        self.player1 = None
-        self.player2 = None
+        self.player1 = "player1"
+        self.player2 = "player2"
         self.winner = None
         self.loser = None
 
+        self.is_local = is_local
+
     def start_game(self):
-        if not self.game_is_active and self.players_ready >= 2:
+        if not self.game_is_active and (self.players_ready >= 2 or self.is_local):
             self.game_is_active = True
             self.update_task = asyncio.create_task(self.game_loop())
 
@@ -115,14 +114,16 @@ class GameState:
         if self.score1 >= self.winning_score or self.score2 >= self.winning_score:
             self.game_is_active = False
             if self.score1 > self.score2:
-                asyncio.create_task(self.handle_game_end(self.player1, self.player2))
+                self.winner = self.player1
+                self.loser = self.player2
             else:
-                asyncio.create_task(self.handle_game_end(self.player2, self.player1))
+                self.winner = self.player2
+                self.loser = self.player1
 
     def reset_ball(self):
         self.ball_position = [self.canvas_width // 2, self.canvas_height // 2]
         angle = math.radians(30)  # Reset angle
-        speed = 1  # Reset speed
+        speed = 30  # Reset speed
         self.ball_velocity = [speed * math.cos(angle), speed * math.sin(angle)]
 
     def to_dict(self):
@@ -134,31 +135,8 @@ class GameState:
             'ball_position': self.ball_position,
             'game_is_active': self.game_is_active,
             'game_over': not self.game_is_active,
-            'winner': 'player1' if self.winner == self.player1 else 'player2' if self.winner == self.player2 else None
+            'winner': self.winner
         }
-
-    async def handle_game_end(self, winner, loser):
-        self.winner = winner.username if winner else None
-
-        await self.broadcast_final_state()
-
-        try:
-            from .models import GameSession, MatchHistory
-
-            game_session = await sync_to_async(GameSession.objects.get)(session_id=self.game_id)
-            await sync_to_async(MatchHistory.objects.create)(
-                game_session=game_session,
-                winner=winner,
-                loser=loser,
-                player1_score=self.score1,
-                player2_score=self.score2,
-                points_scored_by_winner=self.score1 if winner == self.player1 else self.score2,
-                points_conceded_by_loser=self.score2 if loser == self.player1 else self.score1,
-            )
-
-            print("Match history updated")
-        except Exception as e:
-            print(f"Error {e}")
 
     async def broadcast_state(self):
         game_state_dict = self.to_dict()
@@ -173,11 +151,10 @@ class GameState:
     async def broadcast_final_state(self):
         game_state_dict = self.to_dict()
         game_state_dict['game_over'] = True
-        game_state_dict['winner'] = 'player1' if self.winner == self.player1 else 'player2'
         await self.channel_layer.group_send(
             self.group_name,
             {
                 'type': 'broadcast_game_state',
-                'game_state': game_state_dict 
+                'game_state': game_state_dict
             }
         )
