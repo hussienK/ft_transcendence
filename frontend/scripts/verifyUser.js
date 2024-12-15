@@ -1,4 +1,5 @@
 async function verifyUser() {
+  console.log("INSI VERIFY USER");
   const accessToken = localStorage.getItem("accessToken");
   const refreshToken = localStorage.getItem("refreshToken");
 
@@ -32,7 +33,9 @@ async function verifyUser() {
       );
 
       const newAccessToken = refreshResponse.data.access;
+      const newRefreshToken = refreshResponse.data.refresh;
       localStorage.setItem("accessToken", newAccessToken);
+      localStorage.setItem("refreshToken", newRefreshToken);
 
       console.log("Access token refreshed successfully");
 

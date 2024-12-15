@@ -117,7 +117,8 @@ async function loadPage(page) {
     } 
 
     else {
-      if (!verifyUser()) {
+      const valid_user = await verifyUser();
+      if (valid_user === false) {
         window.location.hash = "login";
         return;
       }
