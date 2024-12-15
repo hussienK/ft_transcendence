@@ -1,41 +1,9 @@
-function attachHomeEventListeners() {
+function loadLinks(current = "lobby") {
   const lobbyLink = document.getElementById("lobby-link");
   const profileLink = document.getElementById("profile-link");
   const friendsLink = document.getElementById("friends-link");
 
-  loadSection('lobby');
-
   const navItems = [profileLink, friendsLink, lobbyLink];
-
-  async function loadSection(page = 'lobby') {
-    try {
-      const response = await axios.get(`./views/${page}.html`, {
-        headers: {
-          "Content-Type": "text/html",
-        },
-      });
-
-      document.getElementById("home-display").innerHTML = response.data;
-
-      if (page === 'lobby'){
-        attachLobbyEventListeners();
-      }
-
-      if(page === "friends"){
-        attachFriendsEventListeners()
-        
-      }
-
-      if(page === "profile"){
-        attachProfileEventListeners()
-      }
-
-    } catch (error) {
-      console.error("Error loading page:", error);
-      document.getElementById("main-content").innerHTML =
-        "<p>Page not found.</p>";
-    }
-  }
 
   function setActiveLink(activeLink) {
     
@@ -51,22 +19,34 @@ function attachHomeEventListeners() {
     });
   }
 
+  if (current == "lobby")
+  {
+    setActiveLink(lobbyLink);
+  }else if (current == "profile")
+  {
+    setActiveLink(profileLink);
+  }
+  else if (current == "friends")
+  {
+    setActiveLink(friendsLink);
+  }
+
   lobbyLink.addEventListener("click", (e) => {
     e.preventDefault();
     setActiveLink(lobbyLink);
-    loadSection("lobby");
-  });
+    window.location.hash = "lobby";
+    });
 
   profileLink.addEventListener("click", (e) => {
     e.preventDefault();
     setActiveLink(profileLink);
-    loadSection("profile");
-  });
+    window.location.hash = "profile";
+    });
 
   friendsLink.addEventListener("click", (e) => {
     e.preventDefault();
     setActiveLink(friendsLink);
-    loadSection("friends");
+    window.location.hash = "friends";
   });
   
 }

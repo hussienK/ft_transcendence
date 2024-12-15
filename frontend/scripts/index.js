@@ -101,37 +101,54 @@ function establishWebSocketConnection() {
 
         
 async function loadPage(page) {
+  console.log("INSID ELOAD PAGE WITH CONTENT " + page);
   try {
+    const homeResponse = await axios.get(`./views/home.html`, {
+      headers: {
+        "Content-Type": "text/html",
+      },
+    });
+    
+    // Render the entire homeResponse HTML into the document
+    document.getElementById('main-content').innerHTML = homeResponse.data;
+    
+    // Now replace the main-content section with response.data
     const response = await axios.get(`./views/${page}.html`, {
       headers: {
         "Content-Type": "text/html",
       },
     });
-
-    document.getElementById("main-content").innerHTML = response.data;
+    
+    document.getElementById("home-display").innerHTML = response.data;
+    
 
     if (page === "signup") {
       attachSignUpFormEventListeners();
     } else if (page === "login") {
       attachSigninFormEventListeners();
-    } 
-
-    else {
+    } else {
       const valid_user = await verifyUser();
       if (valid_user === false) {
         window.location.hash = "login";
         return;
       }
 
+      // Event listeners and WebSocket for each full page
       if (page === "home") {
-        attachHomeEventListeners();
+        loadPage("lobby")
+      } else if (page === "lobby") {
+        attachLobbyEventListeners();
+        loadLinks("lobby");
+        establishWebSocketConnection();
+      } else if (page === "friends") {
+        attachFriendsEventListeners();
+        loadLinks("friends");
+        establishWebSocketConnection();
+      } else if (page === "profile") {
+        attachProfileEventListeners();
+        loadLinks("profile");
+        establishWebSocketConnection();
       }
-      if (page === "home")
-      {
-        await renderFeed();
-      }
-      establishWebSocketConnection();
-
     }
   } catch (error) {
     console.error("Error loading page:", error);
@@ -140,10 +157,12 @@ async function loadPage(page) {
   }
 }
 
+
 window.addEventListener("load", () => {
-  const initialPage = window.location.hash.substring(1) || "home";
+  const initialPage = window.location.hash.substring(1) || "lobby";
   loadPage(initialPage);
 });
+
 window.addEventListener("hashchange", () => {
   const page = window.location.hash.substring(1);
   loadPage(page);

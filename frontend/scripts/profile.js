@@ -1,29 +1,3 @@
-const dummyProfile = {
-    matchesHistory: [
-        {
-            username: "john_doe_123",
-            opponentUsername: "jane_doe_456",
-            score: "3-1",
-            result: "win",
-            playedAt: "2024-11-22T15:00:00Z"
-        },
-        {
-            username: "john_doe_123",
-            opponentUsername: "mark_smith_789",
-            score: "2-3",
-            result: "loss",
-            playedAt: "2024-11-20T12:30:00Z"
-        },
-        {
-            username: "john_doe_123",
-            opponentUsername: "lucy_james_101",
-            score: "1-1",
-            result: "draw",
-            playedAt: "2024-11-18T08:15:00Z"
-        }
-    ],
-};
-
 function attachProfileEventListeners(userName = -42) {
     const isCurrentUser = userName === -42;
 
