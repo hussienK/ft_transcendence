@@ -1,6 +1,8 @@
 import asyncio
 import math
 from asgiref.sync import sync_to_async
+import time
+import random
 
 class GameState:
     def __init__(self, game_id, channel_layer, group_name, is_local=False, canvas_width=800, canvas_height=600, paddle_width=10, paddle_height=100, ball_radius=10):
@@ -20,9 +22,7 @@ class GameState:
 
         # Initialize ball in the center with a random direction
         self.ball_position = [canvas_width // 2, canvas_height // 2]
-        angle = math.radians(30)  # Starting at 30 degrees
-        speed = 30  # Initial speed
-        self.ball_velocity = [speed * math.cos(angle), speed * math.sin(angle)]
+        self.reset_ball_velocity()
 
         self.game_is_active = False
         self.players_ready = 0  # Track players who have joined
@@ -39,6 +39,11 @@ class GameState:
 
         self.is_local = is_local
 
+    def reset_ball_velocity(self):
+        angle = random.uniform(45, 135) if random.choice([True, False]) else random.uniform(225, 315)  # Tighter angles 
+        speed = 4  # Reset speed to a reasonable value
+        self.ball_velocity = [speed * math.cos(angle), speed * math.sin(angle)]
+
     def start_game(self):
         if not self.game_is_active and (self.players_ready >= 2 or self.is_local):
             self.game_is_active = True
@@ -49,10 +54,16 @@ class GameState:
 
     async def game_loop(self):
         try:
+            last_time = time.monotonic()
             while self.game_is_active:
+                current_time = time.monotonic()
+                elapsed_time = current_time - last_time
+                last_time = current_time
+
                 self.update_ball_position()
                 await self.broadcast_state()
-                await asyncio.sleep(0.016)
+
+                await asyncio.sleep(max(0, 0.016 - elapsed_time))  # Ensure consistent frame rate
 
             if self.winner:
                 await self.broadcast_final_state()
@@ -61,21 +72,11 @@ class GameState:
 
     def update_paddle(self, player, direction):
         if player == 'player1':
-            if direction == 'up':
-                self.paddle1_position -= 10  # Move paddle up by 10 pixels
-            elif direction == 'down':
-                self.paddle1_position += 10  # Move paddle down by 10 pixels
-
-            # Constrain paddle within canvas
-            self.paddle1_position = max(0, min(self.paddle1_position, self.canvas_height - self.paddle_height))
-
+            new_position = self.paddle1_position + (-15 if direction == 'up' else 15)
+            self.paddle1_position = max(0, min(new_position, self.canvas_height - self.paddle_height))
         elif player == 'player2':
-            if direction == 'up':
-                self.paddle2_position -= 10
-            elif direction == 'down':
-                self.paddle2_position += 10
-
-            self.paddle2_position = max(0, min(self.paddle2_position, self.canvas_height - self.paddle_height))
+            new_position = self.paddle2_position + (-15 if direction == 'up' else 15)
+            self.paddle2_position = max(0, min(new_position, self.canvas_height - self.paddle_height))
 
     def update_ball_position(self):
         # Update ball position based on velocity
@@ -83,21 +84,26 @@ class GameState:
         self.ball_position[1] += self.ball_velocity[1]
 
         # Collision with top and bottom walls
-        if self.ball_position[1] - self.ball_radius <= 0 or self.ball_position[1] + self.ball_radius >= self.canvas_height:
-            self.ball_velocity[1] *= -1  # Reverse Y direction
+        if self.ball_position[1] - self.ball_radius < 0:
+            self.ball_position[1] = self.ball_radius
+            self.ball_velocity[1] *= -1
+        elif self.ball_position[1] + self.ball_radius > self.canvas_height:
+            self.ball_position[1] = self.canvas_height - self.ball_radius
+            self.ball_velocity[1] *= -1
 
         # Collision with paddles
         # Left paddle
-        if (self.ball_position[0] - self.ball_radius <= self.paddle_width):
+        if self.ball_position[0] - self.ball_radius <= self.paddle_width:
             if self.paddle1_position <= self.ball_position[1] <= self.paddle1_position + self.paddle_height:
-                self.ball_velocity[0] *= -1  # Reverse X direction
-                # Adjust Y velocity based on where it hit the paddle
+                self.ball_position[0] = self.paddle_width + self.ball_radius
+                self.ball_velocity[0] *= -1
                 offset = (self.ball_position[1] - (self.paddle1_position + self.paddle_height / 2)) / (self.paddle_height / 2)
-                self.ball_velocity[1] = offset * 5  # Adjust Y velocity
+                self.ball_velocity[1] = offset * 5
 
         # Right paddle
-        if (self.ball_position[0] + self.ball_radius >= self.canvas_width - self.paddle_width):
+        if self.ball_position[0] + self.ball_radius >= self.canvas_width - self.paddle_width:
             if self.paddle2_position <= self.ball_position[1] <= self.paddle2_position + self.paddle_height:
+                self.ball_position[0] = self.canvas_width - self.paddle_width - self.ball_radius
                 self.ball_velocity[0] *= -1
                 offset = (self.ball_position[1] - (self.paddle2_position + self.paddle_height / 2)) / (self.paddle_height / 2)
                 self.ball_velocity[1] = offset * 5
@@ -122,9 +128,7 @@ class GameState:
 
     def reset_ball(self):
         self.ball_position = [self.canvas_width // 2, self.canvas_height // 2]
-        angle = math.radians(30)  # Reset angle
-        speed = 30  # Reset speed
-        self.ball_velocity = [speed * math.cos(angle), speed * math.sin(angle)]
+        self.reset_ball_velocity()
 
     def to_dict(self):
         return {
@@ -158,3 +162,7 @@ class GameState:
                 'game_state': game_state_dict
             }
         )
+
+    def debug_state(self):
+        print(f"Ball position: {self.ball_position}, Velocity: {self.ball_velocity}")
+        print(f"Paddle1 position: {self.paddle1_position}, Paddle2 position: {self.paddle2_position}")
