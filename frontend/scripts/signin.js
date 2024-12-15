@@ -1,5 +1,6 @@
 function attachSigninFormEventListeners() {
   const signinForm = document.getElementById("signinForm");
+  localStorage.clear();
 
   signinForm.addEventListener("submit", async function (event) {
     event.preventDefault();

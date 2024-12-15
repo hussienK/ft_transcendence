@@ -41,7 +41,7 @@ function populateSuggestedFriendsUI(friends) {
     });
 }
 
-async function attachSuggestedFriendsEven1tListeners(){
+async function attachSuggestedFriendsEventListeners(){
 	
 	const friends = await fetchFriendSuggestions();
 	populateSuggestedFriendsUI(friends);

@@ -1,29 +1,3 @@
-const dummyProfile = {
-    matchesHistory: [
-        {
-            username: "john_doe_123",
-            opponentUsername: "jane_doe_456",
-            score: "3-1",
-            result: "win",
-            playedAt: "2024-11-22T15:00:00Z"
-        },
-        {
-            username: "john_doe_123",
-            opponentUsername: "mark_smith_789",
-            score: "2-3",
-            result: "loss",
-            playedAt: "2024-11-20T12:30:00Z"
-        },
-        {
-            username: "john_doe_123",
-            opponentUsername: "lucy_james_101",
-            score: "1-1",
-            result: "draw",
-            playedAt: "2024-11-18T08:15:00Z"
-        }
-    ],
-};
-
 function attachProfileEventListeners(userName = -42) {
     const isCurrentUser = userName === -42;
 
@@ -86,6 +60,57 @@ function attachProfileEventListeners(userName = -42) {
         }
     }
 
+    // Modal elements
+    const modal = document.getElementById('edit-profile-modal');
+    const closeModalBtn = document.getElementById('close-modal-btn');
+    const editProfileForm = document.getElementById('edit-profile-form');
+    const editProfileBtn = document.getElementById('edit-profile-btn');
+  
+    // Show the modal
+    editProfileBtn.addEventListener('click', () => {
+      modal.classList.remove('hidden'); // Show the modal
+    });
+  
+    // Hide the modal
+    closeModalBtn.addEventListener('click', () => {
+      modal.classList.add('hidden'); // Hide the modal
+    });
+  
+    // Handle form submission
+    editProfileForm.addEventListener('submit', async (e) => {
+      e.preventDefault(); // Prevent default form submission
+  
+      const formData = new FormData(editProfileForm);
+      const data = {
+        display_name: formData.get('display_name'),
+        bio: formData.get('bio'),
+        email: formData.get('email'),
+      };
+  
+      try {
+        // Update the profile via API
+        const response = await updateProfile(data);
+        console.log(response)
+    //     if (response.ok) {
+    //       const updatedData = response.data;
+    //       // Update the UI with new profile information
+    //       document.getElementById('profile-display_name').innerHTML = updatedData.display_name;
+    //       document.getElementById('profile-bio').innerHTML = updatedData.bio;
+  
+    //       alert('Profile updated successfully!');
+    //       modal.classList.add('hidden'); // Hide the modal
+    //     } else {
+    //       const errorData = await response.json();
+    //       alert(`Error: ${errorData.error}`);
+    //     }
+      } catch (error) {
+        console.error('Error updating profile:', error);
+        alert('An error occurred while updating your profile. Please try again.');
+      }
+    });
+
+
+
     fetchStats(userName)
     .then(data => {
         document.getElementById("profile-total_games").innerHTML = data.total_games || 0;
@@ -123,8 +148,19 @@ function attachProfileEventListeners(userName = -42) {
 
             if (!data.editable) {
                 document.getElementById("edit-profile-btn").style.display = "none";
+                document.getElementById("logout-btn").style.display = "none";
             } else {
                 document.getElementById("edit-profile-btn").style.display = "block";
+                document.getElementById("logout-btn").style.display = "block";
+
+                document.getElementById("logout-btn").addEventListener('click', async () => {
+                    const logged_out = await logout();
+                    localStorage.clear();
+                    if (logged_out)
+                    {
+                        window.location.hash = 'login';
+                    }
+                });
             }
         })
         .catch(error => {

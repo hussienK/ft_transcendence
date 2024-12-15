@@ -183,19 +183,31 @@ class LoginView(APIView):
             return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
 
 
-### Logout View ###
 class LogoutView(APIView):
-    '''Lets the user logout by banning their Refresh Token'''
+    """Logs the user out by blacklisting their Refresh Token."""
     def post(self, request):
         try:
-            refresh_token = request.data['refresh']
+            # Safely access the 'refresh' token in the request data
+            refresh_token = request.data.get('refresh')
+            if not refresh_token:
+                return Response({'error': 'Refresh token is missing.'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Blacklist the refresh token
             token = RefreshToken(refresh_token)
             token.blacklist()
 
+            # Signal user logout
             user_logged_out.send(sender=request.user.__class__, request=request, user=request.user)
+            
             return Response(status=status.HTTP_205_RESET_CONTENT)
+        
+        except KeyError as e:
+            return Response({'error': f'Missing key: {str(e)}'}, status=status.HTTP_400_BAD_REQUEST)
+        
         except Exception as e:
-            return Response({'error': e}, status=status.HTTP_400_BAD_REQUEST,)
+            # Return the exception message as a string
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        
         
 ### User Delete View ###
 class UserDeleteView(APIView):

@@ -98,6 +98,38 @@ class JoinQueueView(APIView):
             status=status.HTTP_200_OK
         )
 
+class JoinLocalGame(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+
+        # Check if the user is already in the queue
+        if user in matchmaking_queue:
+            print(f"User {user.username} attempted to join the queue but is already in Online Queue.")
+            return Response({'status': 'already_in_queue'}, status=status.HTTP_200_OK)
+        
+        session_id = str(uuid.uuid4())
+        channel_layer = get_channel_layer()
+        game_ws_url = f"/ws/game/{session_id}/"
+        match_data = {
+            'type': 'match_found_local',
+            'session_id': session_id,
+            'game_ws_url': game_ws_url,
+        }
+
+        async_to_sync(channel_layer.group_send)(
+            f"user_{user.username}",
+            {
+                "type": "send_match_found",
+                "data": match_data,
+            }
+        )
+
+        return Response(
+            {'status': 'starting_match'},
+            status=status.HTTP_200_OK
+        )
 
 class LeaveQueueView(APIView):
     permission_classes = [IsAuthenticated]

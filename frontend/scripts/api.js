@@ -213,3 +213,50 @@ async function fetchRank(){
         console.log(error.response?.data?.error || "An error occurred", 'danger');
     }
 }
+
+async function startLocalGame(){
+    try{
+        const response = await axios.post('https://localhost:8443/api/game/join-local/', {
+        }, {
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.log(error.response?.data?.error || "An error occurred", 'danger');
+    }
+}
+
+async function logout(){
+    try{
+        const response = await axios.post('https://localhost:8443/api/users/logout/', {
+            refresh: localStorage.getItem('refreshToken')
+        }, {
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+            }
+        });
+        return true;
+    } catch (error) {
+        console.log(error.response?.data?.error || "An error occurred", 'danger');
+        return false;
+    }
+    return false;
+}
+
+async function updateProfile(data){
+    try{
+        const response = await axios.put('https://localhost:8443/api/users/profile/',   data,
+            {
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+              },
+            }
+          );
+          return response
+    } catch (error) {
+        console.log(error.response?.data?.error || "An error occurred", 'danger');
+    }
+}

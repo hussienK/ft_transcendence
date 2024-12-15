@@ -1,84 +1,94 @@
 function attachFriendsEventListeners() {
-	
+	// Select all navigation links
 	const onlineLink = document.getElementById("onlineFriends-link");
 	const allLink = document.getElementById("allFriends-link");
 	const pendingLink = document.getElementById("pendingFriends-link");
 	const suggestionsLink = document.getElementById("suggestionFriends-link");
 	const addFriendLink = document.getElementById("addFriendLink");
-
+  
 	const friendsTabs = [onlineLink, allLink, pendingLink, suggestionsLink, addFriendLink];
-	
-	async function loadSection(page) {
+  
+	// Function to load the correct subsection based on the query parameter
+	async function loadSection(subsection) {
 	  try {
-		const response = await axios.get(`./views/friends/${page}.html`, {
+		const response = await axios.get(`./views/friends/${subsection}.html`, {
 		  headers: {
 			"Content-Type": "text/html",
 		  },
 		});
-		
+		// Update the content of the friends page main section
 		document.getElementById("friends-page-main").innerHTML = response.data;
-		if (page === "addFriend"){
-			attachAddFriendsEventListeners();
-		}
-		else if (page === "suggestedFriends"){
-			attachSuggestedFriendsEven1tListeners();
-		}
-		else if (page === "pendingFriends"){
-			attachPendingFriendsEventListeners();
-		}
-		else if (page === "allFriends"){
-			attachAllFriendsEventListeners();
-		}else {
-			attachOnlineFriendsEventListeners();
+  
+		// Attach specific event listeners based on the subsection
+		if (subsection === "addFriend") {
+		  attachAddFriendsEventListeners();
+		} else if (subsection === "suggestedFriends") {
+		  attachSuggestedFriendsEventListeners();
+		} else if (subsection === "pendingFriends") {
+		  attachPendingFriendsEventListeners();
+		} else if (subsection === "allFriends") {
+		  attachAllFriendsEventListeners();
+		} else {
+		  attachOnlineFriendsEventListeners();
 		}
 	  } catch (error) {
-		console.error("Error loading page:", error);
+		console.error("Error loading subsection:", error);
 		document.getElementById("friends-page-main").innerHTML =
-		  "<p>Page not found.</p>";
+		  "<p>Subsection not found.</p>";
 	  }
 	}
   
+	// Function to highlight the active link
 	function setActiveLink(activeLink) {
-		friendsTabs.forEach((link) => {
-		  const parent = link.closest('li'); // Get the parent `li` of the link
-		  if (link === activeLink && link !== addFriendLink) {
-			parent.classList.add("bg-active-tab"); // Add white background to active tab
-		  } else {
-			parent.classList.remove("bg-active-tab"); // Remove active background from inactive tabs
-			
-		  }
-		});
-	  }
+	  friendsTabs.forEach((link) => {
+		const parent = link.closest("li"); // Get the parent `li` of the link
+		if (link === activeLink && link !== addFriendLink) {
+		  parent.classList.add("bg-active-tab"); // Add active class to the current tab
+		} else {
+		  parent.classList.remove("bg-active-tab"); // Remove active class from other tabs
+		}
+	  });
+	}
   
+	// Add event listeners for the navigation links
 	onlineLink.addEventListener("click", (e) => {
 	  e.preventDefault();
-	  setActiveLink(onlineLink);
-	  loadSection("onlineFriends");
+	  window.location.hash = "friends?subsection=onlineFriends";
 	});
   
 	allLink.addEventListener("click", (e) => {
 	  e.preventDefault();
-	  setActiveLink(allLink);
-	  loadSection("allFriends");
+	  window.location.hash = "friends?subsection=allFriends";
 	});
   
 	pendingLink.addEventListener("click", (e) => {
-		e.preventDefault();
-		setActiveLink(pendingLink);
-		loadSection("pendingFriends");
-	  });
-	
-	  suggestionsLink.addEventListener("click", (e) => {
-		e.preventDefault();
-		setActiveLink(suggestionsLink);
-		loadSection("suggestedFriends");
-	  });
-
-	  addFriendLink.addEventListener("click", (e) => {
-		e.preventDefault();
-		setActiveLink(addFriendLink);
-		loadSection("addFriend");
-	  });
-
-	loadSection("onlineFriends")
+	  e.preventDefault();
+	  window.location.hash = "friends?subsection=pendingFriends";
+	});
+  
+	suggestionsLink.addEventListener("click", (e) => {
+	  e.preventDefault();
+	  window.location.hash = "friends?subsection=suggestedFriends";
+	});
+  
+	addFriendLink.addEventListener("click", (e) => {
+	  e.preventDefault();
+	  window.location.hash = "friends?subsection=addFriend";
+	});
+  
+	// Function to handle hash change and load the correct subsection
+	function handleHashChange() {
+	  const { page, params } = parseHash();
+	  if (page === "friends") {
+		const subsection = params.subsection || "onlineFriends"; // Default to "onlineFriends"
+		setActiveLink(
+		  friendsTabs.find((link) => link.id === `${subsection}-link`) || onlineLink
+		);
+		loadSection(subsection);
+	  }
+	}
+  
+	// Load the default subsection on initial page load
+	handleHashChange(); // Call on initial load
   }
+  

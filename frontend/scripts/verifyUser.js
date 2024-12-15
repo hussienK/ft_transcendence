@@ -6,7 +6,7 @@ async function verifyUser() {
     window.location.hash = "login";
     localStorage.clear();
     console.log("Invalid User tokens");
-    return;
+    return false;
   }
 
   try {
@@ -32,7 +32,9 @@ async function verifyUser() {
       );
 
       const newAccessToken = refreshResponse.data.access;
+      const newRefreshToken = refreshResponse.data.refresh;
       localStorage.setItem("accessToken", newAccessToken);
+      localStorage.setItem("refreshToken", newRefreshToken);
 
       console.log("Access token refreshed successfully");
 
@@ -40,6 +42,9 @@ async function verifyUser() {
       console.log("Invalid refresh token. Redirecting to login...");
       window.location.hash = "login";
       localStorage.clear();
+      return false;
     }
   }
+
+  return true
 }
