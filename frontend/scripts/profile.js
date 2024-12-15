@@ -60,6 +60,57 @@ function attachProfileEventListeners(userName = -42) {
         }
     }
 
+    // Modal elements
+    const modal = document.getElementById('edit-profile-modal');
+    const closeModalBtn = document.getElementById('close-modal-btn');
+    const editProfileForm = document.getElementById('edit-profile-form');
+    const editProfileBtn = document.getElementById('edit-profile-btn');
+  
+    // Show the modal
+    editProfileBtn.addEventListener('click', () => {
+      modal.classList.remove('hidden'); // Show the modal
+    });
+  
+    // Hide the modal
+    closeModalBtn.addEventListener('click', () => {
+      modal.classList.add('hidden'); // Hide the modal
+    });
+  
+    // Handle form submission
+    editProfileForm.addEventListener('submit', async (e) => {
+      e.preventDefault(); // Prevent default form submission
+  
+      const formData = new FormData(editProfileForm);
+      const data = {
+        display_name: formData.get('display_name'),
+        bio: formData.get('bio'),
+        email: formData.get('email'),
+      };
+  
+      try {
+        // Update the profile via API
+        const response = await updateProfile(data);
+        console.log(response)
+    //     if (response.ok) {
+    //       const updatedData = response.data;
+    //       // Update the UI with new profile information
+    //       document.getElementById('profile-display_name').innerHTML = updatedData.display_name;
+    //       document.getElementById('profile-bio').innerHTML = updatedData.bio;
+  
+    //       alert('Profile updated successfully!');
+    //       modal.classList.add('hidden'); // Hide the modal
+    //     } else {
+    //       const errorData = await response.json();
+    //       alert(`Error: ${errorData.error}`);
+    //     }
+      } catch (error) {
+        console.error('Error updating profile:', error);
+        alert('An error occurred while updating your profile. Please try again.');
+      }
+    });
+
+
+
     fetchStats(userName)
     .then(data => {
         document.getElementById("profile-total_games").innerHTML = data.total_games || 0;

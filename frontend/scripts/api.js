@@ -244,3 +244,19 @@ async function logout(){
     }
     return false;
 }
+
+async function updateProfile(data){
+    try{
+        const response = await axios.put('https://localhost:8443/api/users/profile/',   data,
+            {
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+              },
+            }
+          );
+          return response
+    } catch (error) {
+        console.log(error.response?.data?.error || "An error occurred", 'danger');
+    }
+}

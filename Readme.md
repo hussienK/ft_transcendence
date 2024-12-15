@@ -7,6 +7,7 @@
 - shut down all previous containers `docker-compose down -v`
 - to build on production (no live updates) `docker-compose --f docker-compose.prod.yml up --build`
 - to build on development (enable live udpates) `docker-compose docker-compose.dev.yml up --build`
+- to access a container for debugging/testing `docker exec -it <container_name_or_id> /bin/bash`
 
 ## Chosen Modules
 
@@ -87,3 +88,5 @@ Currently Only for testing
 ##### Game
 
 Under Development
+
+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

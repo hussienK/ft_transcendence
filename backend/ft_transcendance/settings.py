@@ -111,6 +111,11 @@ USE_TZ = True
 STATIC_URL = '/static/'  # URL prefix for static files
 STATIC_ROOT =  '/app/staticfiles'  # Directory to collect static files for production
 
+# Media files (Uploaded by users)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = '/app/media/'  # Matches the alias in Nginx
+
+
 # REST Framework settings
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
