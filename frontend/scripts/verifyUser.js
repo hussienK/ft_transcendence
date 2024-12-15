@@ -1,5 +1,4 @@
 async function verifyUser() {
-  console.log("INSI VERIFY USER");
   const accessToken = localStorage.getItem("accessToken");
   const refreshToken = localStorage.getItem("refreshToken");
 
@@ -7,7 +6,7 @@ async function verifyUser() {
     window.location.hash = "login";
     localStorage.clear();
     console.log("Invalid User tokens");
-    return;
+    return false;
   }
 
   try {
@@ -43,6 +42,9 @@ async function verifyUser() {
       console.log("Invalid refresh token. Redirecting to login...");
       window.location.hash = "login";
       localStorage.clear();
+      return false;
     }
   }
+
+  return true
 }

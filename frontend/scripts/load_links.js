@@ -45,7 +45,7 @@ function loadLinks(current = "lobby") {
 
   friendsLink.addEventListener("click", (e) => {
     e.preventDefault();
-    setActiveLink(friendsLink);
+    setActiveLink(friendsLink); 
     window.location.hash = "friends";
   });
   

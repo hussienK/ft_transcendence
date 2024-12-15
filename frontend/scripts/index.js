@@ -100,42 +100,100 @@ function establishWebSocketConnection() {
 
 
         
-async function loadPage(page) {
-  console.log("INSID ELOAD PAGE WITH CONTENT " + page);
+// Parse the hash to extract the page name and query parameters
+function parseHash() {
+  const hash = window.location.hash.slice(1); // Remove the '#' from the hash
+  const [page, queryString] = hash.split("?"); // Split page and query parameters
+  const queryParams = new URLSearchParams(queryString); // Parse query string
+
+  const params = {};
+  for (const [key, value] of queryParams.entries()) {
+    params[key] = value;
+  }
+
+  return { page: page || "lobby", params }; // Default to "lobby" if no page is specified
+}
+
+// Function to load a page based on the current hash
+async function loadPageFromHash() {
+  const { page, params } = parseHash();
+  await loadPage(page, params); // Pass the page and query parameters
+}
+async function loadPage(page, queryParams = {}) {
   try {
-    const homeResponse = await axios.get(`./views/home.html`, {
-      headers: {
-        "Content-Type": "text/html",
-      },
-    });
-    
-    // Render the entire homeResponse HTML into the document
-    document.getElementById('main-content').innerHTML = homeResponse.data;
-    
-    // Now replace the main-content section with response.data
-    const response = await axios.get(`./views/${page}.html`, {
-      headers: {
-        "Content-Type": "text/html",
-      },
-    });
-    
-    document.getElementById("home-display").innerHTML = response.data;
-    
+    if (!page) {
+      throw new Error("Page parameter is required but not provided.");
+    }
 
-    if (page === "signup") {
-      attachSignUpFormEventListeners();
-    } else if (page === "login") {
-      attachSigninFormEventListeners();
-    } else {
-      const valid_user = await verifyUser();
-      if (valid_user === false) {
-        window.location.hash = "login";
-        return;
+
+
+    //main pages
+    if (page === "signup" || page === "login" || page === "game" || page === "game_local")
+    {
+      //load without feed/links
+      const mainContent = document.getElementById("main-content");
+      if (!mainContent) {
+        throw new Error("Element with id 'main-content' not found in the DOM.");
       }
+      let pageUrl = `./views/${page}.html`;
+  
+      if (queryParams && Object.keys(queryParams).length > 0) {
+        const queryString = new URLSearchParams(queryParams).toString();
+        pageUrl += `?${queryString}`;
+      }
+  
+      const response = await axios.get(pageUrl, {
+        headers: { "Content-Type": "text/html" },
+      });
+      mainContent.innerHTML = response.data;
 
-      // Event listeners and WebSocket for each full page
+      if (page === "signup") {
+        attachSignUpFormEventListeners();
+      } else if (page === "login") {
+        attachSigninFormEventListeners();
+      } else {
+        console.log("Verifying user...");
+        const validUser = await verifyUser();
+        if (!validUser) {
+          console.warn("User verification failed. Redirecting to login.");
+          window.location.hash = "login";
+          return;
+        }
+      }
+    }
+    else
+    {
+      //load full content
+      const homeResponse = await axios.get(`./views/home.html`, {
+        headers: { "Content-Type": "text/html" },
+      });
+      const mainContent = document.getElementById("main-content");
+      if (!mainContent) {
+        throw new Error("Element with id 'main-content' not found in the DOM.");
+      }
+  
+      mainContent.innerHTML = homeResponse.data;
+  
+      let pageUrl = `./views/${page}.html`;
+  
+      if (queryParams && Object.keys(queryParams).length > 0) {
+        const queryString = new URLSearchParams(queryParams).toString();
+        pageUrl += `?${queryString}`;
+      }
+  
+      const response = await axios.get(pageUrl, {
+        headers: { "Content-Type": "text/html" },
+      });
+      const homeDisplay = document.getElementById("home-display");
+      if (!homeDisplay) {
+        throw new Error("Element with id 'home-display' not found in the DOM.");
+      }
+      homeDisplay.innerHTML = response.data;
+
+
+      // Handle specific pages
       if (page === "home") {
-        loadPage("lobby")
+        loadPage("lobby");
       } else if (page === "lobby") {
         attachLobbyEventListeners();
         loadLinks("lobby");
@@ -145,25 +203,29 @@ async function loadPage(page) {
         loadLinks("friends");
         establishWebSocketConnection();
       } else if (page === "profile") {
-        attachProfileEventListeners();
+        if (queryParams.username) {
+          attachProfileEventListeners(queryParams.username);
+        } else {
+          attachProfileEventListeners();
+        }
         loadLinks("profile");
         establishWebSocketConnection();
+      } else {
+        console.warn(`No specific logic implemented for page: ${page}`);
       }
     }
   } catch (error) {
-    console.error("Error loading page:", error);
-    document.getElementById("main-content").innerHTML =
-      "<p>Page not found.</p>";
+    console.error("Error loading page:", error.message || error);
+    const mainContent = document.getElementById("main-content");
+    if (mainContent) {
+      mainContent.innerHTML = "<p>Page not found.</p>";
+    } else {
+      console.error("Unable to update 'main-content' because it was not found in the DOM.");
+    }
   }
 }
 
 
-window.addEventListener("load", () => {
-  const initialPage = window.location.hash.substring(1) || "lobby";
-  loadPage(initialPage);
-});
-
-window.addEventListener("hashchange", () => {
-  const page = window.location.hash.substring(1);
-  loadPage(page);
-});
+// Add event listeners for initial load and hash changes
+window.addEventListener("load", loadPageFromHash);
+window.addEventListener("hashchange", loadPageFromHash);

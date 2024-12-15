@@ -1,4 +1,5 @@
 function attachLocalGameEventListeners(roomName) {
+
 	const ws_path = "wss://" + window.location.host + '/ws/game/' + roomName + '/?is_local=true&token=' + localStorage.getItem('accessToken');
     console.log("WebSocket URL:", ws_path);
     const socket = new WebSocket(ws_path);
@@ -57,7 +58,7 @@ function attachLocalGameEventListeners(roomName) {
                 player = 'player2';
                 direction = 'up';
             } else if (event.key === 'ArrowDown') {
-                player = 'player2';
+                player = 'player2';login
                 direction = 'down';
             }
 

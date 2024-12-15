@@ -34,7 +34,7 @@ function populateOnlineFriendsUI(friends) {
                   },
                 });
                 document.getElementById("home-display").innerHTML = response.data;
-                attachProfileEventListeners(friendId);
+                window.location.hash = "profile?username=" + friendId;
               } catch (error) {
                 console.error("Error loading page:", error);
                 document.getElementById("main-content").innerHTML =

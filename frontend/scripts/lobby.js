@@ -7,6 +7,7 @@ function attachLobbyEventListeners() {
   const localButton = document.getElementById('localButton');
   const statsData = ["<h2>No data available</h2>"];
   let currentStatIndex = 0;
+  let interval;
 
   async function joinGameQueue(token) {
     const response = await fetch(`${API_BASE_URL}/join-queue/`, {
@@ -75,9 +76,18 @@ function attachLobbyEventListeners() {
   async function updateStat() {
     if (statsData.length > 1 && statsData[currentStatIndex] == "<h2>No data available</h2>")
         currentStatIndex = (currentStatIndex + 1) % statsData.length
-    document.getElementById('stats-container').innerHTML =
+    const stat_cont = document.getElementById('stats-container');
+    if (stat_cont)
+    {
+      stat_cont.innerHTML =
       statsData[currentStatIndex];  
-    currentStatIndex = (currentStatIndex + 1) % statsData.length;
+      currentStatIndex = (currentStatIndex + 1) % statsData.length;
+    }
+    else 
+    {
+      clearInterval(updateStat);
+      interval = null;
+    }
   }
 
   fetchStats(-42)
@@ -164,5 +174,5 @@ function attachLobbyEventListeners() {
       console.error('Error fetching rank:', error);
     });
 
-    setInterval(updateStat, 5000);
+    interval = setInterval(updateStat, 5000);
 }
