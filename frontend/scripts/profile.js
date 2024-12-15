@@ -97,8 +97,19 @@ function attachProfileEventListeners(userName = -42) {
 
             if (!data.editable) {
                 document.getElementById("edit-profile-btn").style.display = "none";
+                document.getElementById("logout-btn").style.display = "none";
             } else {
                 document.getElementById("edit-profile-btn").style.display = "block";
+                document.getElementById("logout-btn").style.display = "block";
+
+                document.getElementById("logout-btn").addEventListener('click', async () => {
+                    const logged_out = await logout();
+                    localStorage.clear();
+                    if (logged_out)
+                    {
+                        window.location.hash = 'login';
+                    }
+                });
             }
         })
         .catch(error => {

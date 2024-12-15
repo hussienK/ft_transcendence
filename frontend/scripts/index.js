@@ -125,8 +125,6 @@ async function loadPage(page, queryParams = {}) {
       throw new Error("Page parameter is required but not provided.");
     }
 
-
-
     //main pages
     if (page === "signup" || page === "login" || page === "game" || page === "game_local")
     {
@@ -151,18 +149,18 @@ async function loadPage(page, queryParams = {}) {
         attachSignUpFormEventListeners();
       } else if (page === "login") {
         attachSigninFormEventListeners();
-      } else {
-        console.log("Verifying user...");
-        const validUser = await verifyUser();
-        if (!validUser) {
-          console.warn("User verification failed. Redirecting to login.");
-          window.location.hash = "login";
-          return;
-        }
       }
     }
     else
     {
+      console.log("Verifying user...");
+      const validUser = await verifyUser();
+      if (!validUser) {
+        console.warn("User verification failed. Redirecting to login.");
+        window.location.hash = "login";
+        return;
+      }
+
       //load full content
       const homeResponse = await axios.get(`./views/home.html`, {
         headers: { "Content-Type": "text/html" },

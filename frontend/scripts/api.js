@@ -227,3 +227,20 @@ async function startLocalGame(){
         console.log(error.response?.data?.error || "An error occurred", 'danger');
     }
 }
+
+async function logout(){
+    try{
+        const response = await axios.post('https://localhost:8443/api/users/logout/', {
+            refresh: localStorage.getItem('refreshToken')
+        }, {
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+            }
+        });
+        return true;
+    } catch (error) {
+        console.log(error.response?.data?.error || "An error occurred", 'danger');
+        return false;
+    }
+    return false;
+}
