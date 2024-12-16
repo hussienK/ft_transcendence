@@ -16,14 +16,18 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Create a non-root user before copying application code
+# Create a non-root user
 RUN useradd -m backenduser
 
-# Copy the application code and set ownership in a single step
-COPY --chown=backenduser:backenduser . /app
+# Copy the application code and set ownership
+COPY . /app
+RUN chown -R backenduser:backenduser /app
 
-# Ensure scripts and directories have correct permissions
-RUN chmod +x ./wait-for-db.sh && mkdir -p /app/staticfiles
+# Ensure necessary directories exist and set correct ownership/permissions
+RUN mkdir -p /app/media/avatars /app/staticfiles && \
+    chown -R backenduser:backenduser /app/media /app/staticfiles && \
+    chmod -R 755 /app/media /app/staticfiles && \
+    chmod +x ./wait-for-db.sh
 
 # Switch to the non-root user
 USER backenduser

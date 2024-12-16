@@ -239,7 +239,7 @@ async function logout(){
         });
         return true;
     } catch (error) {
-        console.log(error.response?.data?.error || "An error occurred", 'danger');
+        showAlert(error.response?.data?.error || "An error occurred", 'danger');
         return false;
     }
     return false;
@@ -257,6 +257,6 @@ async function updateProfile(data){
           );
           return response
     } catch (error) {
-        console.log(error.response?.data?.error || "An error occurred", 'danger');
+        showAlert(error.response?.data?.error || "An error occurred", 'danger');
     }
 }

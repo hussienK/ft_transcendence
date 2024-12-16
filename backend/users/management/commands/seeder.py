@@ -27,7 +27,6 @@ class Command(BaseCommand):
 			username = fake.user_name()
 			email = fake.email()
 			display_name = fake.first_name()
-			avatar_url = fake.image_url()  # Placeholder for avatar (will not upload image)
 			bio = fake.text(max_nb_chars=200)
 			is_verified = True
 			two_factor_enabled = False
@@ -39,7 +38,6 @@ class Command(BaseCommand):
 				username=username,
 				email=email,
 				display_name=display_name,
-				avatar=avatar_url,
 				bio=bio,
 				is_verified=is_verified,
 				two_factor_enabled=two_factor_enabled,

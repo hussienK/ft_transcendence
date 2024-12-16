@@ -29,6 +29,7 @@ from rest_framework_simplejwt.tokens import AccessToken
 from django.core.exceptions import ValidationError
 from .tasks import send_update_to_user_sync
 from .utils import get_user_stats
+from rest_framework.parsers import MultiPartParser, FormParser
 
 User = get_user_model()
 
@@ -91,6 +92,7 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
     '''Allows users to view profiles or update theirs'''
     serializer_class = UserProfileSerializer
     permission_classes = [permissions.IsAuthenticated, IsVerified]
+    parser_classes = [MultiPartParser, FormParser]
 
     # returns the object based on username or the current user if no username
     def get_object(self):
@@ -108,9 +110,33 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
         if instance != request.user:
-            return Response({"detail": "You do not have permission to edit this profile."}, status=status.HTTP_401_UNAUTHORIZED)
-        
-        return super().update(request, *args, **kwargs)
+            return Response(
+                {"detail": "You do not have permission to edit this profile."},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+
+        # Debug the incoming data
+        print(f"Incoming data: {request.data}")
+
+        try:
+            # Perform the update using the serializer
+            serializer = self.get_serializer(instance, data=request.data, partial=True)
+            serializer.is_valid(raise_exception=True)  # Trigger validation errors if present
+
+            # Debug the validated data
+            print(f"Validated data: {serializer.validated_data}")
+
+            # Save the updated instance
+            self.perform_update(serializer)
+
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except ValidationError as e:
+            print(f"EXCEPTION: {e}")  # Corrected exception printing
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            print(f"Unexpected Error: {e}")
+            return Response({"error": f"{e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
     
 ### A view For Logging IN ###
 class LoginView(APIView):
@@ -206,9 +232,9 @@ class LogoutView(APIView):
         
         except Exception as e:
             # Return the exception message as a string
-            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': e.error[next(iter(e.error))]}, status=status.HTTP_400_BAD_REQUEST)
         
-        
+
 ### User Delete View ###
 class UserDeleteView(APIView):
     '''Delete's a users account'''
@@ -602,10 +628,14 @@ class UserRankView(APIView):
         # Get the rank for the authenticated user
         user = request.user
         rank_info = self.get_player_rank(user)
-
+        link = None
+        if user.avatar:
+            link = f"http://localhost:8080/{user.avatar.url}" 
+        else:
+            link = './assets/default_avatar.png'            
         return Response({
             'user': user.username,
-            'avatar': user.avatar.url,
+            'avatar': link,
             'rank': rank_info['rank'],
             'total_players': rank_info['total_players'],
         })
