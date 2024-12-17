@@ -6,6 +6,7 @@ from .models import TranscendenceUser, FriendRequest, FeedUpdate
 from game.models import MatchHistory
 from django.conf import settings
 from urllib.parse import urlparse
+from django.utils.timezone import now
 
 User = get_user_model()
 
@@ -58,6 +59,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
             'bio',
             'avatar',  # Include avatar for both read and write
             'created_at',
+            'two_factor_enabled',
             "is_online",
             "editable"
         )
@@ -260,4 +262,27 @@ class MatchHistorySerializer(serializers.ModelSerializer):
             return obj.game_session.player1.username
         else:
             return "Not a participant"
-            
+
+class Verify2FACodeSerializer(serializers.Serializer):
+    code = serializers.IntegerField()
+    email = serializers.EmailField()
+
+    def validate(self, data):
+        email = data['email']
+        code = data['code']
+
+        try:
+            user = TranscendenceUser.objects.get(email=email)
+        except TranscendenceUser.DoesNotExist:
+            raise serializers.ValidationError("User with this email does not exist.")
+
+        if not user.two_factor_enabled:
+            raise serializers.ValidationError("Two-factor authentication is not enabled.")
+
+        if user.two_factor_code != code:
+            raise serializers.ValidationError("Invalid 2FA code.")
+
+        if user.code_expiry < now():
+            raise serializers.ValidationError("2FA code has expired.")
+
+        return user

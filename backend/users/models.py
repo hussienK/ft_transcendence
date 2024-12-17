@@ -14,7 +14,8 @@ class TranscendenceUser(AbstractUser):
     two_factor_enabled = models.BooleanField(default=False)
     last_activity = models.DateTimeField(default=timezone.now)
     created_at = models.DateTimeField(default=timezone.now)
-
+    two_factor_code = models.IntegerField(null=True, blank=True)
+    code_expiry = models.DateTimeField(null=True, blank=True)
 
     #an auto property with some details
 

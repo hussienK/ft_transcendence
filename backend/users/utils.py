@@ -85,3 +85,25 @@ def get_user_stats(user):
         'longest_loss_streak': longest_loss_streak,
         'longest_current_streak': longest_current_streak,
     }
+
+from django.core.mail import send_mail
+from django.utils.timezone import now, timedelta
+import random
+from ft_transcendance import settings
+
+def send_2fa_email(user):
+    # Generate a random 6-digit code
+    code = random.randint(100000, 999999)
+    
+    # Save the code and expiry to the user model
+    user.two_factor_code = code
+    user.code_expiry = now() + timedelta(minutes=10)  # Code valid for 10 minutes
+    user.save()
+
+    # Send the email
+    send_mail(
+        subject="Verify Your Email",
+        message=f"This is your 2FA code {code}",
+        from_email=settings.DEFAULT_FROM_MAIL,
+        recipient_list=[user.email],
+    )

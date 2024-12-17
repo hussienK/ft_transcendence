@@ -84,3 +84,45 @@
 .loginBox a:hover {
   color: #00ffff !important;
 }
+
+#fa-popup {
+  position: absolute;
+  top: 50%; /* Center vertically */
+  left: 50%; /* Center horizontally */
+  transform: translate(-50%, -50%); /* Adjust to perfect center */
+  background-color: rgb(19, 19, 19); /* Set background color to blue */
+  color: white; /* Set text color to white for readability */
+  padding: 20px; /* Add padding */
+  border-radius: 8px; /* Add rounded corners */
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.3); /* Add a subtle shadow */
+  z-index: 1000; /* Ensure it stays on top */
+}
+
+.popup-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Center the content horizontally */
+}
+
+#fa-form input {
+  margin: 10px 0;
+  padding: 8px;
+  border: none;
+  border-radius: 4px;
+  text-align: center;
+  font-size: 1em;
+}
+
+#submit-2fa-btn {
+  padding: 10px 20px;
+  background-color: #59238f;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1em;
+}
+
+#submit-2fa-btn:hover {
+  background-color: lightblue;
+}

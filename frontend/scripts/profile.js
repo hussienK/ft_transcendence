@@ -152,9 +152,16 @@ function attachProfileEventListeners(userName = -42) {
             if (!data.editable) {
                 document.getElementById("edit-profile-btn").style.display = "none";
                 document.getElementById("logout-btn").style.display = "none";
+                document.getElementById("2fa-btn").style.display = "none";
             } else {
                 document.getElementById("edit-profile-btn").style.display = "block";
                 document.getElementById("logout-btn").style.display = "block";
+                document.getElementById("2fa-btn").style.display = "block";
+                if (data.two_factor_enabled)
+                {
+                    document.getElementById("2fa-btn").innerHTML = "2FA Enabled"
+                    document.getElementById("2fa-btn").disabled = true;
+                }
 
                 document.getElementById("logout-btn").addEventListener('click', async () => {
                     const logged_out = await logout();
@@ -162,6 +169,15 @@ function attachProfileEventListeners(userName = -42) {
                     if (logged_out)
                     {
                         window.location.hash = 'login';
+                    }
+                });
+
+                document.getElementById("2fa-btn").addEventListener('click', async () => {
+                    const setup_successful = await setup2fa();
+                    if (setup_successful)
+                    {
+                        document.getElementById("2fa-btn").innerHTML = '2FA Enabled'
+                        document.getElementById("2fa-btn").disabled = true;
                     }
                 });
             }
