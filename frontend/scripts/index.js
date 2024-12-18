@@ -155,7 +155,7 @@ async function loadPage(page, queryParams = {}) {
     {
       console.log("Verifying user...");
       const validUser = await verifyUser();
-      if (!validUser) {
+      if (validUser === false) {
         console.warn("User verification failed. Redirecting to login.");
         window.location.hash = "login";
         return;

@@ -74,40 +74,43 @@ function attachProfileEventListeners(userName = -42) {
     // Hide the modal
     closeModalBtn.addEventListener('click', () => {
       modal.classList.add('hidden'); // Hide the modal
+      editProfileForm.reset();
     });
   
     // Handle form submission
     editProfileForm.addEventListener('submit', async (e) => {
-      e.preventDefault(); // Prevent default form submission
-  
-      const formData = new FormData(editProfileForm);
-      const data = {
-        display_name: formData.get('display_name'),
-        bio: formData.get('bio'),
-        email: formData.get('email'),
-      };
-  
-      try {
-        // Update the profile via API
-        const response = await updateProfile(data);
-        console.log(response)
-    //     if (response.ok) {
-    //       const updatedData = response.data;
-    //       // Update the UI with new profile information
-    //       document.getElementById('profile-display_name').innerHTML = updatedData.display_name;
-    //       document.getElementById('profile-bio').innerHTML = updatedData.bio;
-  
-    //       alert('Profile updated successfully!');
-    //       modal.classList.add('hidden'); // Hide the modal
-    //     } else {
-    //       const errorData = await response.json();
-    //       alert(`Error: ${errorData.error}`);
-    //     }
-      } catch (error) {
-        console.error('Error updating profile:', error);
-        alert('An error occurred while updating your profile. Please try again.');
-      }
-    });
+        e.preventDefault(); // Prevent default form submission
+      
+        const formData = new FormData(editProfileForm); // Use FormData directly
+        try {
+          const response = await axios.put('/api/users/profile/', formData, {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+              Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+            },
+          });
+      
+          if (response.status === 200) {
+            const updatedData = response.data;
+            console.log('Profile updated successfully:', updatedData);
+      
+            // Update the UI with new profile information
+            document.getElementById('profile-display_name').innerHTML = updatedData.display_name;
+            document.getElementById('profile-bio').innerHTML = updatedData.bio;
+      
+            // Update avatar in the UI
+            if (updatedData.avatar_url) {
+              document.getElementById('profile-avatar').src = updatedData.avatar_url;
+            }
+      
+            alert('Profile updated successfully!');
+            modal.classList.add('hidden'); // Hide the modal
+          }
+        } catch (error) {
+            showAlert("Please provide valid credentials", 'danger');
+            console.error('Error updating profile:', error.response?.data || error.message);
+        }
+      });
 
 
 
@@ -135,7 +138,7 @@ function attachProfileEventListeners(userName = -42) {
             document.getElementById("profile-username").innerHTML = data.username || "";
             document.getElementById("profile-bio").innerHTML = data.bio || "";
             document.getElementById("profile-email").innerHTML = data.email || "";
-            document.getElementById("profile-avatar").src = data.avatar_url || "./assets/default_avatar.png";
+            document.getElementById("profile-avatar").src = data.avatar || "./assets/default_avatar.png";
 
             const statusIndicator = document.getElementById("profile-status-indicator");
             if (data.is_online) {
@@ -149,9 +152,16 @@ function attachProfileEventListeners(userName = -42) {
             if (!data.editable) {
                 document.getElementById("edit-profile-btn").style.display = "none";
                 document.getElementById("logout-btn").style.display = "none";
+                document.getElementById("2fa-btn").style.display = "none";
             } else {
                 document.getElementById("edit-profile-btn").style.display = "block";
                 document.getElementById("logout-btn").style.display = "block";
+                document.getElementById("2fa-btn").style.display = "block";
+                if (data.two_factor_enabled)
+                {
+                    document.getElementById("2fa-btn").innerHTML = "2FA Enabled"
+                    document.getElementById("2fa-btn").disabled = true;
+                }
 
                 document.getElementById("logout-btn").addEventListener('click', async () => {
                     const logged_out = await logout();
@@ -159,6 +169,15 @@ function attachProfileEventListeners(userName = -42) {
                     if (logged_out)
                     {
                         window.location.hash = 'login';
+                    }
+                });
+
+                document.getElementById("2fa-btn").addEventListener('click', async () => {
+                    const setup_successful = await setup2fa();
+                    if (setup_successful)
+                    {
+                        document.getElementById("2fa-btn").innerHTML = '2FA Enabled'
+                        document.getElementById("2fa-btn").disabled = true;
                     }
                 });
             }

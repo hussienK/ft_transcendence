@@ -6,7 +6,8 @@ from .views import (
     GetFriends, CancelFriendRequestView, DeleteFriendshipView, GetFriendsOnline,
     GetSentFriendRequests, GetReceivedFriendRequests, TokenVerifyView,
 	FeedUpdateView,
-	UserStatsAPIView, UserMatchHistoryView, UserRankView
+	UserStatsAPIView, UserMatchHistoryView, UserRankView,
+	setup2FA, Verify2FACodeView
 )
 from rest_framework_simplejwt.views import TokenRefreshView
 
@@ -53,4 +54,8 @@ urlpatterns = [
 	path('match-history/', UserMatchHistoryView.as_view(), name='user-history'),
 	path('match-history/<str:username>/', UserMatchHistoryView.as_view(), name='user-history-by-username'),
     path('player-rank/', UserRankView.as_view(), name='player-rank'),
+	
+    #2FA
+	path('2fa/setup/', setup2FA.as_view(), name="setup_2fa"),
+	path('2fa/verify/', Verify2FACodeView.as_view(), name='verify_2fa'),
 ]

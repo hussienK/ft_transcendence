@@ -26,4 +26,22 @@
       <a href="#signup" style="color: #59238f">Sign-Up</a>
     </div>
   </div>
+
+  <div id="fa-popup" class="popup hidden">
+    <div class="popup-content">
+        <h2>Two-Factor Authentication</h2>
+        <p>Please enter the 6-digit code sent to your email.</p>
+        <form id="2fa-form">
+            <input 
+                type="text" 
+                id="2fa-code" 
+                name="2fa-code" 
+                maxlength="6" 
+                placeholder="Enter 2FA Code" 
+                required
+            />
+        <button type="submit" id="submit-2fa-btn">Verify</button>
+        </form>
+    </div>
+  </div>
 </div>

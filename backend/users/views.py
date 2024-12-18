@@ -6,7 +6,7 @@ from rest_framework.permissions import AllowAny
 from django.contrib.auth import get_user_model, authenticate
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken
-from .serializers import UserStatsSerializer, FriendRequestSerializer, AcceptFriendRequestSerializer, DeleteFriendRequestSerializer, GetFriendsSerializer, FeedUpdateSerializer, MatchHistorySerializer
+from .serializers import UserStatsSerializer, FriendRequestSerializer, AcceptFriendRequestSerializer, DeleteFriendRequestSerializer, GetFriendsSerializer, FeedUpdateSerializer, MatchHistorySerializer, Verify2FACodeSerializer
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.urls import reverse
@@ -28,7 +28,8 @@ from .permissions import IsVerified
 from rest_framework_simplejwt.tokens import AccessToken
 from django.core.exceptions import ValidationError
 from .tasks import send_update_to_user_sync
-from .utils import get_user_stats
+from .utils import get_user_stats, send_2fa_email
+from rest_framework.parsers import MultiPartParser, FormParser
 
 User = get_user_model()
 
@@ -91,6 +92,7 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
     '''Allows users to view profiles or update theirs'''
     serializer_class = UserProfileSerializer
     permission_classes = [permissions.IsAuthenticated, IsVerified]
+    parser_classes = [MultiPartParser, FormParser]
 
     # returns the object based on username or the current user if no username
     def get_object(self):
@@ -108,9 +110,33 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
         if instance != request.user:
-            return Response({"detail": "You do not have permission to edit this profile."}, status=status.HTTP_401_UNAUTHORIZED)
-        
-        return super().update(request, *args, **kwargs)
+            return Response(
+                {"detail": "You do not have permission to edit this profile."},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+
+        # Debug the incoming data
+        print(f"Incoming data: {request.data}")
+
+        try:
+            # Perform the update using the serializer
+            serializer = self.get_serializer(instance, data=request.data, partial=True)
+            serializer.is_valid(raise_exception=True)  # Trigger validation errors if present
+
+            # Debug the validated data
+            print(f"Validated data: {serializer.validated_data}")
+
+            # Save the updated instance
+            self.perform_update(serializer)
+
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except ValidationError as e:
+            print(f"EXCEPTION: {e}")  # Corrected exception printing
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            print(f"Unexpected Error: {e}")
+            return Response({"error": f"{e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
     
 ### A view For Logging IN ###
 class LoginView(APIView):
@@ -164,8 +190,9 @@ class LoginView(APIView):
         # if there is a user redirects to 2FA response instead of loggin in
         if user is not None:
             if user.two_factor_enabled:
-                request.session['temp_user_id'] = user.id
-                return Response({"detail": "2FA required"}, status=status.HTTP_202_ACCEPTED)
+                request.session['pending_2fa_user_id'] = user.id
+                send_2fa_email(user)
+                return Response({"detail": "2FA required", "email": user.email}, status=status.HTTP_202_ACCEPTED)
             
             # creates the tokens and returns them
             user_logged_in.send(sender=user.__class__, request=request, user=user)
@@ -206,9 +233,9 @@ class LogoutView(APIView):
         
         except Exception as e:
             # Return the exception message as a string
-            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': e.error[next(iter(e.error))]}, status=status.HTTP_400_BAD_REQUEST)
         
-        
+
 ### User Delete View ###
 class UserDeleteView(APIView):
     '''Delete's a users account'''
@@ -602,10 +629,70 @@ class UserRankView(APIView):
         # Get the rank for the authenticated user
         user = request.user
         rank_info = self.get_player_rank(user)
-
+        link = None
+        if user.avatar:
+            link = f"http://localhost:8080/{user.avatar.url}" 
+        else:
+            link = './assets/default_avatar.png'            
         return Response({
             'user': user.username,
-            'avatar': user.avatar.url,
+            'avatar': link,
             'rank': rank_info['rank'],
             'total_players': rank_info['total_players'],
         })
+
+
+class setup2FA(APIView):
+    def post(self, request):
+        user = request.user
+        if user.is_verified and not user.two_factor_enabled:
+            user.two_factor_enabled = True
+            user.save()
+            return Response({"detail": "2FA have been setup"})
+        return Response({"error": "2FA is already setup"}, status=400)
+    
+def verify_2fa_code(user, code):
+    # Example: Compare the code stored in the database or cache with the input
+    return user.two_factor_code == int(code)  # Replace `otp_code` with your logic for storing the code
+
+class Verify2FACodeView(APIView):
+    permission_classes = [AllowAny]
+    def post(self, request):
+        serializer = Verify2FACodeSerializer(data=request.data)
+        if serializer.is_valid():
+            code = request.data['code']
+
+            # Retrieve pending user ID from session
+
+            pending_user_id = request.session.get('pending_2fa_user_id', None)
+            if not pending_user_id:
+                return Response({"error": "Session expired. Please log in again."}, status=400)
+
+            # Verify the user and the 2FA code
+            try:
+                user = User.objects.get(id=pending_user_id)
+            except User.DoesNotExist:
+                return Response({"error": "User not found. Please log in again."}, status=400)
+
+            if not verify_2fa_code(user, code):  # You need a verify_2fa_code function
+                return Response({"error": "Invalid 2FA code."}, status=400)
+
+            # If 2FA verification is successful
+            user_logged_in.send(sender=user.__class__, request=request, user=user)
+            refresh = RefreshToken.for_user(user)
+
+            # Clear pending user session data
+            del request.session['pending_2fa_user_id']
+
+            return Response({
+                "refresh": str(refresh),
+                "access": str(refresh.access_token),
+                "userInfo": {
+                    "username": user.username,
+                    "email": user.email,
+                    "display_name": user.display_name
+                }
+            }, status=200)
+        errors = serializer.errors
+        error_message = next(iter(errors.values()))[0]  # Get the first error message
+        return Response({"error": error_message}, status=status.HTTP_400_BAD_REQUEST)

@@ -7,13 +7,15 @@ from django.utils.timezone import now
 # The Basic user model for our website
 class TranscendenceUser(AbstractUser):
     display_name = models.CharField(max_length=30, unique=True)
-    avatar = models.ImageField(upload_to='avatars/', default='avatars/default.jpg')
+    avatar = models.ImageField(upload_to='avatars/', default=None)
     bio = models.TextField(blank=True)
     is_online = models.BooleanField(default=False)
     is_verified = models.BooleanField(default=False)
     two_factor_enabled = models.BooleanField(default=False)
     last_activity = models.DateTimeField(default=timezone.now)
     created_at = models.DateTimeField(default=timezone.now)
+    two_factor_code = models.IntegerField(null=True, blank=True)
+    code_expiry = models.DateTimeField(null=True, blank=True)
 
     #an auto property with some details
 

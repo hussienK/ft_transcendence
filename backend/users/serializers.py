@@ -5,6 +5,8 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from .models import TranscendenceUser, FriendRequest, FeedUpdate
 from game.models import MatchHistory
 from django.conf import settings
+from urllib.parse import urlparse
+from django.utils.timezone import now
 
 User = get_user_model()
 
@@ -40,50 +42,52 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         validated_data.pop('password2')  # Remove the confirm password field
         user = User.objects.create_user(**validated_data)
         return user
+from rest_framework import serializers
+from urllib.parse import urlparse
 
-# Serializer for user profile updates
 class UserProfileSerializer(serializers.ModelSerializer):
     editable = serializers.SerializerMethodField()
+    avatar = serializers.ImageField(required=False)  # Allow file uploads
 
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'display_name', 'bio', 'avatar', 'created_at', "is_online", "editable")
+        fields = (
+            'id',
+            'username',
+            'email',
+            'display_name',
+            'bio',
+            'avatar',  # Include avatar for both read and write
+            'created_at',
+            'two_factor_enabled',
+            "is_online",
+            "editable"
+        )
         read_only_fields = ('id', 'username', 'email', 'created_at', "is_online", "editable")
 
     def get_editable(self, obj):
         request = self.context.get('request')
         return request.user == obj
 
-    # Validate username length
-    def validate_username(self, value):
-        if len(value) < settings.FORM_SETTINGS['username_length_min']:
-            raise serializers.ValidationError("Username must be at least 3 characters long.")
-        if len(value) > settings.FORM_SETTINGS['username_length_max']:
-            raise serializers.ValidationError("Username can't be more than 15 characters long.")
-        return value
-    
-    # Validate display name length
-    def validate_display_name(self, value):
-        if len(value) < settings.FORM_SETTINGS['displayname_length_min']:
-            raise serializers.ValidationError("Display Name must be at least 3 characters long.")
-        if len(value) > settings.FORM_SETTINGS['displayname_length_max']:
-            raise serializers.ValidationError("Display Name can't be more than 15 characters long.")
-        return value
+    # Return the full URL of the avatar
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
 
-    # Validate bio length
-    def validate_bio(self, value):
-        if len(value) > settings.FORM_SETTINGS['bio_length_max']:
-            raise serializers.ValidationError("Bio can't be more than 150 characters long.")
-        return value
+        # Generate the full avatar URL
+        if instance.avatar:
+            avatar_url = instance.avatar.url if hasattr(instance.avatar, 'url') else instance.avatar
+            representation['avatar'] = f"http://localhost:8080{avatar_url}"
+        else:
+            representation['avatar'] = "./assets/default_avatar.png"  # Default avatar URL
 
-    # Ensure email is unique
-    def validate_email(self, value):
-        user = self.context['request'].user
-        if User.objects.filter(email=value).exclude(id=user.id).exists():
-            raise serializers.ValidationError("This email is already associated with another account.")
-        return value
+        # Hide the email field if the user is not viewing their own profile
+        request = self.context.get('request')
+        if request.user != instance:
+            representation.pop('email', None)
 
-    # Validate avatar size and type
+        return representation
+
+    # Validate the avatar field
     def validate_avatar(self, value):
         max_size = 2 * 1024 * 1024  # 2MB
         if value.size > max_size:
@@ -91,16 +95,33 @@ class UserProfileSerializer(serializers.ModelSerializer):
         if not value.content_type.startswith("image/"):
             raise serializers.ValidationError("Uploaded file must be an image.")
         return value
+
+    # Other validations
+    def validate_username(self, value):
+        if len(value) < settings.FORM_SETTINGS['username_length_min']:
+            raise serializers.ValidationError("Username must be at least 3 characters long.")
+        if len(value) > settings.FORM_SETTINGS['username_length_max']:
+            raise serializers.ValidationError("Username can't be more than 15 characters long.")
+        return value
     
-    # Customize the representation of user profile data
-    def to_representation(self, instance):
-        representation = super().to_representation(instance)
-        request = self.context.get('request')
-        representation.pop('created_at')  # Remove creation date
-        representation.pop('id')  # Remove ID
-        if request.user != instance:  # Hide email for other users
-            representation.pop('email')
-        return representation
+    def validate_display_name(self, value):
+        if len(value) < settings.FORM_SETTINGS['displayname_length_min']:
+            raise serializers.ValidationError("Display Name must be at least 3 characters long.")
+        if len(value) > settings.FORM_SETTINGS['displayname_length_max']:
+            raise serializers.ValidationError("Display Name can't be more than 15 characters long.")
+        return value
+
+    def validate_bio(self, value):
+        if len(value) > settings.FORM_SETTINGS['bio_length_max']:
+            raise serializers.ValidationError("Bio can't be more than 150 characters long.")
+        return value
+
+    def validate_email(self, value):
+        user = self.context.get('request').user
+        if User.objects.filter(email=value).exclude(id=user.id).exists():
+            raise serializers.ValidationError("This email is already associated with another account.")
+        return value
+
 
 # Custom serializer for JWT token generation
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
@@ -241,4 +262,27 @@ class MatchHistorySerializer(serializers.ModelSerializer):
             return obj.game_session.player1.username
         else:
             return "Not a participant"
-            
+
+class Verify2FACodeSerializer(serializers.Serializer):
+    code = serializers.IntegerField()
+    email = serializers.EmailField()
+
+    def validate(self, data):
+        email = data['email']
+        code = data['code']
+
+        try:
+            user = TranscendenceUser.objects.get(email=email)
+        except TranscendenceUser.DoesNotExist:
+            raise serializers.ValidationError("User with this email does not exist.")
+
+        if not user.two_factor_enabled:
+            raise serializers.ValidationError("Two-factor authentication is not enabled.")
+
+        if user.two_factor_code != code:
+            raise serializers.ValidationError("Invalid 2FA code.")
+
+        if user.code_expiry < now():
+            raise serializers.ValidationError("2FA code has expired.")
+
+        return user

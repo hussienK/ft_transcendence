@@ -163,9 +163,10 @@ function attachLobbyEventListeners() {
   fetchRank()
     .then((data) => {
       const RankItem = document.getElementById('rank-container');
+      let image = data.avatar;
       RankItem.innerHTML = `
         <div class="friend-avatar" style="width: 100px; height: 100px;">
-          <img src="${data.avatar || './assets/default_avatar.png'}" alt="${data.user}'s avatar">
+          <img src="${image || './assets/default_avatar.png'}" alt="${data.user}'s avatar">
         </div>
         <h3>Rank: ${data.rank}<br>${data.total_players} Players Total</h3>
       `;

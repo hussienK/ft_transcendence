@@ -239,7 +239,7 @@ async function logout(){
         });
         return true;
     } catch (error) {
-        console.log(error.response?.data?.error || "An error occurred", 'danger');
+        showAlert(error.response?.data?.error || "An error occurred", 'danger');
         return false;
     }
     return false;
@@ -257,6 +257,22 @@ async function updateProfile(data){
           );
           return response
     } catch (error) {
-        console.log(error.response?.data?.error || "An error occurred", 'danger');
+        showAlert(error.response?.data?.error || "An error occurred", 'danger');
+    }
+}
+
+async function setup2fa(){
+    try{
+        const response = await axios.post('https://localhost:8443/api/users/2fa/setup/', {
+            refresh: localStorage.getItem('refreshToken')
+        }, {
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+            }
+        });
+        return true;
+    } catch (error) {
+        showAlert(error.response?.data?.error || "An error occurred", 'danger');
+        return false;
     }
 }

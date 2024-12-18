@@ -53,6 +53,9 @@ background-color: #36393f
                         <div class="text-end">
                         <button id="logout-btn" class="btn btn-primary" style="background-color: red; border-color: red; margin-left: 10px;">Logout</button>
                         </div>
+                        <div class="text-end">
+                        <button id="2fa-btn" class="btn btn-primary" style="background-color: green; border-color: green; margin-left: 10px;">Enable 2FA</button>
+                        </div>
                     </div>
                 </div>
                 
@@ -124,24 +127,24 @@ background-color: #36393f
     
 
         <!-- Profile Edit Modal -->
-        <div id="edit-profile-modal" class="modal-overlay hidden">
+        <div id="edit-profile-modal" class="modal-overlay hidden 2fa-popup">
             <div class="modal-content">
             <span id="close-modal-btn" class="close-btn">&times;</span>
-            <h2>Edit Profile</h2>
+            <h2 class="text-center">Edit Profile</h2>
             <form id="edit-profile-form">
-                <div>
-                <label for="display-name">Display Name:</label>
-                <input type="text" id="display-name" name="display_name" required>
+                <div class="d-flex row">
+                <label for="display-name">Display Name</label>
+                <input type="text" id="display-name" name="display_name" required style="max-width: 300px; margin-left: 20px">
                 </div>
-                <div>
-                <label for="bio">Bio:</label>
-                <textarea id="bio" name="bio" rows="3"></textarea>
+                <div class="d-flex row">
+                <label for="bio">Bio</label>
+                <textarea id="bio" name="bio" rows="3" style="max-width: 300px; margin-left: 20px"></textarea>
                 </div>
-                <div>
-                    <label for="avatar">Avatar:</label>
-                    <input type="file" id="avatar" name="avatar" accept="image/*">
+                <div class="d-flex row">
+                    <label for="avatar">Avatar</label>
+                    <input type="file" id="avatar" name="avatar" accept="image/*" style="margin-left: 20px">
                   </div>
-                <button type="submit" class="btn btn-primary">Save Changes</button>
+                <button type="submit" class="btn btn-primary" style="margin-top: 10px; ">Save Changes</button>
             </form>
             </div>
         </div>

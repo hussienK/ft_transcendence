@@ -1,7 +1,8 @@
 volumes:
-  staticfiles:  # Named volume for static files
-  dbdata:       # Named volume for database
-  celerybeatdata: # Named volume for Celery Beat data
+  staticfiles:     # Named volume for static files
+  dbdata:          # Named volume for database
+  celerybeatdata:  # Named volume for Celery Beat data
+  mediafiles:      # Named volume for media files
 
 services:
   backend:
@@ -23,6 +24,7 @@ services:
     volumes:
       - ./backend:/app  # Bind mount backend code for live updates
       - staticfiles:/app/staticfiles  # Named volume for static files
+      - mediafiles:/app/media  # Named volume for media files
     depends_on:
       db:
         condition: service_healthy
@@ -41,6 +43,7 @@ services:
     volumes:
       - ./frontend:/usr/share/nginx/html  # Bind mount frontend
       - staticfiles:/app/staticfiles  # Named volume for static files
+      - mediafiles:/app/media  # Named volume for media files
     depends_on:
       - backend
     restart: always
