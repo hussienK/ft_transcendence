@@ -32,8 +32,8 @@ class GameState:
         self.channel_layer = channel_layer
         self.group_name = group_name
 
-        self.player1 = "player1"
-        self.player2 = "player2"
+        self.player1 = None
+        self.player2 = None
         self.winner = None
         self.loser = None
 
@@ -69,6 +69,20 @@ class GameState:
                 await self.broadcast_final_state()
         except asyncio.CancelledError:
             pass
+
+    async def handle_game_end(self, winner, loser, forfeit = False):
+        self.winner = winner.username if winner else None
+
+        await self.broadcast_final_state()
+
+        try:
+            # Call the synchronous save function in a thread-safe manner
+            await sync_to_async(save_match_results_sync, thread_sensitive=False)(
+                self.game_id, self.score1, self.score2, forfeit
+            )
+        except Exception as e:
+            print(f"Error in async game end handler: {e}")
+
 
     def update_paddle(self, player, direction):
         if player == 'player1':
@@ -120,11 +134,10 @@ class GameState:
         if self.score1 >= self.winning_score or self.score2 >= self.winning_score:
             self.game_is_active = False
             if self.score1 > self.score2:
-                self.winner = self.player1
-                self.loser = self.player2
+                asyncio.create_task(self.handle_game_end(self.player1, self.player2))
             else:
-                self.winner = self.player2
-                self.loser = self.player1
+                asyncio.create_task(self.handle_game_end(self.player2, self.player1))
+
 
     def reset_ball(self):
         self.ball_position = [self.canvas_width // 2, self.canvas_height // 2]
@@ -139,7 +152,7 @@ class GameState:
             'ball_position': self.ball_position,
             'game_is_active': self.game_is_active,
             'game_over': not self.game_is_active,
-            'winner': self.winner
+            'winner': 'player1' if self.score1 > self.score2 else 'player2'
         }
 
     async def broadcast_state(self):
@@ -154,6 +167,7 @@ class GameState:
 
     async def broadcast_final_state(self):
         game_state_dict = self.to_dict()
+        print(f"\n\n{game_state_dict}\n\n\n")
         game_state_dict['game_over'] = True
         await self.channel_layer.group_send(
             self.group_name,
@@ -163,6 +177,31 @@ class GameState:
             }
         )
 
+        # if not self.is_local:
+        #     self.save_match_results()
+
     def debug_state(self):
         print(f"Ball position: {self.ball_position}, Velocity: {self.ball_velocity}")
         print(f"Paddle1 position: {self.paddle1_position}, Paddle2 position: {self.paddle2_position}")
+
+def save_match_results_sync(game_id, score1, score2, forfeit):
+    """Synchronously save match results to the database."""
+    from .models import GameSession, MatchHistory
+
+    try:
+        # Fetch the GameSession object
+        game_session = GameSession.objects.get(session_id=game_id)
+
+        # Create a MatchHistory entry
+        MatchHistory.objects.create(
+            game_session=game_session,
+            player1=game_session.player1,
+            player2=game_session.player2,
+            forfeit=forfeit,
+            player1_score=score1,
+            player2_score=score2,
+        )
+
+        print("Match history updated successfully")
+    except Exception as e:
+        print(f"Error updating match history: {e}")

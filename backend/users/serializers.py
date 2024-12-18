@@ -230,9 +230,9 @@ class UserStatsSerializer(serializers.Serializer):
     longest_current_streak = serializers.IntegerField()
 
 class MatchHistorySerializer(serializers.ModelSerializer):
-    game_session_id = serializers.CharField(source='game_session.session_id')
-    result = serializers.SerializerMethodField()
-    opponent = serializers.SerializerMethodField()
+    game_session_id = serializers.CharField(source='game_session.session_id')  # Adjusted field to fit `game_session`
+    result = serializers.SerializerMethodField()  # Computes the result dynamically
+    opponent = serializers.SerializerMethodField()  # Computes the opponent dynamically
 
     class Meta:
         model = MatchHistory
@@ -240,26 +240,27 @@ class MatchHistorySerializer(serializers.ModelSerializer):
             'game_session_id',
             'opponent',
             'result',
-            'points_scored_by_winner',
-            'points_conceded_by_loser',
+            'player1_score',
+            'player2_score',
+            'forfeit',
             'created_at',
         ]
 
     def get_result(self, obj):
         request_user = self.context['request'].user
-        if obj.winner == request_user:
-            return "Win"
-        elif obj.loser == request_user:
-            return "Loss"
+        if obj.game_session.player1 == request_user:
+            return "Win" if obj.player1_score > obj.player2_score else "Loss"
+        elif obj.game_session.player2 == request_user:
+            return "Win" if obj.player2_score > obj.player1_score else "Loss"
         else:
             return "Not a participant"
-    
+
     def get_opponent(self, obj):
         request_user = self.context['request'].user
         if obj.game_session.player1 == request_user:
-            return obj.game_session.player2.username
+            return obj.game_session.player2.username if obj.game_session.player2 else "Unknown"
         elif obj.game_session.player2 == request_user:
-            return obj.game_session.player1.username
+            return obj.game_session.player1.username if obj.game_session.player1 else "Unknown"
         else:
             return "Not a participant"
 

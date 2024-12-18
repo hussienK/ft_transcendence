@@ -200,8 +200,9 @@ function attachProfileEventListeners(userName = -42) {
             HistoryContainer.innerHTML = "";
             data.forEach(element => {
                 const opponentUsername = element.opponent || 'Unknown';
-                const winnerPoints = element.points_scored_by_winner || 0;
-                const loserPoints = element.points_conceded_by_loser || 0;
+                const score = element.player1_score || 0;
+                const score2 = element.player2_score || 0;
+                const forfeit = element.forfeit;
                 const result = element.result || 'Not Available';
                 const isWinner = result === "Win";
                 HistoryContainer.innerHTML += `
@@ -221,7 +222,7 @@ function attachProfileEventListeners(userName = -42) {
                             ${isWinner ? 'Won' : 'Lost'}
                         </div>
                         <div style="display: flex; justify-content: center; align-items: center;">
-                            ${isWinner ? `${winnerPoints} - ${loserPoints}` : `${loserPoints} - ${winnerPoints}`}
+                            ${forfeit ? "Forfeit": `${score} - ${score2}`}
                         </div>
                     </div>
                 </div>

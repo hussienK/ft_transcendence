@@ -1,5 +1,5 @@
 function attachGameEventListeners(roomName, player) {
-    const ws_path = "wss://" + window.location.host + '/ws/game/' + roomName + '/' + '?token=' + localStorage.getItem('accessToken');
+	const ws_path = "wss://" + window.location.host + '/ws/game/' + roomName + '/?token=' + localStorage.getItem('accessToken');
     console.log("WebSocket URL:", ws_path);
     const socket = new WebSocket(ws_path);
 

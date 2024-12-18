@@ -119,9 +119,11 @@ function attachLobbyEventListeners() {
     .then((data) => {
       let historyHTML = "<h2>History</h2>";
       data.forEach((element, index) => {
+        console.log(element);
         const opponentUsername = element.opponent || 'Unknown';
-        const winnerPoints = element.points_scored_by_winner || 0;
-        const loserPoints = element.points_conceded_by_loser || 0;
+        const score = element.player1_score || 0;
+        const score2 = element.player2_score || 0;
+        const forfeit = element.forfeit;
         const result = element.result || 'Not Available';
         const isWinner = result === 'Win';
         historyHTML += `
@@ -143,9 +145,7 @@ function attachLobbyEventListeners() {
               </div>
               <div style="display: flex; justify-content: center; align-items: center; background-color: white;">
                 ${
-                  isWinner
-                    ? `${winnerPoints} - ${loserPoints}`
-                    : `${loserPoints} - ${winnerPoints}`
+                    forfeit ? "Forfeit": `${score} - ${score2}`
                 }
               </div>
             </div>

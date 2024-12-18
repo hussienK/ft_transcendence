@@ -16,9 +16,13 @@ class PongGameConsumer(AsyncWebsocketConsumer):
         self.user = self.scope["user"]
 
         query_params = parse_qs(self.scope['query_string'].decode('utf-8'))
-        is_local = query_params.get('is_local', ['false'])[0].lower() == 'true'
+        try:
+            is_local = query_params.get('is_local', ['false'])[0].lower() == 'true'
 
-        self.is_local = True
+            self.is_local = is_local
+        except:
+            self.is_local = False
+
         # Join room group
         await self.channel_layer.group_add(
             self.room_group_name,
@@ -47,10 +51,11 @@ class PongGameConsumer(AsyncWebsocketConsumer):
             else:
                 await self.close()
                 return
-
             if self.game_state.players_ready >= 2 and not self.game_state.game_is_active:
                 self.game_state.start_game()
         else:
+            self.game_state.player1= "player1"
+            self.game_state.player2= "player2"
             self.game_state.is_local = True
             self.game_state.start_game()
 
@@ -80,10 +85,9 @@ class PongGameConsumer(AsyncWebsocketConsumer):
 
             if self.game_state.players_ready < 2:
                 self.game_state.stop_game()
-
                 # Set the winner if there is one
                 if winner and loser:
-                    await self.game_state.handle_game_end(winner, loser)
+                    await self.game_state.handle_game_end(winner, loser, True)
 
     # Receive message from WebSocket
     async def receive(self, text_data):
@@ -119,6 +123,7 @@ class PongGameConsumer(AsyncWebsocketConsumer):
 
 
 class UpdatesConsumer(AsyncWebsocketConsumer):
+
     async def connect(self):
         # Authenticate the user
         self.user = self.scope["user"]

@@ -1,11 +1,12 @@
 from django.contrib.auth.tokens import default_token_generator
 from game.models import MatchHistory
-from django.db.models import Sum, Q
+from django.db.models import Sum, Q, F
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 
 def generate_verification_token(user):
     return default_token_generator.make_token(user)
+
 
 def calculate_streak(user):
     """
@@ -14,63 +15,60 @@ def calculate_streak(user):
     (positive for win streak, negative for loss streak, 0 if no streak).
     """
     # Get all matches (both wins and losses for the user)
-    matches = MatchHistory.objects.filter(Q(winner=user) | Q(loser=user)).order_by('created_at')
+    matches = MatchHistory.objects.filter(Q(player1=user) | Q(player2=user)).order_by('created_at')
 
     longest_win_streak = 0
     longest_loss_streak = 0
-    current_streak = 0  # Can be positive for wins, negative for losses
-    longest_current_streak = 0  # Tracks the ongoing streak with its sign (positive/negative)
+    current_streak = 0
 
     for match in matches:
+        user_score = match.player1_score if match.player1 == user else match.player2_score
+        opponent_score = match.player2_score if match.player1 == user else match.player1_score
 
-        if match.winner == user:  # If the user won
-            current_streak += 1  # Increment streak for wins
-        elif match.loser == user:  # If the user lost
-            current_streak -= 1  # Decrement streak for losses
+        if user_score > opponent_score:  # Win
+            current_streak = current_streak + 1 if current_streak > 0 else 1
+            longest_win_streak = max(longest_win_streak, current_streak)
+        elif user_score < opponent_score:  # Loss
+            current_streak = current_streak - 1 if current_streak < 0 else -1
+            longest_loss_streak = min(longest_loss_streak, current_streak)
 
-        # Track the longest streaks
-        longest_win_streak = max(longest_win_streak, current_streak) if current_streak > 0 else longest_win_streak
-        longest_loss_streak = min(longest_loss_streak, current_streak) if current_streak < 0 else longest_loss_streak
-        longest_current_streak = current_streak  # Ongoing streak value (positive/negative)
-
-
-    # Final check after loop to account for the streak at the end
-    if current_streak > 0:
-        longest_win_streak = max(longest_win_streak, current_streak)
-    elif current_streak < 0:
-        longest_loss_streak = min(longest_loss_streak, current_streak)
-
-    return longest_win_streak, longest_loss_streak, longest_current_streak
-
+    return longest_win_streak, abs(longest_loss_streak), current_streak
 
 
 def get_user_stats(user):
     # Total Games
-    total_games = MatchHistory.objects.filter(
-        Q(winner=user) | Q(loser=user)
-    ).count()
+    total_games = MatchHistory.objects.filter(Q(player1=user) | Q(player2=user)).count()
 
     # Games Won
-    games_won = MatchHistory.objects.filter(winner=user).count()
+    games_won = MatchHistory.objects.filter(
+        Q(player1=user, player1_score__gt=F('player2_score')) |
+        Q(player2=user, player2_score__gt=F('player1_score'))
+    ).count()
 
     # Games Lost
-    games_lost = MatchHistory.objects.filter(loser=user).count()
+    games_lost = total_games - games_won
 
     # Points Scored
-    points_scored = MatchHistory.objects.filter(winner=user).aggregate(
-        total=Sum('points_scored_by_winner')
+    points_scored = MatchHistory.objects.filter(player1=user).aggregate(
+        total=Sum('player1_score')
+    )['total'] or 0
+    points_scored += MatchHistory.objects.filter(player2=user).aggregate(
+        total=Sum('player2_score')
     )['total'] or 0
 
     # Points Conceded
-    points_conceded = MatchHistory.objects.filter(loser=user).aggregate(
-        total=Sum('points_conceded_by_loser')
+    points_conceded = MatchHistory.objects.filter(player1=user).aggregate(
+        total=Sum('player2_score')
+    )['total'] or 0
+    points_conceded += MatchHistory.objects.filter(player2=user).aggregate(
+        total=Sum('player1_score')
     )['total'] or 0
 
     # Win Ratio %
     win_ratio = (games_won / total_games * 100) if total_games else 0
 
     # Points Ratio %
-    points_ratio = (points_scored / (points_scored + points_conceded) * 100) if points_conceded else 0
+    points_ratio = (points_scored / (points_scored + points_conceded) * 100) if points_conceded else 100
 
     # Longest Win Streak and Longest Current Streak
     longest_win_streak, longest_loss_streak, longest_current_streak = calculate_streak(user)
@@ -103,14 +101,14 @@ def send_2fa_email(user):
     user.save()
 
     # Send the email
-    html_message = render_to_string('2fa_verification_code.html', {
+    html_message = render_to_string('email_verification_template.html', {
         'code': code,
         'user': user
     })
 
     email = EmailMultiAlternatives(
         subject="ft_transendance 2FA Code",
-        body="This is the link for your 2FA verification.",
+        body="This is the link for your 2FA",
         from_email=settings.DEFAULT_FROM_MAIL,
         to=[user.email],
     )

@@ -90,33 +90,31 @@ class Command(BaseCommand):
 				player1=player1,
 				player2=player2,
 				session_id=f"session_{random.randint(1000, 9999)}",  # Random session ID
-				is_active=True
+				is_active=False  # Game session is not active once history is created
 			)
 
 			# Randomly generate scores
 			player1_score = random.randint(0, 10)
 			player2_score = random.randint(0, 10)
 
-			# Determine winner and loser based on scores
-			if player1_score > player2_score:
-				winner = player1
-				loser = player2
-			elif player2_score > player1_score:
-				winner = player2
-				loser = player1
-			else:
-				# In case of a tie, assign randomly
-				winner, loser = random.sample([player1, player2], 2)
-
 			# Create MatchHistory
 			match_history = MatchHistory.objects.create(
 				game_session=game_session,
-				winner=winner,
-				loser=loser,
+				player1=player1,
+				player2=player2,
 				player1_score=player1_score,
 				player2_score=player2_score,
-				points_scored_by_winner=max(player1_score, player2_score),
-				points_conceded_by_loser=min(player1_score, player2_score)
 			)
 
-			self.stdout.write(f"Created game session: {game_session.session_id} with winner {winner.username} and loser {loser.username}")
+			# Log the result
+			if player1_score > player2_score:
+				winner, loser = player1, player2
+			elif player2_score > player1_score:
+				winner, loser = player2, player1
+			else:
+				# In case of a tie, declare it explicitly
+				winner, loser = None, None
+				self.stdout.write(f"Game session {game_session.session_id} resulted in a tie")
+
+			if winner and loser:
+				self.stdout.write(f"Created game session: {game_session.session_id} with winner {winner.username} ({player1_score}) and loser {loser.username} ({player2_score})")

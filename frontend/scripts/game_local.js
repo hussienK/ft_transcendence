@@ -58,7 +58,7 @@ function attachLocalGameEventListeners(roomName) {
                 player = 'player2';
                 direction = 'up';
             } else if (event.key === 'ArrowDown') {
-                player = 'player2';login
+                player = 'player2';
                 direction = 'down';
             }
 
