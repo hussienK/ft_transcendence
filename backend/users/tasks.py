@@ -13,18 +13,19 @@ from channels.layers import get_channel_layer
 channel_layer = get_channel_layer()
 from asgiref.sync import async_to_sync
 
-def send_message_to_friends(user, data):
+def send_message_to_friends(user, data, save=False):
 	friends = FriendRequest.objects.filter(
 		(Q(sender=user) & Q(accepted=True)))
 	for friend in friends:
-		send_update_to_user_sync(friend.receiver.username, data)
+		send_update_to_user_sync(friend.receiver.username, data, save)
 	friends = FriendRequest.objects.filter(
 		(Q(receiver=user) & Q(accepted=True)))
 	for friend in friends:
-		send_update_to_user_sync(friend.sender.username, data)
+		send_update_to_user_sync(friend.sender.username, data, save)
 
-def send_update_to_user_sync(username, data):
-	FeedUpdate.objects.create(user=username, sender_username=data['sender_username'], sender_displayname=data['sender_displayname'], info=data['info'])
+def send_update_to_user_sync(username, data, save=False):
+	if save:
+		FeedUpdate.objects.create(user=username, sender_username=data['sender_username'], sender_displayname=data['sender_displayname'], info=data['info'])
 
 	# Wrap the async function with async_to_sync
 	async_to_sync(send_update_to_user)(username, data)
@@ -49,7 +50,7 @@ def mark_users_offline():
 	
 	for user in inactive_users:
 		user.is_online = False
-		send_message_to_friends(user, {'type': 'feed', 'sender_username': user.username, 'sender_displayname': user.display_name, 'info': 'Is now offline'})
+		send_message_to_friends(user, {'type': 'feed', 'sender_username': user.username, 'sender_displayname': user.display_name, 'info': 'Is now offline'}, save=False)
 		user.save()
 
 # A custom middleware to update user's online status on any activity with their token in it, Has a timer to make sure we aren't innefcient with db requests.
@@ -69,7 +70,7 @@ class UpdateLastActivityMiddleware:
 					user.is_online = True
 					user.save()
 					if st:
-						send_message_to_friends(user, {'type': 'feed', 'sender_username': user.username, 'sender_displayname': user.display_name, 'info': 'Is now online'})
+						send_message_to_friends(user, {'type': 'feed', 'sender_username': user.username, 'sender_displayname': user.display_name, 'info': 'Is now online'}, save=False)
 
 		except:
 			user = None

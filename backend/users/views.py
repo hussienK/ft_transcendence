@@ -380,7 +380,7 @@ class SendFriendRequestView(generics.CreateAPIView):
 
         friend_request = FriendRequest.objects.create(sender=request.user, receiver=receiver)
         serializer = self.get_serializer(friend_request)
-        send_update_to_user_sync(receiver_username, {"type": "feed", "sender_username": request.user.username, "sender_displayname": request.user.display_name, "info": "Sent you a friend request"})
+        send_update_to_user_sync(receiver_username, {"type": "feed", "sender_username": request.user.username, "sender_displayname": request.user.display_name, "info": "Sent you a friend request"}, True)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 class AcceptFriendRequestView(APIView):
@@ -403,7 +403,7 @@ class AcceptFriendRequestView(APIView):
             response_serializer = GetFriendsSerializer(
                 received_requests, many=True, context={"request": request}
             )
-            send_update_to_user_sync(friend_request.sender, {"type": "feed", "sender_username": friend_request.receiver.username, "sender_displayname": friend_request.receiver.display_name, "info": "Accepted your friend request"})
+            send_update_to_user_sync(friend_request.sender, {"type": "feed", "sender_username": friend_request.receiver.username, "sender_displayname": friend_request.receiver.display_name, "info": "Accepted your friend request"}, True)
             return Response({"status": "Friend request accepted", "friends": response_serializer.data}, status=status.HTTP_200_OK)
         return Response({'error': serializer.errors[next(iter(serializer.errors))]}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -429,7 +429,7 @@ class DeclineFriendRequestView(APIView):
             response_serializer = GetFriendsSerializer(
                 received_requests, many=True, context={"request": request}
             )
-            send_update_to_user_sync(friend_request.sender, {"type": "feed", "sender_username": friend_request.receiver.username, "sender_displayname": friend_request.receiver.display_name, "info": "Declined your friend request"})
+            send_update_to_user_sync(friend_request.sender, {"type": "feed", "sender_username": friend_request.receiver.username, "sender_displayname": friend_request.receiver.display_name, "info": "Declined your friend request"}, True)
             return Response({"status": "Friend request decline", "friends": response_serializer.data}, status=status.HTTP_200_OK)
 
         return Response({'error': serializer.errors[next(iter(serializer.errors))]}, status=status.HTTP_400_BAD_REQUEST)
@@ -454,7 +454,7 @@ class CancelFriendRequestView(APIView):
             response_serializer = GetFriendsSerializer(
                 sent_requests, many=True, context={"request": request}
             )
-            send_update_to_user_sync(friend_request.receiver, {"type": "feed", "sender_username": friend_request.sender.username, "sender_displayname": friend_request.sender.display_name, "info": "Canceled their friend request to you"})
+            send_update_to_user_sync(friend_request.receiver, {"type": "feed", "sender_username": friend_request.sender.username, "sender_displayname": friend_request.sender.display_name, "info": "Canceled their friend request to you"}, True)
             return Response({"status": "Friend request cancelled", "friends": response_serializer.data}, status=status.HTTP_200_OK)
 
         return Response({'error': serializer.errors[next(iter(serializer.errors))]}, status=status.HTTP_400_BAD_REQUEST)
@@ -486,9 +486,9 @@ class DeleteFriendshipView(APIView):
                 friends, many=True, context={"request": request}
             )
             if (friend_request.sender == request.user):
-                send_update_to_user_sync(friend_request.receiver, {"type": "feed", "sender_username": friend_request.sender.username, "sender_displayname": friend_request.sender.display_name, "info": "Unfriended you"})
+                send_update_to_user_sync(friend_request.receiver, {"type": "feed", "sender_username": friend_request.sender.username, "sender_displayname": friend_request.sender.display_name, "info": "Unfriended you"}, True)
             else:
-                send_update_to_user_sync(friend_request.sender, {"type": "feed", "sender_username": friend_request.receiver.username, "sender_displayname": friend_request.receiver.display_name, "info": "Unfriended you"})
+                send_update_to_user_sync(friend_request.sender, {"type": "feed", "sender_username": friend_request.receiver.username, "sender_displayname": friend_request.receiver.display_name, "info": "Unfriended you"}, True)
             return Response({"status": "Friendship successfully deleted.", "friends": response_serializer.data}, status=status.HTTP_200_OK)
         return Response({'error': serializer.errors[next(iter(serializer.errors))]}, status=status.HTTP_400_BAD_REQUEST)
     
@@ -508,8 +508,17 @@ class GetFriendsOnline(generics.ListAPIView):
 
     def get_queryset(self):
         user = self.request.user
-        return FriendRequest.objects.filter(
-        (Q(sender=user) & Q(accepted=True)) | (Q(receiver=user) & Q(accepted=True)))
+        # Filter accepted friend requests where the friend is online
+        friend_requests = FriendRequest.objects.filter(
+            (
+                Q(sender=user) & Q(accepted=True) & Q(receiver__is_online=True)
+            ) | (
+                Q(receiver=user) & Q(accepted=True) & Q(sender__is_online=True)
+            )
+        )
+
+        return friend_requests
+
     
 
 class GetSentFriendRequests(generics.ListAPIView):

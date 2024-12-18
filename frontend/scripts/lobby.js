@@ -119,7 +119,6 @@ function attachLobbyEventListeners() {
     .then((data) => {
       let historyHTML = "<h2>History</h2>";
       data.forEach((element, index) => {
-        console.log(element);
         const opponentUsername = element.opponent || 'Unknown';
         const score = element.player1_score || 0;
         const score2 = element.player2_score || 0;

@@ -209,7 +209,7 @@ class GetFriendsSerializer(serializers.ModelSerializer):
     def get_avatar(self, obj):
         request_user = self.context['request'].user
         friend_user = obj.receiver if obj.sender == request_user else obj.sender
-        return friend_user.avatar.url if friend_user.avatar else None
+        return friend_user.avatar.url if friend_user.avatar else "./assets/default_avatar.png"
 
 
 class FeedUpdateSerializer(serializers.ModelSerializer):
@@ -233,12 +233,14 @@ class MatchHistorySerializer(serializers.ModelSerializer):
     game_session_id = serializers.CharField(source='game_session.session_id')  # Adjusted field to fit `game_session`
     result = serializers.SerializerMethodField()  # Computes the result dynamically
     opponent = serializers.SerializerMethodField()  # Computes the opponent dynamically
+    opponent_avatar = serializers.SerializerMethodField()  # Adds the avatar of the opponent
 
     class Meta:
         model = MatchHistory
         fields = [
             'game_session_id',
             'opponent',
+            'opponent_avatar',
             'result',
             'player1_score',
             'player2_score',
@@ -263,6 +265,16 @@ class MatchHistorySerializer(serializers.ModelSerializer):
             return obj.game_session.player1.username if obj.game_session.player1 else "Unknown"
         else:
             return "Not a participant"
+
+    def get_opponent_avatar(self, obj):
+        request_user = self.context['request'].user
+        if obj.game_session.player1 == request_user:
+            return obj.game_session.player2.avatar.url if obj.game_session.player2 and obj.game_session.player2.avatar else None
+        elif obj.game_session.player2 == request_user:
+            return obj.game_session.player1.avatar.url if obj.game_session.player1 and obj.game_session.player1.avatar else None
+        else:
+            return None
+
 
 class Verify2FACodeSerializer(serializers.Serializer):
     code = serializers.IntegerField()

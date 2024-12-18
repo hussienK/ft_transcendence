@@ -199,6 +199,7 @@ function attachProfileEventListeners(userName = -42) {
             const HistoryContainer = document.getElementById("matches-container");
             HistoryContainer.innerHTML = "";
             data.forEach(element => {
+                console.log(element);
                 const opponentUsername = element.opponent || 'Unknown';
                 const score = element.player1_score || 0;
                 const score2 = element.player2_score || 0;

@@ -35,8 +35,7 @@ async function renderFeed(){
   if (data)
   {
     data.forEach(element => {
-      // console.log(element);
-      // const message_formatted = JSON.parse(element);
+      console.log(element);
       renderFeedMessage(element);
     });
   }
@@ -195,10 +194,12 @@ async function loadPage(page, queryParams = {}) {
       } else if (page === "lobby") {
         attachLobbyEventListeners();
         loadLinks("lobby");
+        renderFeed();
         establishWebSocketConnection();
       } else if (page === "friends") {
         attachFriendsEventListeners();
         loadLinks("friends");
+        renderFeed();
         establishWebSocketConnection();
       } else if (page === "profile") {
         if (queryParams.username) {
@@ -208,12 +209,13 @@ async function loadPage(page, queryParams = {}) {
         }
         loadLinks("profile");
         establishWebSocketConnection();
+        renderFeed();
       } else {
         console.warn(`No specific logic implemented for page: ${page}`);
       }
     }
   } catch (error) {
-    console.error("Error loading page:", error.message || error);
+    console.error("Error loading page:", error || error);
     const mainContent = document.getElementById("main-content");
     if (mainContent) {
       mainContent.innerHTML = "<p>Page not found.</p>";

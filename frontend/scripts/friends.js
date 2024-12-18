@@ -3,8 +3,8 @@ function attachFriendsEventListeners() {
 	const onlineLink = document.getElementById("onlineFriends-link");
 	const allLink = document.getElementById("allFriends-link");
 	const pendingLink = document.getElementById("pendingFriends-link");
-	const suggestionsLink = document.getElementById("suggestionFriends-link");
-	const addFriendLink = document.getElementById("addFriendLink");
+	const suggestionsLink = document.getElementById("suggestedFriends-link");
+	const addFriendLink = document.getElementById("addFriend-link");
   
 	const friendsTabs = [onlineLink, allLink, pendingLink, suggestionsLink, addFriendLink];
   
@@ -42,7 +42,7 @@ function attachFriendsEventListeners() {
 	function setActiveLink(activeLink) {
 	  friendsTabs.forEach((link) => {
 		const parent = link.closest("li"); // Get the parent `li` of the link
-		if (link === activeLink && link !== addFriendLink) {
+		if (link === activeLink && link !== addFriend-link) {
 		  parent.classList.add("bg-active-tab"); // Add active class to the current tab
 		} else {
 		  parent.classList.remove("bg-active-tab"); // Remove active class from other tabs
