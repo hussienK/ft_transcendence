@@ -180,6 +180,14 @@ function attachProfileEventListeners(userName = -42) {
                         document.getElementById("2fa-btn").disabled = true;
                     }
                 });
+
+                document.getElementById("delete-btn").addEventListener('click', async () => {
+                    const delete_successfull = await deleteAccount();
+                    if (delete_successfull)
+                    {
+                        window.location.hash = "login";
+                    }
+                });
             }
         })
         .catch(error => {

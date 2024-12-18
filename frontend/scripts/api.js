@@ -276,3 +276,21 @@ async function setup2fa(){
         return false;
     }
 }
+
+async function deleteAccount() {
+    try {
+        const response = await axios.delete('https://localhost:8443/api/users/delete/', {
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+            },
+            data: { // Axios allows sending data in DELETE requests via the `data` key
+                refresh: localStorage.getItem('refreshToken'),
+            }
+        });
+
+        return true; // Account deletion was successful
+    } catch (error) {
+        showAlert(error.response?.data?.error || "An error occurred", 'danger');
+        return false; // Account deletion failed
+    }
+}

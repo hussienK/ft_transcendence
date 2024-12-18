@@ -1,6 +1,8 @@
 from django.contrib.auth.tokens import default_token_generator
 from game.models import MatchHistory
 from django.db.models import Sum, Q
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string
 
 def generate_verification_token(user):
     return default_token_generator.make_token(user)
@@ -101,9 +103,16 @@ def send_2fa_email(user):
     user.save()
 
     # Send the email
-    send_mail(
-        subject="Verify Your Email",
-        message=f"This is your 2FA code {code}",
+    html_message = render_to_string('2fa_verification_code.html', {
+        'code': code,
+        'user': user
+    })
+
+    email = EmailMultiAlternatives(
+        subject="ft_transendance 2FA Code",
+        body="This is the link for your 2FA verification.",
         from_email=settings.DEFAULT_FROM_MAIL,
-        recipient_list=[user.email],
+        to=[user.email],
     )
+    email.attach_alternative(html_message, "text/html")
+    email.send()

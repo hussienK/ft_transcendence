@@ -30,6 +30,8 @@ from django.core.exceptions import ValidationError
 from .tasks import send_update_to_user_sync
 from .utils import get_user_stats, send_2fa_email
 from rest_framework.parsers import MultiPartParser, FormParser
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string
 
 User = get_user_model()
 
@@ -78,12 +80,19 @@ class UserRegistrationView(APIView):
             verification_url = f"{request.scheme}://{request.get_host().split(':')[0]}:8443{reverse('email-verify', args=[user.pk, token])}"
             # only if in development
             print("Email Verify Link: ", {verification_url})
-            send_mail(
+            html_message = render_to_string('email_verification_template.html', {
+                'verification_url': verification_url,
+                'user': user
+            })
+
+            email = EmailMultiAlternatives(
                 subject="Verify Your Email",
-                message=f"Please Click The link to verify your email: {verification_url}",
+                body="Please verify your email using the link provided.",
                 from_email=settings.DEFAULT_FROM_MAIL,
-                recipient_list=[user.email],
+                to=[user.email],
             )
+            email.attach_alternative(html_message, "text/html")
+            email.send()
             return Response({"detail": "Registration successful. Please check your email to verify your account."}, status=status.HTTP_201_CREATED)
         return Response({'error': serializer.errors[next(iter(serializer.errors))]}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -239,7 +248,7 @@ class LogoutView(APIView):
 ### User Delete View ###
 class UserDeleteView(APIView):
     '''Delete's a users account'''
-    permission_classes = [permissions.IsAuthenticated, IsVerified]
+    permission_classes = [permissions.IsAuthenticated]
 
     def delete(self, request):
         user = request.user
@@ -696,3 +705,35 @@ class Verify2FACodeView(APIView):
         errors = serializer.errors
         error_message = next(iter(errors.values()))[0]  # Get the first error message
         return Response({"error": error_message}, status=status.HTTP_400_BAD_REQUEST)
+
+class RefreshEmailVerificationView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        email = request.data.get("email")
+        user = User.objects.filter(email=email, is_verified=False).first()
+
+        if not user:
+            return Response({"error": "No unverified account found with this email."}, status=status.HTTP_404_NOT_FOUND)
+
+        # Check if the previous token is still valid
+        token = default_token_generator.make_token(user)
+        verification_url = f"{request.scheme}://{request.get_host().split(':')[0]}:8443{reverse('email-verify', args=[user.pk, token])}"
+
+        # Send the refreshed email verification link
+
+        html_message = render_to_string('email_verification_template.html', {
+            'verification_url': verification_url,
+            'user': user
+        })
+
+        email = EmailMultiAlternatives(
+            subject="Verify Your Email",
+            body="Please verify your email using the link provided.",
+            from_email=settings.DEFAULT_FROM_MAIL,
+            to=[user.email],
+        )
+        email.attach_alternative(html_message, "text/html")
+        email.send()
+
+        return Response({"detail": "Verification email resent. Please check your inbox."}, status=status.HTTP_200_OK)
