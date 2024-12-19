@@ -35,7 +35,6 @@ async function renderFeed(){
   if (data)
   {
     data.forEach(element => {
-      console.log(element);
       renderFeedMessage(element);
     });
   }

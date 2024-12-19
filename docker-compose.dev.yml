@@ -3,8 +3,6 @@ volumes:
   dbdata:          # Named volume for database
   celerybeatdata:  # Named volume for Celery Beat data
   mediafiles:      # Named volume for media files
-  logdata:         # Named volume for Elasticsearch data
-  kibana-config:   # Named volume for Kibana configuration
 
 services:
   backend:
@@ -33,10 +31,6 @@ services:
     env_file:
       - .env
     restart: always
-    logging:
-      driver: "gelf"
-      options:
-        gelf-address: "udp://logstash:12201"
 
   nginx:
     build:
@@ -50,14 +44,9 @@ services:
       - ./frontend:/usr/share/nginx/html  # Bind mount frontend
       - staticfiles:/app/staticfiles  # Named volume for static files
       - mediafiles:/app/media  # Named volume for media files
-      - ./nginx/logs:/var/log/nginx  # Mount Nginx logs for ELK integration
     depends_on:
       - backend
     restart: always
-    logging:
-      driver: "gelf"
-      options:
-        gelf-address: "udp://logstash:12201"
 
   db:
     image: postgres:15
@@ -97,10 +86,6 @@ services:
     env_file:
       - .env
     restart: always
-    logging:
-      driver: "gelf"
-      options:
-        gelf-address: "udp://logstash:12201"
 
   celery-beat:
     build:
@@ -121,51 +106,4 @@ services:
       - .env
     volumes:
       - celerybeatdata:/app/data
-    restart: always
-    logging:
-      driver: "gelf"
-      options:
-        gelf-address: "udp://logstash:12201"
-
-  elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.10.1
-    container_name: elasticsearch
-    environment:
-      - discovery.type=single-node
-      - xpack.security.enabled=false
-      - bootstrap.memory_lock=true
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-    volumes:
-      - logdata:/usr/share/elasticsearch/data
-    ports:
-      - "9200:9200"  # Elasticsearch API
-    restart: always
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-
-  kibana:
-    image: docker.elastic.co/kibana/kibana:8.10.1
-    container_name: kibana
-    depends_on:
-      - elasticsearch
-    ports:
-      - "5601:5601"  # Kibana Dashboard
-    volumes:
-      - kibana-config:/usr/share/kibana/config
-    environment:
-      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
-    restart: always
-
-  logstash:
-    image: docker.elastic.co/logstash/logstash:8.10.1
-    container_name: logstash
-    depends_on:
-      - elasticsearch
-    ports:
-      - "12201:12201/udp"  # GELF input for logs
-    volumes:
-      - ./logstash.conf:/usr/share/logstash/pipeline/logstash.conf  # Pipeline configuration
-      - ./nginx/logs:/var/log/nginx
     restart: always

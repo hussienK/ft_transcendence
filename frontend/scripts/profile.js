@@ -199,13 +199,16 @@ function attachProfileEventListeners(userName = -42) {
             const HistoryContainer = document.getElementById("matches-container");
             HistoryContainer.innerHTML = "";
             data.forEach(element => {
-                console.log(element);
                 const opponentUsername = element.opponent || 'Unknown';
                 const score = element.player1_score || 0;
                 const score2 = element.player2_score || 0;
                 const forfeit = element.forfeit;
                 const result = element.result || 'Not Available';
                 const isWinner = result === "Win";
+
+                const createdAt = new Date(element.created_at);
+                const timeAgo = getTimeAgo(createdAt);
+
                 HistoryContainer.innerHTML += `
                 <div id="opponent-card" class="d-flex gap-2">
                     <div class="friend-avatar">
@@ -213,7 +216,7 @@ function attachProfileEventListeners(userName = -42) {
                     </div>
                     <div class="friend-info">
                         <p class="friend-displayname">${opponentUsername}</p>
-                        <p class="friend-username">3 Days Ago</p> <!-- Replace with actual timestamp if available -->
+                        <p class="friend-username">${timeAgo}</p>
                     </div>
                     <div style="margin-left: auto; width: 75px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
                         <div style="background-color: ${isWinner ? 'rgb(37, 168, 37)' : 'rgb(168, 37, 37)'}; 
@@ -233,4 +236,24 @@ function attachProfileEventListeners(userName = -42) {
         .catch(error => {
             showAlert(error.response?.data.error, "danger");
         });
+
+        function getTimeAgo(date) {
+            const now = new Date();
+            const diff = now - date; // Difference in milliseconds
+        
+            const seconds = Math.floor(diff / 1000);
+            const minutes = Math.floor(seconds / 60);
+            const hours = Math.floor(minutes / 60);
+            const days = Math.floor(hours / 24);
+        
+            if (days > 0) {
+                return `${days} day${days > 1 ? 's' : ''} ago`;
+            } else if (hours > 0) {
+                return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+            } else if (minutes > 0) {
+                return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+            } else {
+                return `Just now`;
+            }
+        }
 }

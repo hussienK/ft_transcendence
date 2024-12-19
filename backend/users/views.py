@@ -581,10 +581,8 @@ class UserMatchHistoryView(APIView):
             user = request.user
 
         match_history = MatchHistory.objects.filter(
-            game_session__player1=user
-        ) | MatchHistory.objects.filter(
-            game_session__player2=user
-        )
+            Q(game_session__player1=user) | Q(game_session__player2=user)
+        ).order_by('-created_at')[:10]
 
         serializer = MatchHistorySerializer(match_history, many=True, context={'request': request})
         return Response(serializer.data)

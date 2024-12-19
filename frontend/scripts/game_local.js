@@ -1,22 +1,28 @@
 function attachLocalGameEventListeners(roomName) {
-
-	const ws_path = "wss://" + window.location.host + '/ws/game/' + roomName + '/?is_local=true&token=' + localStorage.getItem('accessToken');
+    const ws_path = "wss://" + window.location.host + '/ws/game/' + roomName + '/?is_local=true&token=' + localStorage.getItem('accessToken');
     console.log("WebSocket URL:", ws_path);
     const socket = new WebSocket(ws_path);
 
-    // Canvas setup
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
 
-    // Game variables
-    let gameState = null;
+    let latestGameState = null;
+    let previousGameState = null;
+    let currentPhase = 'running'; // Local game always starts immediately
+    let lastUpdateTime = null;
 
-    // Control variables for players
+    const button = document.getElementById('back-to-lobby-button');
+    if (button) {
+        button.addEventListener('click', () => {
+            window.location.hash = 'lobby'; // Redirect to the lobby
+            location.reload();
+        });
+    }
+
     let keyIntervals = {
         player1: null,
         player2: null,
     };
-
     let currentDirections = {
         player1: null,
         player2: null,
@@ -27,22 +33,22 @@ function attachLocalGameEventListeners(roomName) {
     };
 
     socket.onmessage = function (event) {
-        // Parse the game state received from the server
-        gameState = JSON.parse(event.data);
-        // Render the game state
-        renderGame();
+        let data = JSON.parse(event.data);
+        if (data.phase) currentPhase = data.phase;
+
+        previousGameState = latestGameState;
+        latestGameState = data;
+        lastUpdateTime = data.timestamp;
     };
 
     socket.onclose = function (event) {
         console.log("WebSocket connection closed.");
-        // Optionally, display a message or redirect
     };
 
     socket.onerror = function (error) {
         console.error("WebSocket error observed:", error);
     };
 
-    // Event listeners for player input
     document.addEventListener('keydown', function (event) {
         if (['w', 's', 'ArrowUp', 'ArrowDown'].includes(event.key)) {
             let player = null;
@@ -64,13 +70,9 @@ function attachLocalGameEventListeners(roomName) {
 
             if (player && direction && currentDirections[player] !== direction) {
                 currentDirections[player] = direction;
-
-                // Send the initial direction
                 sendDirection(player, direction);
-
-                // Start sending direction continuously
-                keyIntervals[player] = setInterval(() => sendDirection(player, direction), 50); // Adjust interval as needed
-                event.preventDefault(); // Prevent default scrolling behavior
+                keyIntervals[player] = setInterval(() => sendDirection(player, direction), 50);
+                event.preventDefault();
             }
         }
     });
@@ -86,9 +88,9 @@ function attachLocalGameEventListeners(roomName) {
             }
 
             if (player) {
-                currentDirections[player] = null; // Reset the current direction
-                clearInterval(keyIntervals[player]); // Stop sending direction
-                sendDirection(player, null); // Optionally, send a stop message
+                currentDirections[player] = null;
+                clearInterval(keyIntervals[player]);
+                sendDirection(player, null);
                 event.preventDefault();
             }
         }
@@ -102,52 +104,97 @@ function attachLocalGameEventListeners(roomName) {
         socket.send(JSON.stringify(message));
     }
 
-    // Render the game state on the canvas
-    function renderGame() {
-        if (!gameState) return;
+    function render() {
+        if (!latestGameState) {
+            requestAnimationFrame(render);
+            return;
+        }
 
-        // Clear the canvas
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // Draw the ball
-        const ballPosition = gameState.ball_position;
-        ctx.fillStyle = 'white';
-        ctx.beginPath();
-        ctx.arc(ballPosition[0], ballPosition[1], 10, 0, Math.PI * 2); // Adjust radius as needed
-        ctx.fill();
-
-        // Draw paddles
-        ctx.fillStyle = 'white';
-        ctx.fillRect(
-            10, // Paddle 1 X position
-            gameState.paddle1_position, // Paddle 1 Y position
-            10, // Paddle width
-            100 // Paddle height
-        );
-
-        ctx.fillRect(
-            canvas.width - 20, // Paddle 2 X position
-            gameState.paddle2_position, // Paddle 2 Y position
-            10, // Paddle width
-            100 // Paddle height
-        );
-
-        // Draw scores
-        ctx.font = '30px Arial';
-        ctx.fillText(gameState.score1, canvas.width / 2 - 50, 50); // Score for player 1
-        ctx.fillText(gameState.score2, canvas.width / 2 + 30, 50); // Score for player 2
-
-        // Check if the game is active
-        if (!gameState.game_is_active) {
+        if (!latestGameState.game_is_active && !latestGameState.winner) {
+            // Waiting or ended without a winner
             ctx.font = '50px Arial';
-            ctx.fillStyle = 'red';
-            if (gameState.winner === 'player1')
+            ctx.fillStyle = 'white';
+            ctx.fillText("Game Over", canvas.width / 2 - 100, canvas.height / 2);
+        } else if (!latestGameState.game_is_active && latestGameState.winner) {
+            ctx.font = '50px Arial';
+            ctx.fillStyle = 'green';
+            if (latestGameState.winner === 'player1')
+            {
                 ctx.fillText("Player 1 Won!", canvas.width / 2 - 150, canvas.height / 2);
-            else if (gameState.winner === 'player2')
-                ctx.fillText("Player 2 Won!", canvas.width / 2 - 150, canvas.height / 2);
+            }
             else
-                ctx.fillText("Game Over", canvas.width / 2 - 150, canvas.height / 2);
-            // Optionally, stop further rendering or show restart options
+            {
+                ctx.fillText("Player 2 Won!", canvas.width / 2 - 150, canvas.height / 2);
+            }
+
+            showBackToLobbyButton();
+        } else {
+            hideBackToLobbyButton();
+            let gs = latestGameState;
+            if (previousGameState && previousGameState.timestamp) {
+                let dt = gs.timestamp - previousGameState.timestamp;
+                let now = performance.now() / 1000;
+                let renderDelay = 0.05;
+                let t = 1.0;
+                if (dt > 0) {
+                    t = (now - previousGameState.timestamp - renderDelay) / dt;
+                    t = Math.max(0, Math.min(t, 1));
+                }
+                gs = interpolateGameState(previousGameState, gs, t);
+            }
+
+            // Draw the ball
+            const ballPosition = gs.ball_position;
+            ctx.fillStyle = 'white';
+            ctx.beginPath();
+            ctx.arc(ballPosition[0], ballPosition[1], 10, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Draw paddles
+            ctx.fillStyle = 'white';
+            ctx.fillRect(10, gs.paddle1_position, 10, 100);
+            ctx.fillRect(canvas.width - 20, gs.paddle2_position, 10, 100);
+
+            // Draw scores
+            ctx.font = '30px Arial';
+            ctx.fillText(gs.score1, canvas.width / 2 - 50, 50);
+            ctx.fillText(gs.score2, canvas.width / 2 + 30, 50);
+        }
+
+        requestAnimationFrame(render);
+    }
+
+    function interpolateGameState(prev, curr, t) {
+        function lerp(a, b, t) { return a + (b - a) * t; }
+        return {
+            ball_position: [
+                lerp(prev.ball_position[0], curr.ball_position[0], t),
+                lerp(prev.ball_position[1], curr.ball_position[1], t)
+            ],
+            paddle1_position: lerp(prev.paddle1_position, curr.paddle1_position, t),
+            paddle2_position: lerp(prev.paddle2_position, curr.paddle2_position, t),
+            score1: curr.score1,
+            score2: curr.score2,
+            game_is_active: curr.game_is_active,
+            winner: curr.winner
+        };
+    }
+
+    requestAnimationFrame(render);
+
+    function showBackToLobbyButton() {
+        const button = document.getElementById('back-to-lobby-button');
+        if (button) {
+            button.style.display = 'block'; // Show the button
+        }
+    }
+    
+    function hideBackToLobbyButton() {
+        const button = document.getElementById('back-to-lobby-button');
+        if (button) {
+            button.style.display = 'none'; // Hide the button
         }
     }
 }
