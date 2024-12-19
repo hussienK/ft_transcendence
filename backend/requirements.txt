@@ -16,3 +16,4 @@ pillow
 redis>=3.5.0,<5.0
 channels_redis
 faker
+logstash-formatter

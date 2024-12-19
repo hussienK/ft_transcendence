@@ -9,6 +9,10 @@ COPY ./nginx/ssl/server.key /etc/ssl/server.key
 # Copy frontend files into the image
 COPY ./frontend/ /usr/share/nginx/html
 
+# Expose Nginx logs directory
+RUN mkdir -p /var/log/nginx
+VOLUME ["/var/log/nginx"]
+
 EXPOSE 80 443
 
 CMD ["nginx", "-g", "daemon off;"]
