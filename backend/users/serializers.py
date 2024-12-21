@@ -217,17 +217,61 @@ class FeedUpdateSerializer(serializers.ModelSerializer):
         model = FeedUpdate
         fields = ['sender_username', 'sender_displayname', 'info', 'created_at']
 
-class UserStatsSerializer(serializers.Serializer):
+
+class StatsSerializer(serializers.Serializer):
+    # Basic Stats
     total_games = serializers.IntegerField()
     games_won = serializers.IntegerField()
     games_lost = serializers.IntegerField()
     points_scored = serializers.IntegerField()
     points_conceded = serializers.IntegerField()
+
+    # Performance Metrics
     win_ratio = serializers.FloatField()
     points_ratio = serializers.FloatField()
+
+    # Streaks
     longest_win_streak = serializers.IntegerField()
     longest_loss_streak = serializers.IntegerField()
     longest_current_streak = serializers.IntegerField()
+
+    # Match Duration Stats
+    total_duration = serializers.FloatField()
+    avg_duration = serializers.FloatField()
+    min_duration = serializers.FloatField(required=False)
+    max_duration = serializers.FloatField(required=False)
+
+    # Gameplay Metrics
+    total_ball_hits = serializers.IntegerField()
+    hits_miss_ratio = serializers.FloatField(required=False)
+    longest_rally = serializers.IntegerField()
+    avg_ball_speed = serializers.FloatField()
+    max_ball_speed = serializers.FloatField()
+
+    # Player Behavior
+    avg_reaction_time = serializers.FloatField()
+
+    # Outcome Metrics
+    avg_victory_margin = serializers.FloatField(required=False)
+    max_victory_margin = serializers.FloatField(required=False)
+    min_victory_margin = serializers.FloatField(required=False)
+
+
+class VisualizationDataSerializer(serializers.Serializer):
+    # Visualization Fields
+    bar_chart = serializers.DictField()
+    gauge_chart = serializers.DictField()
+    pie_chart = serializers.DictField()
+    streaks = serializers.DictField()
+    reaction_time_gauge = serializers.DictField()
+    rally_bubble_chart = serializers.DictField()
+    rally_bar_chart = serializers.DictField()
+    victory_box_plot = serializers.DictField()
+
+
+class UserStatsSerializer(serializers.Serializer):
+    stats = StatsSerializer()
+    visualization_data = VisualizationDataSerializer()
 
 class MatchHistorySerializer(serializers.ModelSerializer):
     game_session_id = serializers.CharField(source='game_session.session_id')  # Adjusted field to fit `game_session`

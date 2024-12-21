@@ -1,65 +1,6 @@
 function attachProfileEventListeners(userName = -42) {
     const isCurrentUser = userName === -42;
 
-    // Get the canvases and the percentage text elements for each progress bar
-    const canvas1 = document.getElementById('progressCanvas1');
-    const ctx1 = canvas1.getContext('2d');
-    const percentageText1 = document.getElementById('percentageText1');
-    
-    const canvas2 = document.getElementById('progressCanvas2');
-    const ctx2 = canvas2.getContext('2d');
-    const percentageText2 = document.getElementById('percentageText2');
-
-    const radius = 75; 
-    const lineWidth = 25; 
-    const center = canvas1.width / 2;  // Both canvases are the same size, so we use one center.
-
-    // Function to draw progress on a given canvas and percentage text
-    function drawProgress(canvas, ctx, percentage, percentageText) {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        // Draw the background circle (empty circle)
-        ctx.beginPath();
-        ctx.arc(center, center, radius, 0, 2 * Math.PI);
-        ctx.lineWidth = lineWidth;
-        ctx.strokeStyle = '#e6e6e6'; // Light gray for background
-        ctx.stroke();
-
-        // Draw the progress circle
-        ctx.beginPath();
-        const endAngle = (percentage / 100) * 2 * Math.PI;
-        ctx.arc(center, center, radius, 0, endAngle, false);
-        ctx.lineWidth = lineWidth;
-        ctx.strokeStyle = '#4caf50'; // Green for progress
-        ctx.stroke();
-
-        // Update the percentage text
-        percentageText.textContent = `${Math.round(percentage)}%`;
-    }
-
-    // Initial progress values from the text elements
-    let end1 = parseInt(percentageText1.textContent) || 0;
-
-    let end2 = parseInt(percentageText2.textContent) || 0;
-
-    // Function to update progress for both canvases
-    function updateProgress(progress1, progress2) {
-        if (progress1 <= end1) {
-            drawProgress(canvas1, ctx1, progress1, percentageText1);
-            progress1++;
-        }
-        
-        if (progress2 <= end2) {
-            drawProgress(canvas2, ctx2, progress2, percentageText2);
-            progress2++;
-        }
-
-        // Continue the update loop if either progress bar is not finished
-        if (progress1 <= end1 || progress2 <= end2) {
-            setTimeout(updateProgress, 20);
-        }
-    }
-
     // Modal elements
     const modal = document.getElementById('edit-profile-modal');
     const closeModalBtn = document.getElementById('close-modal-btn');
@@ -114,26 +55,136 @@ function attachProfileEventListeners(userName = -42) {
 
 
 
-    fetchStats(userName)
-    .then(data => {
-        document.getElementById("profile-total_games").innerHTML = data.total_games || 0;
-        document.getElementById("profile-games_Won").innerHTML = data.games_won || 0;
-        document.getElementById("profile-games_lost").innerHTML = data.games_lost || 0;
-        document.getElementById("profile-current_streak").innerHTML = data.longest_current_streak || 0;
-        document.getElementById("profile-win_streak").innerHTML = data.longest_win_streak || 0;
-        document.getElementById("profile-lose_streak").innerHTML = data.longest_loss_streak || 0;
-        document.getElementById("profile-points_scored").innerHTML = data.points_scored || 0;
-        document.getElementById("profile-points_conceded").innerHTML = data.points_conceded || 0;
-        const pointsRatio = data.points_ratio ? Math.round(data.points_ratio) : 0;
-        const winRatio = data.win_ratio ? Math.round(data.win_ratio) : 0;
-        updateProgress(winRatio, pointsRatio);
-    })
-    .catch(error => {
-        showAlert(error.response?.data.error, "danger");
-    });
+      fetchStats(userName)
+      .then(data => {
+          console.log(data);
+  
+          // Visualization data
+          const visualizationData = data.visualization_data;
+  
+          // Render Bar Chart
+          Plotly.newPlot('bar-chart', [{
+              x: visualizationData.bar_chart.x,
+              y: visualizationData.bar_chart.y,
+              type: visualizationData.bar_chart.type,
+              name: visualizationData.bar_chart.name,
+              marker: {
+                  color: ['#4caf50', '#ff0000']  // Green for games won, red for games lost
+              }
+          }], {
+              title: 'Games Won vs. Games Lost',
+              xaxis: { title: 'Category' },
+              yaxis: { title: 'Count' }
+          });
+  
+          // Render Gauge Chart
+          Plotly.newPlot('gauge-chart', [{
+              type: visualizationData.gauge_chart.type,
+              mode: visualizationData.gauge_chart.mode,
+              value: visualizationData.gauge_chart.value,
+              title: visualizationData.gauge_chart.title,
+              gauge: visualizationData.gauge_chart.gauge
+          }], {
+              title: 'Win Ratio',
+          });
+  
+          // Render Pie Chart
+          Plotly.newPlot('pie-chart', [{
+              labels: visualizationData.pie_chart.labels,
+              values: visualizationData.pie_chart.values,
+              type: visualizationData.pie_chart.type,
+              name: visualizationData.pie_chart.name,
+                marker: {
+                    color: ['#4caf50', '#ff0000']
+                },
+              hole: 0.4, // Optional: For a donut-style chart
+          }], {
+              title: 'Points Scored vs. Points Conceded',
+          });
+
+          const streaks = data.visualization_data.streaks;
+
+          // Render Streaks Chart
+          Plotly.newPlot('streak-chart', [{
+              x: streaks.labels,
+              y: streaks.values,
+              type: 'bar',
+              marker: {
+                  color: ['#4caf50', '#ff0000', '#2196f3'],  // Green, red, blue for the streaks
+              },
+          }], {
+              title: 'Streaks Overview',
+              xaxis: { title: 'Streak Type' },
+              yaxis: { title: 'Streak Length' },
+          });
+
+          const reactionTimeGauge = data.visualization_data.reaction_time_gauge;
+
+            // Render Reaction Time Gauge Chart
+            Plotly.newPlot('reaction-time-gauge', [{
+                type: reactionTimeGauge.type,
+                mode: reactionTimeGauge.mode,
+                value: reactionTimeGauge.value,
+                title: reactionTimeGauge.title,
+                gauge: reactionTimeGauge.gauge,
+            }], {
+                title: 'Average Reaction Time',
+            });
+
+            // Bar Chart: Total Ball Hits and Longest Rallies
+            const rallyBarChart = data.visualization_data.rally_bar_chart;
+
+            Plotly.newPlot('rally-bar-chart', [{
+                x: rallyBarChart.x,
+                y: rallyBarChart.y,
+                type: rallyBarChart.type,
+                name: rallyBarChart.name,
+                marker: rallyBarChart.marker,
+            }], {
+                title: 'Total Ball Hits and Longest Rallies',
+                xaxis: { title: 'Category' },
+                yaxis: { title: 'Count' },
+            });
+
+            // Bubble Chart: Longest Rally vs. Average Ball Speed
+            const rallyBubbleChart = data.visualization_data.rally_bubble_chart;
+
+            Plotly.newPlot('rally-bubble-chart', [{
+                x: rallyBubbleChart.x,  // Longest rallies
+                y: rallyBubbleChart.y,  // Average ball speed
+                text: rallyBubbleChart.text,  // Tooltip for bubbles
+                mode: rallyBubbleChart.mode,
+                type: rallyBubbleChart.type,
+                marker: rallyBubbleChart.marker,
+            }], {
+                title: 'Longest Rally vs. Average Ball Speed',
+                xaxis: { title: 'Longest Rally (Hits)' },
+                yaxis: { title: 'Average Ball Speed (km/h)' },
+            });
+
+            const victoryBoxPlot = data.visualization_data.victory_box_plot;
+
+            Plotly.newPlot('victory-box-plot', [{
+                y: victoryBoxPlot.all_margins,  // All margins
+                type: 'box',
+                name: 'Victory Margins',
+                boxpoints: 'all',  // Display all points
+                marker: { color: '#4caf50' },  // Green for boxplot
+            }], {
+                title: 'Victory Margin Range',
+                yaxis: { title: 'Victory Margin' },
+            });
+
+      })
+      .catch(error => {
+            console.log(error);
+          showAlert(error.response?.data.error, "danger");
+      });
+  
 
     fetchProfile(userName)
         .then(data => {
+            console.log(data);
             document.getElementById("profile-display_name").innerHTML = data.display_name || "";
             document.getElementById("profile-username").innerHTML = data.username || "";
             document.getElementById("profile-bio").innerHTML = data.bio || "";
@@ -196,6 +247,7 @@ function attachProfileEventListeners(userName = -42) {
 
     fetchMatchHistory(userName)
         .then(data => {
+            console.log(data);
             const HistoryContainer = document.getElementById("matches-container");
             HistoryContainer.innerHTML = "";
             data.forEach(element => {

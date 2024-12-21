@@ -28,7 +28,7 @@ from .permissions import IsVerified
 from rest_framework_simplejwt.tokens import AccessToken
 from django.core.exceptions import ValidationError
 from .tasks import send_update_to_user_sync
-from .utils import get_user_stats, send_2fa_email
+from .utils import get_user_stats, send_2fa_email, get_user_stats_for_visualization
 from rest_framework.parsers import MultiPartParser, FormParser
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
@@ -560,10 +560,18 @@ class UserStatsAPIView(APIView):
         else:
             user = request.user
         
-        stats = get_user_stats(user)
+        stats_with_visualization = get_user_stats_for_visualization(user)  # Returns `stats` and `visualization_data`
+        
+        # Wrap the data for serialization
+        serializer_data = {
+            'stats': stats_with_visualization['stats'],
+            'visualization_data': stats_with_visualization['visualization_data'],
+        }
 
-        serializer = UserStatsSerializer(stats)
+        serializer = UserStatsSerializer(serializer_data)
         return Response(serializer.data)
+
+
 
     
 class UserMatchHistoryView(APIView):

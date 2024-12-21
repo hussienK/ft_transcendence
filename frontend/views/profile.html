@@ -1,18 +1,19 @@
-<div id="profile-page" class=" p-4" style="
+<div id="profile-page" class="p-4" style="
 height: 100%;
 display: flex;
 flex-direction: column;
-background-color: #36393f
+background-color: #36393f;
+padding: 20px;
 ">
    
         <div class="row g-4" style="height: 100%; ">
             <div class="col-xl-7 col-lg-12">
-                <div id="profile-box" class="bg-light p-4 rounded-3 d-flex flex-column gap-3">
+                <div id="profile-box" class="bg-light p-4 rounded-3 d-flex flex-column gap-3" style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); max-height: 420px;">
                     <h1>Profile</h1>
                     <!-- Profile Picture and Online Status -->
                     <div class="d-flex align-items-center gap-3">
                         <div class="profile-picture">
-                            <img id="profile-avatar" src="./assets/default_avatar.png" alt="Profile Picture" class="rounded-circle" style="width: 80px; height: 80px; object-fit: cover;">
+                            <img id="profile-avatar" src="./assets/default_avatar.png" alt="Profile Picture" class="rounded-circle" style="width: 80px; height: 80px; object-fit: cover; border: 2px solid #ccc;">
                         </div>
                         <div class="d-flex align-items-center gap-2">
                             <div 
@@ -46,92 +47,42 @@ background-color: #36393f
                     </div>
                     
                     <!-- Edit Button -->
-                    <div class="w-100 d-flex flex-row">
-                        <div class="text-end">
-                            <button id="edit-profile-btn" class="btn btn-primary">Edit Profile</button>
-                        </div>
-                        <div class="text-end">
-                        <button id="logout-btn" class="btn btn-primary" style="background-color: #FF6EC7; border-color: #FF6EC7; margin-left: 10px;">Logout</button>
-                        </div>
-                        <div class="text-end">
-                        <button id="2fa-btn" class="btn btn-primary" style="background-color: green; border-color: green; margin-left: 10px;">Enable 2FA</button>
-                        </div>
-                        <div class="text-end">
-                        <button id="delete-btn" class="btn btn-primary" style="background-color: red; border-color: red; margin-left: 10px;">Delete Account</button>
-                        </div>
-                    </div>
-                </div>
-                
-                <div id="stats-box" class="bg-light p-4 rounded-3 gap-3 mt-4">
-                    <h1>Stats</h1>
-                    <div class="d-flex flex-column flex-sm-row align-items-center">
-                        <div class="stats" style="width: 40%;">
-                          
-                            <div class="d-flex flex-column gap-3" >
-                                <div class="d-flex text-20">
-                                    <strong style="min-width: 220px;">Total Games</strong>
-                                    <span id="profile-total_games">Loading...</span>
-                                </div>
-                                <div class="d-flex text-20">
-                                    <strong style="min-width: 220px;">Games Won</strong>
-                                    <span id="profile-games_Won">Loading...</span>
-                                </div>
-                                <div class="d-flex text-20">
-                                    <strong style="min-width: 220px;">Games Lost</strong>
-                                    <span id="profile-games_lost">Loading...</span>
-                                </div>
-                                <div class="d-flex text-20">
-                                    <strong style="min-width: 220px;">Current Streak</strong>
-                                    <span id="profile-current_streak">Loading...</span>
-                                </div>
-                                <div class="d-flex text-20">
-                                    <strong style="min-width: 220px;">Longest Win Streak</strong>
-                                    <span id="profile-win_streak">Loading...</span>
-                                </div>
-                                <div class="d-flex text-20">
-                                    <strong style="min-width: 220px;">Longest Lose Streak</strong>
-                                    <span id="profile-lose_streak">Loading...</span>
-                                </div>
-
-                                <div class="d-flex text-20">
-                                    <strong style="min-width: 220px;">Points Scored</strong>
-                                    <span id="profile-points_scored">Loading...</span>
-                                </div>
-                                <div class="d-flex text-20">
-                                    <strong style="min-width: 220px;">Points Conceded</strong>
-                                    <span id="profile-points_conceded">Loading...</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="progress-container" style="width: 30%; text-align: center;">
-                            <canvas id="progressCanvas1" width="200" height="200"></canvas>
-                            <div class="percentage-text" id="percentageText1">100%</div>
-                            <div class="progress-title">Win Ratio %</div>
-                        </div>
-                        <div class="progress-container" style="width: 30%; text-align: center;">
-                            <canvas id="progressCanvas2" width="200" height="200"></canvas>
-                            <div class="percentage-text" id="percentageText2">100%</div>
-                            <div class="progress-title">Points Ratio %</div>
-                        </div>
+                    <div class="w-100 d-flex flex-row justify-content-end gap-2">
+                        <button id="edit-profile-btn" class="btn btn-primary">Edit Profile</button>
+                        <button id="logout-btn" class="btn btn-primary" style="background-color: #FF6EC7; border-color: #FF6EC7;">Logout</button>
+                        <button id="2fa-btn" class="btn btn-primary" style="background-color: green; border-color: green;">Enable 2FA</button>
+                        <button id="delete-btn" class="btn btn-primary" style="background-color: red; border-color: red;">Delete Account</button>
                     </div>
                 </div>
                 
             </div>
             
-            <div class="col-xl-5 col-lg-12">
-                <div id="history-box" class="bg-light p-4 rounded-3 d-flex flex-column gap-3">
+            <div class="col-xl-5 col-lg-12" style="max-height: 420px;">
+                <div id="history-box" class="bg-light p-4 rounded-3 d-flex flex-column gap-3" style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); max-height: 100%; overflow-y: auto;">
                     <h1>Match History</h1>
                     <div id="matches-container" class="d-flex flex-column gap-2">
-
+                        <!-- Match items go here -->
                     </div>
                 </div>
+            </div>
+            
+            <div id="visualization-container" class="d-flex flex-wrap gap-4 mt-4">
+                <div id="bar-chart" class="chart" style="width: 48%; height: 300px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); border-radius: 10%;"></div>
+                <div id="gauge-chart" class="chart" style="width: 48%; height: 300px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); border-radius: 10%;"></div>
+                <div id="pie-chart" class="chart" style="width: 48%; height: 300px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); border-radius: 10%;"></div>
+                <div id="streak-chart" class="chart" style="width: 48%; height: 300px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); border-radius: 10%;"></div>
+                <div id="reaction-time-gauge" class="chart" style="width: 48%; height: 300px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); border-radius: 10%;"></div>
+                <div id="rally-bar-chart" class="chart" style="width: 48%; height: 300px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); border-radius: 10%;"></div>
+                <div id="rally-bubble-chart" class="chart" style="width: 48%; height: 300px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); border-radius: 10%;"></div>
+                <div id="victory-box-plot" class="chart" style="width: 48%; height: 300px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); border-radius: 10%;"></div>
+                <div id="victory-line-chart" class="chart" style="width: 48%; height: 300px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); border-radius: 10%;"></div>
             </div>
         </div>
     
 
         <!-- Profile Edit Modal -->
         <div id="edit-profile-modal" class="modal-overlay hidden 2fa-popup">
-            <div class="modal-content">
+            <div class="modal-content" style="border-radius: 10px; padding: 20px;">
             <span id="close-modal-btn" class="close-btn">&times;</span>
             <h2 class="text-center">Edit Profile</h2>
             <form id="edit-profile-form">

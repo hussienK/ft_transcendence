@@ -111,7 +111,12 @@ function attachLocalGameEventListeners(roomName) {
         }
 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-
+        if (latestGameState.match_duration) {
+            // During gameplay or at game end, display the match duration
+            ctx.font = '20px Arial';
+            ctx.fillStyle = 'white';
+            ctx.fillText(`${latestGameState.match_duration.toFixed(2)}s`, canvas.width / 2, 80);
+        }
         if (!latestGameState.game_is_active && !latestGameState.winner) {
             // Waiting or ended without a winner
             ctx.font = '50px Arial';
@@ -178,7 +183,8 @@ function attachLocalGameEventListeners(roomName) {
             score1: curr.score1,
             score2: curr.score2,
             game_is_active: curr.game_is_active,
-            winner: curr.winner
+            winner: curr.winner,
+            match_duration: lerp(prev.match_duration, curr.match_duration, t),
         };
     }
 

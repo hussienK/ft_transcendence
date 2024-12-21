@@ -1,5 +1,3 @@
-# models.py
-
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.conf import settings
@@ -12,12 +10,11 @@ class GameSession(models.Model):
     player2 = models.ForeignKey(User, related_name='player2_sessions', on_delete=models.CASCADE, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
+    game_mode = models.CharField(max_length=50, default="local")  # Game mode: local/online/tournament
 
     def __str__(self):
         return f"GameSession {self.session_id} between {self.player1} and {self.player2}"
 
-from django.db import models
-from django.contrib.auth.models import User
 
 class MatchHistory(models.Model):
     game_session = models.OneToOneField(
@@ -39,6 +36,15 @@ class MatchHistory(models.Model):
     player2_score = models.PositiveIntegerField(default=0)
     forfeit = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    match_duration = models.FloatField(default=0, help_text="Duration of the match in seconds")
+    total_ball_hits = models.PositiveIntegerField(default=0)  # Number of ball hits in the match
+    avg_ball_speed = models.FloatField(null=True, blank=True)  # Average ball speed
+    max_ball_speed = models.FloatField(null=True, blank=True)  # Maximum ball speed
+    longest_rally = models.PositiveIntegerField(default=0)  # Maximum number of consecutive hits without scoring
+    reaction_time_player1 = models.FloatField(null=True, blank=True)  # Avg reaction time for player1
+    reaction_time_player2 = models.FloatField(null=True, blank=True)  # Avg reaction time for player2
+    victory_margin = models.PositiveIntegerField(null=True, blank=True)  # Margin of victory (score difference)
 
     @property
     def winner(self):

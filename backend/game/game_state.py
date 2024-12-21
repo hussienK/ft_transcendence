@@ -1,6 +1,7 @@
 import asyncio
 import random
 from asgiref.sync import sync_to_async
+import time
 
 class GameState:
     def __init__(self, game_id, channel_layer, group_name):
@@ -36,10 +37,24 @@ class GameState:
         self.max_ball_speed = 12
         self.padd_speed = 18
 
+        #stats
+        self.match_start_time = None
+        self.total_ball_hits = 0
+        self.current_rally = 0  # Track ongoing rally (consecutive hits)
+        self.longest_rally = 0
+        self.total_ball_speed = 0.0  # Sum of all recorded ball speeds
+        self.ball_speed_samples = 0  # Number of times speed is recorded
+        self.max_ball_speed_reached = 0.0
+        self.current_rally_hits = 0
         self.game_loop_task = None
+        self.player1_reaction_times = []  # List to store reaction times for Player 1
+        self.player2_reaction_times = []  # List to store reaction times for Player 2
+        self.last_hit_time = None         # Timestamp of the last paddle hit
+        self.last_hitter = None           # Tracks who hit the ball last ('player1' or 'player2')
 
     def start_game(self):
         # Reset and randomize the ball at the start or after a score
+        self.match_start_time = time.time()
         self.reset_ball(random_direction=True)
         self.game_is_active = True
         # Start a background task to update the game state
@@ -65,6 +80,13 @@ class GameState:
         self.ball_position[0] += self.ball_velocity[0]
         self.ball_position[1] += self.ball_velocity[1]
 
+        # Calculate current ball speed
+        current_speed = (self.ball_velocity[0]**2 + self.ball_velocity[1]**2)**0.5
+        self.total_ball_speed += current_speed
+        self.ball_speed_samples += 1
+        if current_speed > self.max_ball_speed_reached:
+            self.max_ball_speed_reached = current_speed
+
         # Check for collision with top and bottom walls
         if self.ball_position[1] <= self.ball_radius or self.ball_position[1] >= (self.canvas_height - self.ball_radius):
             self.ball_velocity[1] = -self.ball_velocity[1]
@@ -85,11 +107,17 @@ class GameState:
         # Check scoring conditions
         if self.ball_position[0] < 0:
             self.score2 += 1
+            self.current_rally_hits = 0  # Reset current rally
+            self.last_hit_time = None  # Reset reaction time tracking
+            self.last_hitter = None
             await self.check_winner()
             if self.game_is_active:
                 self.reset_ball(random_direction=True)
         elif self.ball_position[0] > self.canvas_width:
             self.score1 += 1
+            self.current_rally_hits = 0  # Reset current rally
+            self.last_hit_time = None  # Reset reaction time tracking
+            self.last_hitter = None
             await self.check_winner()
             if self.game_is_active:
                 self.reset_ball(random_direction=True)
@@ -125,7 +153,28 @@ class GameState:
         self.ball_velocity[1] *= self.speed_increment_factor
         
         self.clamp_ball_speed()
-    
+
+        self.total_ball_hits += 1
+
+        # # # Increment current rally hits
+        self.current_rally_hits += 1
+        
+        # # # Update longest rally if current rally exceeds it
+        if self.current_rally_hits > self.longest_rally:
+            self.longest_rally = self.current_rally_hits
+
+        if self.last_hit_time and self.last_hitter != player:
+            # Calculate reaction time
+            reaction_time = time.time() - self.last_hit_time
+            if player == 'player1':
+                self.player1_reaction_times.append(reaction_time)
+            elif player == 'player2':
+                self.player2_reaction_times.append(reaction_time)
+        
+        # Update last hit time and hitter
+        self.last_hit_time = time.time()
+        self.last_hitter = player
+        
     def clamp_ball_speed(self):
         # Ensure the ball's speed does not exceed the maximum allowed speed
         speed = (self.ball_velocity[0]**2 + self.ball_velocity[1]**2) ** 0.5
@@ -168,13 +217,25 @@ class GameState:
         self.game_is_active = False
         self.winner = "player1" if winner == self.player1 else "player2"
 
+        match_duration = round(time.time() - self.match_start_time, 2) if self.match_start_time else 0
+        avg_ball_speed = self.total_ball_speed / self.ball_speed_samples if self.ball_speed_samples > 0 else 0.0
+
+
+        # Calculate average reaction times
+        avg_reaction_time_player1 = sum(self.player1_reaction_times) / len(self.player1_reaction_times) if self.player1_reaction_times else 0
+        avg_reaction_time_player2 = sum(self.player2_reaction_times) / len(self.player2_reaction_times) if self.player2_reaction_times else 0
+
+        victory_margin = abs(self.score1 - self.score2)
+
         await self.broadcast_state()
 
         if not self.is_local:
             try:
                 await sync_to_async(save_match_results_sync, thread_sensitive=False)(
-                    self.game_id, self.score1, self.score2, disconnected
+                    self.game_id, self.score1, self.score2, disconnected, match_duration, self.total_ball_hits, self.longest_rally,
+                    self.max_ball_speed_reached, avg_ball_speed, avg_reaction_time_player1, avg_reaction_time_player2, victory_margin
                 )
+                print("Data saved to database")
             except Exception as e:
                 print(f"Error saving match results: {e}")
         
@@ -191,6 +252,7 @@ class GameState:
             )
 
     def to_dict(self):
+        match_duration = round(time.time() - self.match_start_time, 2) if self.match_start_time else 0
         return {
             'ball_position': self.ball_position,
             'paddle1_position': self.paddle1_position,
@@ -198,11 +260,13 @@ class GameState:
             'score1': self.score1,
             'score2': self.score2,
             'game_is_active': self.game_is_active,
-            'winner': self.winner
+            'winner': self.winner,
+            'match_duration': match_duration,
         }
 
-def save_match_results_sync(game_id, score1, score2, forfeit=False):
-    """Synchronously save match results to the database."""
+def save_match_results_sync(game_id, score1, score2, forfeit=False, match_duration=0, total_ball_hits=0, longest_rally=0,
+                            max_ball_speed_reached=0, avg_ball_speed=0, avg_reaction_time_player1=0, avg_reaction_time_player2=0, victory_margin=0):
+    """Synchronously save match results to the database.""",
     from .models import GameSession, MatchHistory
 
     try:
@@ -217,6 +281,14 @@ def save_match_results_sync(game_id, score1, score2, forfeit=False):
             forfeit=forfeit,
             player1_score=score1,
             player2_score=score2,
+            match_duration=match_duration,
+            total_ball_hits=total_ball_hits,
+            longest_rally=longest_rally,
+            max_ball_speed=max_ball_speed_reached,
+            avg_ball_speed=avg_ball_speed,
+            reaction_time_player1=avg_reaction_time_player1,
+            reaction_time_player2=avg_reaction_time_player2,
+            victory_margin=victory_margin
         )
 
         print("Match history updated successfully")

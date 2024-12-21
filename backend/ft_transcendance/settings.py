@@ -82,15 +82,8 @@ ASGI_APPLICATION = 'ft_transcendance.routing.application'  # Required for WebSoc
 # Database configuration (PostgreSQL)
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',  # PostgreSQL backend
-        'NAME': os.getenv('DB_NAME'),  # Database name
-        'USER': os.getenv('DB_USER'),  # PostgreSQL user
-        'PASSWORD': os.getenv('DB_PASSWORD'),  # PostgreSQL password
-        'HOST': os.getenv('DB_HOST'),  # Database host (Docker Compose service name)
-        'PORT': os.getenv('DB_PORT'),  # PostgreSQL port
-        'OPTIONS': {
-            'connect_timeout': 10,  # Retry connection for 10 seconds
-        },
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',  # This will create 'db.sqlite3' in your project's root directory
     }
 }
 
