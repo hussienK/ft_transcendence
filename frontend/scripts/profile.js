@@ -184,7 +184,6 @@ function attachProfileEventListeners(userName = -42) {
 
     fetchProfile(userName)
         .then(data => {
-            console.log(data);
             document.getElementById("profile-display_name").innerHTML = data.display_name || "";
             document.getElementById("profile-username").innerHTML = data.username || "";
             document.getElementById("profile-bio").innerHTML = data.bio || "";
@@ -246,48 +245,62 @@ function attachProfileEventListeners(userName = -42) {
         });
 
     fetchMatchHistory(userName)
-        .then(data => {
-            console.log(data);
-            const HistoryContainer = document.getElementById("matches-container");
-            HistoryContainer.innerHTML = "";
-            data.forEach(element => {
-                const opponentUsername = element.opponent || 'Unknown';
-                const score = element.player1_score || 0;
-                const score2 = element.player2_score || 0;
-                const forfeit = element.forfeit;
-                const result = element.result || 'Not Available';
-                const isWinner = result === "Win";
+    .then(data => {                                                                              
+        console.log(data);
+        const HistoryContainer = document.getElementById("matches-container");
+        HistoryContainer.innerHTML = "";
+        data.forEach(element => {
+            const matchId = element.id; // Assuming the match ID is present in the `element`
+            const opponentUsername = element.opponent || 'Unknown';
+            const score = element.player1_score || 0;
+            const score2 = element.player2_score || 0;
+            const forfeit = element.forfeit;
+            const result = element.result || 'Not Available';
+            const isWinner = result === "Win";
 
-                const createdAt = new Date(element.created_at);
-                const timeAgo = getTimeAgo(createdAt);
+            const createdAt = new Date(element.created_at);
+            const timeAgo = getTimeAgo(createdAt);
 
-                HistoryContainer.innerHTML += `
-                <div id="opponent-card" class="d-flex gap-2">
-                    <div class="friend-avatar">
-                        <img src="${element.opponent_avatar || './assets/default_avatar.png'}" alt="avatar">
+            // Add event listener for each match card
+            const matchCardHTML = `
+            <div id="opponent-card" class="d-flex gap-2" data-match-id="${matchId}" style="cursor: pointer;">
+                <div class="friend-avatar">
+                    <img src="${element.opponent_avatar || './assets/default_avatar.png'}" alt="avatar">
+                </div>
+                <div class="friend-info">
+                    <p class="friend-displayname">${opponentUsername}</p>
+                    <p class="friend-username">${timeAgo}</p>
+                </div>
+                <div style="margin-left: auto; width: 75px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                    <div style="background-color: ${isWinner ? 'rgb(37, 168, 37)' : 'rgb(168, 37, 37)'}; 
+                                display: flex; justify-content: center; align-items: center; 
+                                width: 100%; color: white; font-size: 16px; font-weight: 600; 
+                                border-top-left-radius: 5px; border-top-right-radius: 5px;">
+                        ${isWinner ? 'Won' : 'Lost'}
                     </div>
-                    <div class="friend-info">
-                        <p class="friend-displayname">${opponentUsername}</p>
-                        <p class="friend-username">${timeAgo}</p>
-                    </div>
-                    <div style="margin-left: auto; width: 75px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
-                        <div style="background-color: ${isWinner ? 'rgb(37, 168, 37)' : 'rgb(168, 37, 37)'}; 
-                                    display: flex; justify-content: center; align-items: center; 
-                                    width: 100%; color: white; font-size: 16px; font-weight: 600; 
-                                    border-top-left-radius: 5px; border-top-right-radius: 5px;">
-                            ${isWinner ? 'Won' : 'Lost'}
-                        </div>
-                        <div style="display: flex; justify-content: center; align-items: center;">
-                            ${forfeit ? "Forfeit": `${score} - ${score2}`}
-                        </div>
+                    <div style="display: flex; justify-content: center; align-items: center;">
+                        ${forfeit ? "Forfeit": `${score} - ${score2}`}
                     </div>
                 </div>
-                `;
-            });
-        })
-        .catch(error => {
-            showAlert(error.response?.data.error, "danger");
+            </div>
+            `;
+
+            HistoryContainer.innerHTML += matchCardHTML;
         });
+
+        // Add event listener to all match cards
+        document.querySelectorAll('#opponent-card').forEach(card => {
+            card.addEventListener('click', function () {
+                const matchId = this.getAttribute('data-match-id');
+                // Change the hash to include the match ID
+                window.location.hash = `match?matchId=${matchId}`;
+            });
+        });
+    })
+    .catch(error => {
+        showAlert(error.response?.data.error, "danger");
+    });
+
 
         function getTimeAgo(date) {
             const now = new Date();

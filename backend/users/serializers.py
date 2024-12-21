@@ -282,6 +282,7 @@ class MatchHistorySerializer(serializers.ModelSerializer):
     class Meta:
         model = MatchHistory
         fields = [
+            'id',
             'game_session_id',
             'opponent',
             'opponent_avatar',
@@ -343,3 +344,88 @@ class Verify2FACodeSerializer(serializers.Serializer):
             raise serializers.ValidationError("2FA code has expired.")
 
         return user
+
+# Serializer for match stats
+class MatchStatsSerializer(serializers.Serializer):
+    session_id = serializers.CharField()
+    player1 = serializers.CharField()
+    player2 = serializers.CharField()
+    player1_score = serializers.IntegerField()
+    player2_score = serializers.IntegerField()
+    winner = serializers.CharField()
+    loser = serializers.CharField()
+    match_duration = serializers.FloatField()
+    total_ball_hits = serializers.IntegerField()
+    avg_ball_speed = serializers.FloatField(allow_null=True)
+    max_ball_speed = serializers.FloatField(allow_null=True)
+    longest_rally = serializers.IntegerField()
+    reaction_time_player1 = serializers.FloatField(allow_null=True)
+    reaction_time_player2 = serializers.FloatField(allow_null=True)
+    victory_margin = serializers.IntegerField()
+    forfeit = serializers.BooleanField()
+
+
+class userSerializer(serializers.ModelSerializer):
+    avatar = serializers.ImageField(required=False)  # Allow file uploads
+
+    class Meta:
+        model = User
+        fields = (
+            'id',
+            'username',
+            'email',
+            'display_name',
+            'bio',
+            'avatar',  # Include avatar for both read and write
+            'created_at',
+            'two_factor_enabled',
+            "is_online",
+        )
+        read_only_fields = ('id', 'username', 'email', 'created_at', "is_online")
+
+    # Return the full URL of the avatar
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+
+        # Generate the full avatar URL
+        if instance.avatar:
+            avatar_url = instance.avatar.url if hasattr(instance.avatar, 'url') else instance.avatar
+            representation['avatar'] = f"http://localhost:8080{avatar_url}"
+        else:
+            representation['avatar'] = "./assets/default_avatar.png"  # Default avatar URL
+
+        # Hide the email field if the user is not viewing their own profile
+        user = self.context.get('user')
+        if user != instance:
+            representation.pop('email', None)
+
+        return representation
+
+    # Validate the avatar field
+    def validate_avatar(self, value):
+        max_size = 2 * 1024 * 1024  # 2MB
+        if value.size > max_size:
+            raise serializers.ValidationError("Avatar image size cannot exceed 2MB.")
+        if not value.content_type.startswith("image/"):
+            raise serializers.ValidationError("Uploaded file must be an image.")
+        return value
+
+    # Other validations
+    def validate_username(self, value):
+        if len(value) < settings.FORM_SETTINGS['username_length_min']:
+            raise serializers.ValidationError("Username must be at least 3 characters long.")
+        if len(value) > settings.FORM_SETTINGS['username_length_max']:
+            raise serializers.ValidationError("Username can't be more than 15 characters long.")
+        return value
+    
+    def validate_display_name(self, value):
+        if len(value) < settings.FORM_SETTINGS['displayname_length_min']:
+            raise serializers.ValidationError("Display Name must be at least 3 characters long.")
+        if len(value) > settings.FORM_SETTINGS['displayname_length_max']:
+            raise serializers.ValidationError("Display Name can't be more than 15 characters long.")
+        return value
+
+    def validate_bio(self, value):
+        if len(value) > settings.FORM_SETTINGS['bio_length_max']:
+            raise serializers.ValidationError("Bio can't be more than 150 characters long.")
+        return value

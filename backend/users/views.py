@@ -6,7 +6,7 @@ from rest_framework.permissions import AllowAny
 from django.contrib.auth import get_user_model, authenticate
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken
-from .serializers import UserStatsSerializer, FriendRequestSerializer, AcceptFriendRequestSerializer, DeleteFriendRequestSerializer, GetFriendsSerializer, FeedUpdateSerializer, MatchHistorySerializer, Verify2FACodeSerializer
+from .serializers import UserStatsSerializer, FriendRequestSerializer, AcceptFriendRequestSerializer, DeleteFriendRequestSerializer, GetFriendsSerializer, FeedUpdateSerializer, MatchHistorySerializer, Verify2FACodeSerializer, MatchStatsSerializer, userSerializer
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.urls import reverse
@@ -752,3 +752,50 @@ class RefreshEmailVerificationView(APIView):
         email.send()
 
         return Response({"detail": "Verification email resent. Please check your inbox."}, status=status.HTTP_200_OK)
+    
+
+class MatchStatsAPIView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request, match_id):
+        print(request)
+        try:
+            match = MatchHistory.objects.get(id=match_id)
+
+            # Match stats
+            match_stats = {
+                "session_id": match.game_session.session_id,
+                "player1": match.player1.username,
+                "player2": match.player2.username,
+                "player1_score": match.player1_score,
+                "player2_score": match.player2_score,
+                "winner": match.winner.username if match.winner else "Draw",
+                "loser": match.loser.username if match.loser else "Draw",
+                "match_duration": match.match_duration,
+                "total_ball_hits": match.total_ball_hits,
+                "avg_ball_speed": match.avg_ball_speed,
+                "max_ball_speed": match.max_ball_speed,
+                "longest_rally": match.longest_rally,
+                "reaction_time_player1": match.reaction_time_player1,
+                "reaction_time_player2": match.reaction_time_player2,
+                "victory_margin": match.victory_margin or abs(match.player1_score - match.player2_score),
+                "forfeit": match.forfeit,
+            }
+
+            # Serialize match stats
+            match_serializer = MatchStatsSerializer(match_stats)
+
+            # Serialize user info
+            player1_serializer = userSerializer(match.player1, context={"user": match.player1})
+            player2_serializer = userSerializer(match.player2, context={"user": match.player2})
+
+            response_data = {
+                "match_stats": match_serializer.data,
+                "player1_info": player1_serializer.data,
+                "player2_info": player2_serializer.data,
+            }
+
+            return Response(response_data, status=status.HTTP_200_OK)
+
+        except MatchHistory.DoesNotExist:
+            return Response({"error": "Match not found"}, status=status.HTTP_404_NOT_FOUND)

@@ -294,3 +294,17 @@ async function deleteAccount() {
         return false; // Account deletion failed
     }
 }
+
+async function fetchMatch(matchId){
+    try {
+        const response = await axios.get(`https://localhost:8443/api/users/match/${matchId}/stats/`, {
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+            }
+        });
+        return response.data;
+
+    } catch (error) {
+        console.log(error.response?.data?.error || "An error occurred", 'danger');
+    }
+}

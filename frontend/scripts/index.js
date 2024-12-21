@@ -209,6 +209,19 @@ async function loadPage(page, queryParams = {}) {
         loadLinks("profile");
         establishWebSocketConnection();
         renderFeed();
+      }
+      else if (page === "match"){
+        if (queryParams.matchId)
+        {
+          attachMatchEventListeners(queryParams.matchId);
+        }
+        else
+        {
+          const mainContent = document.getElementById("main-content");
+          if (mainContent) {
+            mainContent.innerHTML = "<p>Page not found.</p>";
+          }
+        }
       } else {
         console.warn(`No specific logic implemented for page: ${page}`);
       }

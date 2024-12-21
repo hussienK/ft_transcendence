@@ -93,11 +93,11 @@ function attachLobbyEventListeners() {
   fetchStats(-42)
     .then((data) => {
       const stats = {
-        longest_current_streak: data.longest_current_streak || 0,
-        longest_win_streak: data.longest_win_streak || 0,
-        games_won: data.games_won || 0,
-        games_lost: data.games_lost || 0,
-        total_games: data.total_games || 0,
+        longest_current_streak: data.stats.longest_current_streak || 0,
+        longest_win_streak: data.stats.longest_win_streak || 0,
+        games_won: data.stats.games_won || 0,
+        games_lost: data.stats.games_lost || 0,
+        total_games: data.stats.total_games || 0,
       };
 
       let statsHTML = "<h2>Stats</h2>";

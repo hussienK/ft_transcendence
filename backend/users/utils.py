@@ -266,3 +266,31 @@ def send_2fa_email(user):
     )
     email.attach_alternative(html_message, "text/html")
     email.send()
+
+def get_match_stats(match_id):
+    try:
+        match = MatchHistory.objects.get(id=match_id)
+
+        stats = {
+            "session_id": match.game_session.session_id,
+            "player1": match.player1.username,
+            "player2": match.player2.username,
+            "player1_score": match.player1_score,
+            "player2_score": match.player2_score,
+            "winner": match.winner.username if match.winner else "Draw",
+            "loser": match.loser.username if match.loser else "Draw",
+            "match_duration": match.match_duration,
+            "total_ball_hits": match.total_ball_hits,
+            "avg_ball_speed": match.avg_ball_speed,
+            "max_ball_speed": match.max_ball_speed,
+            "longest_rally": match.longest_rally,
+            "reaction_time_player1": match.reaction_time_player1,
+            "reaction_time_player2": match.reaction_time_player2,
+            "victory_margin": match.victory_margin or abs(match.player1_score - match.player2_score),
+            "forfeit": match.forfeit,
+        }
+
+        return stats
+
+    except MatchHistory.DoesNotExist:
+        return {"error": "Match not found"}
