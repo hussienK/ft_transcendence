@@ -1,260 +1,228 @@
+/* General Styling */
 body {
   margin: 0;
-  padding: 0;
-  font-family: sans-serif;
+  font-family: 'Roboto', sans-serif;
+  background-color: #121212;
+  color: #fff;
   box-sizing: border-box;
-  width: 100%;
-}
-#homePage {
-  height: 100vh; 
-  width: 100%;
 }
 
-.text-16 {
-  font-size: 16px;
-}
-
-.text-20 {
-  font-size: 20px;
-}
-
-.text-24 {
-  font-size: 24px;
-}
-
-
-.bg-active-tab {
-  background-color: rgba(255, 255, 255, 0.1);
-}
-
-.btn {
-  border: none !important;
-  outline: none !important;
-  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out; 
-  height: 48px;
-}
-
-.btn:active {
-  transform: scale(0.95); 
-  box-shadow: none; 
-}
-
-.btn:hover,
-.btn:focus {
-  box-shadow: none; 
-}
-
-
-#suggested-friends-container, #pending-friends-container, #all-friends-container, #online-friends-container {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  max-width: 900px;
-  margin-top: 30px;
-}
-
-.friend-suggestion, .pending-friend, .all-friend, .online-friend  {
-  display: flex;
-  align-items: center;
-  align-items: "center";
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  background-color: #f9f9f9d7;
-}
-
-
-.friend-avatar {
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  overflow: hidden;
-  margin-right: 10px;
-}
-
-.friend-avatar img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.friend-info {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-
-.friend-info > p {
-  margin: 0;
-}
-
-.friend-displayname {
-  font-weight: bold;
-  margin-bottom: 5px;
-}
-
-.friend-username {
-  font-size: 0.9em;
-  color: #555;
-}
-
-.btn {
-  min-width: 100px;
-}
-.add-friend-btn {
-  margin-left: auto;
-  padding: 5px 10px;
- 
-}
-
-.cancel-friend-btn {
-  margin-left: auto;
-}
-
-
-.stats {
-  width: 40%;
-  display: flex;
-  flex-direction: column;
+/* Dashboard Layout */
+#lobby-page {
+  display: grid;
+  grid-template-rows: 1fr auto auto;
   gap: 20px;
-  height: 100%;
+  height: 100vh;
+  padding: 20px;
 }
 
-.progress-container {
-  position: relative;
+/* Background Section */
+.background-section {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 20px;
+  align-items: center;
+}
+
+.background-image {
+  background: url('../assets/home_bg.webp') center/cover no-repeat;
+  border-radius: 10px;
+  height: 100%;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+}
+
+.info-section {
+  background-color: #1e1e1e;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  text-align: center;
+  max-height: 50%;
+}
+
+.info-section .highlight {
+  color: #00d1ff;
+  text-shadow: 0 0 10px #00d1ff;
+}
+
+/* Gameplay Modes */
+.gameplay-modes {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.card {
+  background-color: #1e1e1e;
+  padding: 20px;
+  border-radius: 10px;
+  text-align: center;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  transition: transform 0.3s ease, background-color 0.3s ease;
+}
+
+.card h2 {
+  color: #00d1ff;
+  text-shadow: 0 0 5px #00d1ff;
+}
+
+.card p {
+  margin: 10px 0;
+}
+
+.card button {
+  background-color: #00d1ff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #fff;
+  transition: background-color 0.3s ease;
+}
+
+.card button:hover {
+  background-color: #00a1cc;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  background-color: #292929;
+}
+
+/* Navigation Section */
+.navigation {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.nav-card {
+  background-color: #1e1e1e;
+  padding: 20px;
+  border-radius: 10px;
+  text-align: center;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  transition: transform 0.3s ease, background-color 0.3s ease;
+}
+
+.nav-card h3 {
+  color: #00d1ff;
+  text-shadow: 0 0 5px #00d1ff;
+}
+
+.nav-card p {
+  margin: 10px 0;
+}
+
+.nav-card:hover {
+  transform: translateY(-5px);
+  background-color: #292929;
+}
+
+.feed-section{
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  align-items: center;
+}
+
+#live-feeds{
+  height: 450px;
+  background-color: #292929;
+  border-radius: 10px;
+  padding: 10px;
+}
+
+
+@media (max-width: 768px) {
+  #profile-page {
+    flex-direction: column;
+    padding: 10px;
+  }
+
+  .row {
+    flex-direction: column;
+  }
+
+  .navigation {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .chart {
+    width: 100%;
+    height: 250px;
+  }
+
+  .card {
+    width: 100%;
+  }
+
+  #profile-box,
+  #history-box {
+    max-height: unset;
+  }
+}
+
+/* Adjust Profile Page Specifics */
+#profile-page {
+  display: grid;
+  grid-template-rows: 1fr auto auto;
+  gap: 20px;
+  height: 100vh;
+  padding: 20px;
+}
+
+.profile-summary, 
+.win-loss-ratio, 
+.edit-profile, 
+.account-settings, 
+.match-history, 
+.friends-list {
+  background-color: #1e1e1e;
+  padding: 20px;
+  border-radius: 10px;
   text-align: center;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  transition: transform 0.3s ease, background-color 0.3s ease;
 }
 
-.percentage-text {
-  position: absolute;
- 
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 24px;
-  font-weight: bold;
-  color: #333;
+.profile-summary h2,
+.win-loss-ratio h2,
+.edit-profile h2,
+.account-settings h2,
+.match-history h2,
+.friends-list h2 {
+  color: #00d1ff;
+  text-shadow: 0 0 5px #00d1ff;
 }
 
-.progress-title {
-  margin-top: 15px;
-  font-size: 16px;
-  font-weight: bold;
-  color: #555;
-}
-
-.tooltip {
+.profile-summary button,
+.win-loss-ratio button,
+.edit-profile button,
+.account-settings button,
+.match-history button,
+.friends-list button {
+  background-color: #00d1ff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
   font-size: 14px;
+  color: #fff;
+  transition: background-color 0.3s ease;
 }
 
-#profile-status-indicator {
-  cursor: pointer;
-  border: 2px solid white; /* To create a clean border around the circle */
-}
-/* Styling for the arrow buttons */
-.arrow-btn {
-  padding: 0;
-  font-size: 3rem; /* Make the arrows larger */
-  border: none; /* Remove the border */
-  background: transparent; /* Remove the background */
-  color: white; /* Set arrow color */
-  cursor: pointer;
-  outline: none; /* Remove focus outline */
-  transition: color 0.2s ease-in-out, transform 0.2s ease-in-out; /* Add smooth transitions */
+.profile-summary button:hover,
+.win-loss-ratio button:hover,
+.edit-profile button:hover,
+.account-settings button:hover,
+.match-history button:hover,
+.friends-list button:hover {
+  background-color: #00a1cc;
 }
 
-.arrow-btn:hover {
-  color: #000; /* Darker color on hover */
-  transform: scale(1.2); /* Slightly enlarge the arrow on hover */
-}
-
-.arrow-btn:active {
-  transform: scale(1.1); /* Subtle click effect */
-}
-
-/* Optional: Center carousel content */
-.carousel-content {
-  max-width: 500px;
-  min-height: 400px;
-  background-color: white;
-  transition: transform 0.5s ease-in-out, opacity 0.5s ease-in-out;
-  margin-left: 0; /* Ensure no auto centering */
-  margin-right: auto; 
-}
-
-#stats-container {
-  margin: 20px 0;
-  padding: 10px;
-  border: 1px solid #ccc;
-  background-color: #f9f9f9;
-  text-align: center;
-  width: 100%; height: 100%; 
-  background-color: azure;
-  border-radius: 10px; padding: 20px;
-}
-
-.glowing-container {
-  box-shadow: 
-    0 -5px 15px #FF6EC7,  /* Top shadow (pink) */
-    0 5px 15px #FF6EC7,   /* Bottom shadow (pink) */
-    -5px 0 15px #00E7FF,  /* Left shadow (blue) */
-    5px 0 15px #00E7FF !important; /* Right shadow (blue) */
-  border-left: 3px solid #00e7ff !important;
-  border-right: 3px solid #00e7ff !important;
-  border-top: 3px solid #FF6EC7 !important;
-  border-bottom: 3px solid #FF6EC7 !important;
-}
-
-.glowing-container-reverse {
-  box-shadow: 
-    0 -5px 15px #00E7FF,  /* Top shadow (pink) */
-    0 5px 15px #00E7FF,   /* Bottom shadow (pink) */
-    -5px 0 15px #FF6EC7,  /* Left shadow (blue) */
-    5px 0 15px #FF6EC7 !important; /* Right shadow (blue) */
-  border-left: 3px solid  #FF6EC7!important;
-  border-right: 3px solid #FF6EC7 !important;
-  border-top: 3px solid #00e7ff !important;
-  border-bottom: 3px solid #00e7ff !important;
-}
-
-.stat-item {
-  margin-bottom: 10px;
-  font-size: 1rem;
-  line-height: 1.5;
-}
-
-#stats-carousel{
-  width: 50%;
-  height: 100%;
-}
-
-#rank-container {
-  margin: 20px 0;
-  padding: 10px;
-  border: 1px solid #ccc;
-  background-color: #f9f9f9;
-  text-align: left;
-  width: 100%; height: 100%; 
-  background-color: azure;
-  border-radius: 10px; padding: 20px;
-  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-  height: 100%;
-  max-height: 400px;
-  min-height: 150px;
-}
-
-.rank-item {
-  margin-bottom: 10px;
-  font-size: 1rem;
-  line-height: 1.5;
-}
-
-#rank-carousel{
-  width: 50%;
-  height: 100%;
+#profile-avatar{
+  width: 75px;
 }
 
 .modal-overlay {
@@ -271,19 +239,18 @@ body {
 }
 
 .modal-content {
-  background: white;
+  background-color: #1e1e1e;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
   padding: 20px;
-  border-radius: 10px;
-  width: 400px;
-  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.25);
-  position: relative;
+  color: white;
 }
 
 .close-btn {
   position: absolute;
   top: 10px;
   right: 10px;
-  font-size: 18px;
+  font-size: 20px;
+  color: white;
   cursor: pointer;
 }
 
@@ -291,10 +258,325 @@ body {
   display: none;
 }
 
-.profile-chart {
-  border-radius: 10px;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+#match-details-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow-y: auto;
+  max-height: 400px;
   padding: 10px;
-  height: 300px;
-  width: 48%;
+}
+
+.match-card {
+  background-color: #1e1e1e;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease;
+}
+
+.match-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 10px rgba(0, 0, 0, 0.3);
+}
+
+.friend-avatar img {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.chart {
+  box-shadow: 0 0 15px #00d1ff; /* Blue neon glow */
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.chart:hover {
+  transform: scale(1.02);
+  transition: transform 0.2s ease;
+  box-shadow: 0 0 25px #ff6ec7; /* Pink neon glow on hover */
+}
+
+.chart-container {
+  width: 100%;
+  height: auto;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: #1e1e1e;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+  color: white;
+  overflow-y: auto;
+  max-height: 90vh;
+}
+
+.close-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 20px;
+  color: white;
+  cursor: pointer;
+}
+
+.hidden {
+  display: none;
+}
+
+.chart-container {
+  flex: 1 1 48%; /* Flexible width, 48% for two charts in a row */
+  min-width: 300px;
+  height: 350px; /* Ensure consistent height for all charts */
+  background-color: #1e1e1e; /* Match the modal's dark theme */
+  border-radius: 10px;
+  box-shadow: 0 0 15px #00d1ff; /* Neon blue glow */
+  padding: 10px; /* Padding around the chart */
+  display: flex; /* Ensure the Plotly chart fits properly */
+  justify-content: center;
+  align-items: center;
+}
+
+.chart-container:hover {
+  box-shadow: 0 0 25px #ff6ec7; /* Pink neon glow on hover */
+  transition: box-shadow 0.2s ease;
+}
+
+
+
+.modal-content h2 {
+  margin-bottom: 20px;
+  color: #00d1ff; /* Neon blue header */
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  .chart-container {
+      flex: 1 1 100%; /* Full width on smaller screens */
+      height: 300px;
+  }
+
+  .modal-content {
+      padding: 15px; /* Reduce padding for smaller screens */
+  }
+}
+/* Minimal Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px; /* Narrow width for a minimalist look */
+  height: 8px; /* For horizontal scrollbar */
+}
+
+::-webkit-scrollbar-track {
+  background: #1e1e1e; /* Match your background */
+  border-radius: 4px; /* Slight rounding */
+}
+
+::-webkit-scrollbar-thumb {
+  background: #00d1ff; /* Neon blue thumb */
+  border-radius: 4px; /* Rounded corners */
+  transition: background 0.3s ease; /* Smooth transition */
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #ff6ec7; /* Change to neon pink on hover */
+}
+
+/* For Firefox */
+.scroll-container {
+  scrollbar-width: thin; /* Thin scrollbar */
+  scrollbar-color: #00d1ff #1e1e1e; /* Thumb and track colors */
+}
+
+/* Apply to any scrollable container */
+.scroll-container {
+  overflow-y: auto; /* Enable vertical scrolling */
+  max-height: 400px; /* Adjust for content */
+}
+
+/* Modal Overlay */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background-color: #1e1e1e;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+    color: white;
+    overflow-y: auto;
+}
+
+.close-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 20px;
+    color: white;
+    cursor: pointer;
+}
+
+.hidden {
+    display: none;
+}
+
+/* Button Styling */
+.btn {
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    border-radius: 5px;
+    text-align: center;
+    color: white;
+    transition: transform 0.2s ease, background-color 0.2s ease;
+    cursor: pointer;
+}
+
+/* Neon Colors */
+.neon-blue {
+    background-color: #00d1ff;
+    box-shadow: 0 0 10px #00d1ff;
+}
+
+.neon-blue:hover {
+    background-color: #00a1cc;
+    box-shadow: 0 0 15px #00a1cc;
+}
+
+.neon-pink {
+    background-color: #ff6ec7;
+    box-shadow: 0 0 10px #ff6ec7;
+}
+
+.neon-pink:hover {
+    background-color: #d1549a;
+    box-shadow: 0 0 15px #d1549a;
+}
+
+.neon-red {
+    background-color: #ff4d4d;
+    box-shadow: 0 0 10px #ff4d4d;
+}
+
+.neon-red:hover {
+    background-color: #cc0000;
+    box-shadow: 0 0 15px #cc0000;
+}
+
+.neon-green {
+    background-color: #4caf50;
+    box-shadow: 0 0 10px #4caf50;
+}
+
+.neon-green:hover {
+    background-color: #388e3c;
+    box-shadow: 0 0 15px #388e3c;
+}
+
+/* Form Inputs */
+.form-control {
+  width: 100%;
+  padding: 10px;
+  margin-top: 5px;
+  border: 1px solid #444;
+  border-radius: 5px;
+  background-color: #121212;
+  color: white;
+}
+
+.vs-text {
+  font-size: 24px;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.divider {
+  background-color: #fff;
+  width: 1px;
+  height: 50px;
+  margin-top: 10px;
+}
+
+/* Neon Avatar */
+.neon-avatar {
+  width: 80px;
+  height: 80px;
+  border: 3px solid #ff6ec7;
+  box-shadow: 0 0 10px #00d1ff;
+  margin-bottom: 10px;
+  object-fit: cover;
+}
+
+.neon-box {
+  background-color: #1e1e1e;
+  border: 2px solid #00d1ff;
+  box-shadow: 0 0 15px #00d1ff, 0 0 25px #ff6ec7;
+  color: #fff;
+}
+
+.neon-btn-pink {
+  background-color: #ff6ec7;
+  border: 2px solid #ff6ec7;
+  color: #fff;
+  text-shadow: 0 0 5px #ff6ec7;
+  border-radius: 5px;
+  transition: all 0.3s ease;
+}
+
+.neon-btn-pink:hover {
+  background-color: #d15ca3;
+  box-shadow: 0 0 10px #ff6ec7;
+}
+
+/* Neon Buttons */
+.neon-btn-green {
+  background-color: #00d1ff;
+  border: 2px solid #00d1ff;
+  color: #fff;
+  text-shadow: 0 0 5px #00d1ff;
+  border-radius: 5px;
+  transition: all 0.3s ease;
+}
+
+.neon-btn-green:hover {
+  background-color: #00a1cc;
+  box-shadow: 0 0 10px #00d1ff;
+}
+
+
+.neon-blue-text {
+  color: #00d1ff;
+  text-shadow: 0 0 8px #00d1ff;
+  font-weight: bold;
+}
+
+/* Navigation Section */
+.navigation-vertical {
+  display: grid;
+  grid-template-columns: repeat(1fr, 3);
+  gap: 20px;
+  padding: 15px;
 }

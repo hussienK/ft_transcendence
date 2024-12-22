@@ -101,8 +101,8 @@ class Command(BaseCommand):
             )
 
             # Generate random match data
-            player1_score = random.randint(0, 10)
-            player2_score = random.randint(0, 10)
+            player1_score = random.randint(0, 5)
+            player2_score = random.randint(0, 5)
             total_ball_hits = random.randint(10, 100)
             avg_ball_speed = round(random.uniform(5.0, 20.0), 2)  # Average ball speed
             max_ball_speed = round(random.uniform(avg_ball_speed, avg_ball_speed + 10.0), 2)

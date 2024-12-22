@@ -8,6 +8,20 @@ function attachFriendsEventListeners() {
   
 	const friendsTabs = [onlineLink, allLink, pendingLink, suggestionsLink, addFriendLink];
   
+	// Function to highlight the active link and apply neon-blue-text
+	function setActiveLink(activeLink) {
+		friendsTabs.forEach((link) => {
+		const parent = link.closest("li"); // Get the parent `li` of the link
+		if (link === activeLink && link !== addFriendLink) {
+			parent.classList.add("bg-active-tab"); // Add active class to the current tab
+			link.classList.add("neon-blue-text"); // Add neon-blue-text class for active links
+		} else {
+			parent.classList.remove("bg-active-tab"); // Remove active class from other tabs
+			link.classList.remove("neon-blue-text"); // Remove neon-blue-text class
+		}
+		});
+	}
+
 	// Function to load the correct subsection based on the query parameter
 	async function loadSection(subsection) {
 	  try {
@@ -43,37 +57,42 @@ function attachFriendsEventListeners() {
 	  friendsTabs.forEach((link) => {
 		const parent = link.closest("li"); // Get the parent `li` of the link
 		if (link === activeLink && link !== addFriend-link) {
-		  parent.classList.add("bg-active-tab"); // Add active class to the current tab
+		  parent.classList.add("neon-blue-text"); // Add active class to the current tab
 		} else {
-		  parent.classList.remove("bg-active-tab"); // Remove active class from other tabs
+		  parent.classList.remove("neon-blue-text"); // Remove active class from other tabs
 		}
 	  });
 	}
   
 	// Add event listeners for the navigation links
 	onlineLink.addEventListener("click", (e) => {
-	  e.preventDefault();
-	  window.location.hash = "friends?subsection=onlineFriends";
+		e.preventDefault();
+		window.location.hash = "friends?subsection=onlineFriends";
+		setActiveLink(onlineLink);
 	});
-  
+	
 	allLink.addEventListener("click", (e) => {
-	  e.preventDefault();
-	  window.location.hash = "friends?subsection=allFriends";
+		e.preventDefault();
+		window.location.hash = "friends?subsection=allFriends";
+		setActiveLink(allLink);
 	});
-  
+	
 	pendingLink.addEventListener("click", (e) => {
-	  e.preventDefault();
-	  window.location.hash = "friends?subsection=pendingFriends";
+		e.preventDefault();
+		window.location.hash = "friends?subsection=pendingFriends";
+		setActiveLink(pendingLink);
 	});
-  
+	
 	suggestionsLink.addEventListener("click", (e) => {
-	  e.preventDefault();
-	  window.location.hash = "friends?subsection=suggestedFriends";
+		e.preventDefault();
+		window.location.hash = "friends?subsection=suggestedFriends";
+		setActiveLink(suggestionsLink);
 	});
-  
+	
 	addFriendLink.addEventListener("click", (e) => {
-	  e.preventDefault();
-	  window.location.hash = "friends?subsection=addFriend";
+		e.preventDefault();
+		window.location.hash = "friends?subsection=addFriend";
+		setActiveLink(null); // Add friend link does not need neon blue styling
 	});
   
 	// Function to handle hash change and load the correct subsection

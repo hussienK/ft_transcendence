@@ -1,58 +1,65 @@
-<div id="friends-page" class="bg-dark px-0" style="
-height: 100%;
-display: flex;
-flex-direction: column;
-">
-  <nav class="navbar navbar-expand-lg px-0" style="background-color: #36393f">
-    <div
-      class="container-fluid d-flex align-items-center justify-content-start"
-    >
-      <span class="navbar-brand text-light me-2">Friends</span>
-      <div class="mx-2" style="width: 2px; height: 30px; background-color: grey;"></div>
-      <ul class="navbar-nav d-flex flex-row gap-2 align-items-center">
-        <li class="nav-item bg-active-tab">
-          <a
-            class="nav-link active  rounded-3 text-light px-3"
-            id="onlineFriends-link"
-            href="#"
-          >
-            Online
-          </a>
-        </li>
-        <li class="nav-item ">
-          <a
-            class="nav-link rounded-3 text-light px-3 "
-            id="allFriends-link"
-            href="#"
-          >
-            All
-          </a>
-        </li>
-        <li class="nav-item ">
-          <a
-            class="nav-link rounded-3 text-light px-3"
-            id="pendingFriends-link"
-            href="#"
-          >
-            Pending
-          </a>
-        </li>
-        <li class="nav-item ">
-          <a
-            class="nav-link rounded-3 text-light px-3"
-            id="suggestedFriends-link"
-            href="#"
-          >
-            Suggestions
-          </a>
-        </li>
-        <li class="nav-item d-flex align-items-center">
-          <button id="addFriend-link" style="border-radius: 5px; background-color: green; color: white; border: none; padding: 5px 20px;">Add Friend</button>
-        </li>
-      </ul>
-      
-    </div>
-  </nav>
-  <div id="friends-page-main" style="background-color: #36393f; height: 100%;">
+<div id="friends-page" class="bg-dark d-flex flex-row" style="height: 100%; background-color: #121212; min-height: 100vh;">
+  <!-- Navigation -->
+
+  <div id="chat" style="width: 20%; height: 100%;">
+    <h1>Chat</h1>
   </div>
+
+  <div id="main-friends" class="bg-dark d-flex flex-column" style="height: 100%; background-color: #121212; width: 60%;">
+      <nav class="navbar navbar-expand-lg px-0 neon-box" style="background-color: #1e1e1e;">
+        <div class="container-fluid d-flex align-items-center justify-content-start" style="padding-left: 15px;">
+            <span class="navbar-brand text-neon-blue me-2">Friends</span>
+            <div class="mx-2" style="width: 2px; height: 30px; background-color: grey;"></div>
+            <ul class="navbar-nav d-flex flex-row gap-2 align-items-center">
+                <li class="nav-item">
+                    <a class="nav-link rounded-3 text-light px-3 text-neon-blue" id="onlineFriends-link" href="#">
+                        Online
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link rounded-3 text-light px-3 text-neon-blue" id="allFriends-link" href="#">
+                        All
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link rounded-3 text-light px-3 text-neon-blue" id="pendingFriends-link" href="#">
+                        Pending
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link rounded-3 text-light px-3 text-neon-blue" id="suggestedFriends-link" href="#">
+                        Suggestions
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <button id="addFriend-link" class="btn neon-btn-green px-3 py-2">
+                        Add Friend
+                    </button>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Section -->
+    <div id="friends-page-main" class="p-4 neon-box" style="flex-grow: 1; background-color: #1e1e1e;">
+        <!-- Content dynamically loaded -->
+    </div>
+  </div>
+
+  <div class="d-flex flex-column justify-content-center align-items-center" id="links-tab" style="width: 20%; height: 100%; min-height: 100vh;">    <div class="navigation-vertical">
+        <div id="lobby-link" class="nav-card  lobby">
+            <h3>Lobby</h3>
+            <p>Explore active games and events.</p>
+        </div>
+        <div id="profile-link" class="nav-card  profile">
+            <h3>Profile</h3>
+            <p>Manage your stats and settings.</p>
+        </div>
+        <div id="friends-link" class="nav-card  friends">
+            <h3>Friends</h3>
+            <p>Connect and chat with friends.</p>
+        </div>
+    </div>
+  </div>
+
 </div>

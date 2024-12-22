@@ -1,43 +1,49 @@
-<div id="lobby-page" class=" p-4" style="height: 100%; display: flex; flex-direction: column; background-color: #36393f">
-	
-	<div class="col-md-6 col-lg-8 px-0 d-flex justify-content-center align-items-start" style="width: 80%; margin: 0 auto;">
-		<img src="./assets/home_bg.webp" 
-		class="img-fluid rounded" 
-		style="width: 100%; height: 350px; margin-top: 20px; border-radius: 10px; box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.8); object-fit: cover; object-position: top">
-	</div>
-
-<div class="d-flex justify-content-between align-items-center mt-4" style="width: 80%; margin: 0 auto;">
-    <div id="stats-carousel" class="d-flex justify-content-start align-items-center ">
-        <div id="stats-container" class="carousel-content glowing-container">
+<div id="lobby-page">
+    <!-- Large Background Section -->
+    <div class="background-section">
+        <div class="background-image"></div>
+        <div class="feed-section">
+            <div class="info-section ">
+                <h1>LOBBY <span class="highlight">FT_TRANSCENDANCE</span></h1>
+                <p>Welcome to the future of gaming. Play, compete, and connect with players worldwide!</p>
+            </div>
+            <div id="live-feeds" class=""></div>
         </div>
     </div>
-    <div class="d-flex justify-content-end align-items-center flex-column" style="width: 50%;">
-		<div id="rank-carousel" class="d-flex justify-content-end align-items-center" 
-		style="width: 80%; height: 100%; max-width: 500px;">
-			<div id="rank-container" class=" d-flex flex-row align-items-center glowing-container" style="width: 100%; z-index: 1">
-			</div>
-		</div>
-		<div class="d-flex align-items-center justify-content-center flex-row" style="width: 80%">
-			<button id="tournamentButton" class="fs-5 btn btn-primary d-flex align-items-center justify-content-center flex-column"
-				style="margin: 5px; padding: 10px 20px; font-size: 1rem; border-radius: 8px; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); background-color: #FF6EC7; width: 50%; height: 100%; min-height: 250px">
-				<img src="assets/trophy.png" alt="Cup" style="width: 45px; height: 45px; margin-right: 10px;">
-				Join Tournament
-			</button>
 
-			<div class="d-flex flex-column" style="width: 50%;">
-				<button id="connectButton" class="btn fs-5" 
-				style="background-color: #00E7FF;margin: 5px; padding: 10px 20px; font-size: 1rem; border-radius: 8px; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); width: 100%; height: 100%; min-height: 125px;">
-					Connect to Game
-				</button>
-				<button id="localButton" class="btn fs-5" 
-				style="background-color: #00E7FF; margin: 5px; padding: 10px 20px; font-size: 1rem; border-radius: 8px; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); width: 100%; height: 100%; min-height: 125px;">
-					Play Locally
-				</button>
-			</div>
-		</div>
-
+    <!-- Gameplay Modes -->
+    <div class="gameplay-modes">
+        <div class="card  play-local">
+            <h2>Play Local</h2>
+            <p>Challenge friends on the same machine!</p>
+            <button id="localButton">Start Local Game</button>
+        </div>
+        <div class="card  play-online">
+            <h2>Play Online</h2>
+            <p>Connect with players worldwide!</p>
+            <button id="connectButton">Find Match</button>
+        </div>
+        <div class="card  tournament">
+            <h2>Tournament</h2>
+            <p>Compete in ranked tournaments!</p>
+            <button>Join Tournament</button>
+        </div>
     </div>
-</div>
 
-	
+    <!-- Navigation Section -->
+    <div class="navigation">
+        <div id="lobby-link" class="nav-card  lobby">
+            <h3>Lobby</h3>
+            <p>Explore active games and events.</p>
+        </div>
+        <div id="profile-link" class="nav-card  profile">
+            <h3>Profile</h3>
+            <p>Manage your stats and settings.</p>
+        </div>
+        <div id="friends-link" class="nav-card  friends">
+            <h3>Friends</h3>
+            <p>Connect and chat with friends.</p>
+        </div>
+    </div>
+
 </div>

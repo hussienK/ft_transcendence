@@ -1,104 +1,157 @@
-<div id="profile-page" class="p-4" style="
-height: 100%;
-display: flex;
-flex-direction: column;
-background-color: #36393f;
-padding: 20px;
-">
-   
-        <div class="row g-4" style="height: 100%; ">
-            <div class="col-xl-7 col-lg-12">
-                <div id="profile-box" class="bg-light p-4 rounded-3 d-flex flex-column gap-3" style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); max-height: 550px;">
-                    <h1>Profile</h1>
-                    <!-- Profile Picture and Online Status -->
-                    <div class="d-flex align-items-center gap-3">
-                        <div class="profile-picture">
-                            <img id="profile-avatar" src="./assets/default_avatar.png" alt="Profile Picture" class="rounded-circle" style="width: 80px; height: 80px; object-fit: cover; border: 2px solid #ccc;">
-                        </div>
-                        <div class="d-flex align-items-center gap-2">
-                            <div 
-                                id="profile-status-indicator" 
-                                class="rounded-circle" 
-                                style="width: 16px; height: 16px; background-color: gray; position: relative;" 
-                                data-bs-toggle="tooltip" 
-                                title="Offline">
-                            </div>
-                        </div>
+<div id="profile-page">
+    <!-- Large Background Section -->
+    <div class="background-section">
+        <div class="background-image"></div>
+        <div class="feed-section">
+            <div class="info-section">
+                <h1>PROFILE <span class="highlight">FT_TRANSCENDANCE</span></h1>
+                <p>Manage your profile, view your stats, and customize your settings.</p>
+                <div class="card profile-summary">
+                    <div class="avatar-container">
+                        <img id="profile-avatar" src="../assets/avatar_placeholder.webp" alt="Avatar" class="avatar">
                     </div>
-                    
-                    <!-- User Information -->
-                    <div class="d-flex flex-column gap-2">
-                        <div class="d-flex text-20">
-                            <strong style="min-width: 160px;">Display Name</strong>
-                            <span id="profile-display_name"></span>
-                        </div>
-                        <div class="d-flex text-20">
-                            <strong style="min-width: 160px;">Username</strong>
-                            <span id="profile-username"></span>
-                        </div>
-                        <div class="d-flex text-20">
-                            <strong style="min-width: 160px;">Email</strong>
-                            <span id="profile-email"></span>
-                        </div>
-                        <div class="d-flex text-20">
-                            <strong style="min-width: 160px;">Bio</strong>
-                            <span id="profile-bio" style="max-width: 80%;"></span>
-                        </div>
-                    </div>
-                    
-                    <!-- Edit Button -->
-                    <div class="w-100 d-flex flex-row justify-content-end gap-2">
-                        <button id="edit-profile-btn" class="btn btn-primary">Edit Profile</button>
-                        <button id="logout-btn" class="btn btn-primary" style="background-color: #FF6EC7; border-color: #FF6EC7;">Logout</button>
-                        <button id="2fa-btn" class="btn btn-primary" style="background-color: green; border-color: green;">Enable 2FA</button>
-                        <button id="delete-btn" class="btn btn-primary" style="background-color: red; border-color: red;">Delete Account</button>
-                    </div>
+                    <h2>Overview</h2>
+                    <p><strong>Username:</strong> <span id="profile-username">Player123</span></p>
+                    <p><strong>Display Name:</strong> <span id="profile-display_name">AwesomePlayer</span></p>
+                    <p><strong>Email:</strong> <span id="profile-email">player@example.com</span></p>
+                    <p><strong>Bio:</strong> "<span id="profile-bio">Loving the game, leveling up every day!</span>"</p>
+                    <p>
+                        <strong>Status:</strong> 
+                        <span id="profile-status-indicator" class="status-circle online"></span>
+                    </p>
                 </div>
-                
-            </div>
-            
-            <div class="col-xl-5 col-lg-12" style="max-height: 550px;">
-                <div id="history-box" class="bg-light p-4 rounded-3 d-flex flex-column gap-3" style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); max-height: 100%; overflow-y: auto;">
-                    <h1>Match History</h1>
-                    <div id="matches-container" class="d-flex flex-column gap-2">
-                        <!-- Match items go here -->
-                    </div>
-                </div>
-            </div>
-            
-            <div id="visualization-container" class="d-flex flex-wrap gap-4 mt-4">
-                <div id="bar-chart" class="chart" style="width: 48%; height: 300px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); border-radius: 10%;"></div>
-                <div id="gauge-chart" class="chart" style="width: 48%; height: 300px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); border-radius: 10%;"></div>
-                <div id="pie-chart" class="chart" style="width: 48%; height: 300px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); border-radius: 10%;"></div>
-                <div id="streak-chart" class="chart" style="width: 48%; height: 300px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); border-radius: 10%;"></div>
-                <div id="reaction-time-gauge" class="chart" style="width: 48%; height: 300px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); border-radius: 10%;"></div>
-                <div id="rally-bar-chart" class="chart" style="width: 48%; height: 300px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); border-radius: 10%;"></div>
-                <div id="rally-bubble-chart" class="chart" style="width: 48%; height: 300px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); border-radius: 10%;"></div>
-                <div id="victory-box-plot" class="chart" style="width: 48%; height: 300px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); border-radius: 10%;"></div>
             </div>
         </div>
-    
+    </div>
 
-        <!-- Profile Edit Modal -->
-        <div id="edit-profile-modal" class="modal-overlay hidden 2fa-popup">
-            <div class="modal-content" style="border-radius: 10px; padding: 20px;">
+    <!-- Profile Overview Section -->
+    <div class="gameplay-modes">
+
+        <div class="card win-loss-ratio">
+            <h2>Stats</h2>
+            <p>View stats in Interactive Dashboards</p>
+            <button id="show-visualization-button">View Stats</button>
+        </div>
+        <div class="card match-history">
+            <h2>Match History</h2>
+            <p>View a detailed log of your previous matches.</p>
+            <button id="show-history-button">View History</button>
+        </div>
+        <div class="card account-settings">
+            <h2>Account Settings</h2>
+            <p>Manage your login details, enable 2FA, and secure your account.</p>
+            <button id="show-action-popup-btn">Account Settings</button>
+        </div>
+    </div>
+
+    <!-- Navigation Section -->
+    <div class="navigation">
+        <div id="lobby-link" class="nav-card lobby">
+            <h3>Lobby</h3>
+            <p>Explore active games and events.</p>
+        </div>
+        <div id="profile-link" class="nav-card profile">
+            <h3>Profile</h3>
+            <p>Manage your stats and settings.</p>
+        </div>
+        <div id="friends-link" class="nav-card friends">
+            <h3>Friends</h3>
+            <p>Connect and chat with friends.</p>
+        </div>
+    </div>
+
+    <!-- Match Details Popup Modal -->
+    <div id="match-details-modal" class="modal-overlay hidden">
+        <div class="modal-content " style="border-radius: 10px; padding: 20px; width: 500px; position: relative;">
             <span id="close-modal-btn" class="close-btn">&times;</span>
-            <h2 class="text-center">Edit Profile</h2>
-            <form id="edit-profile-form">
-                <div class="d-flex row">
-                <label for="display-name">Display Name</label>
-                <input type="text" id="display-name" name="display_name" required style="max-width: 300px; margin-left: 20px">
-                </div>
-                <div class="d-flex row">
-                <label for="bio">Bio</label>
-                <textarea id="bio" name="bio" rows="3" style="max-width: 300px; margin-left: 20px"></textarea>
-                </div>
-                <div class="d-flex row">
-                    <label for="avatar">Avatar</label>
-                    <input type="file" id="avatar" name="avatar" accept="image/*" style="margin-left: 20px">
-                  </div>
-                <button type="submit" class="btn btn-primary" style="margin-top: 10px; ">Save Changes</button>
-            </form>
+            <h2 class="text-center">Match Details</h2>
+            <div id="match-details-container" class="d-flex flex-column gap-3 mt-3">
+                <!-- Match cards will be dynamically injected here -->
+            </div>
+            <div class="d-flex justify-content-center mt-3">
             </div>
         </div>
+    </div>
+
+	<!-- Visualization Popup Modal -->
+	<div id="visualization-popup" class="modal-overlay hidden">
+		<div class="modal-content " style="border-radius: 10px; padding: 20px; width: 90%; max-width: 1300px; position: relative;">
+			<span id="close-visualization-modal" class="close-btn">&times;</span>
+			<h2 class="text-center">Detailed Visualizations</h2>
+			<div id="visualization-charts" class="d-flex flex-wrap gap-4 mt-3">
+				<div id="bar-chart" class="chart-container"></div>
+				<div id="gauge-chart" class="chart-container"></div>
+				<div id="pie-chart" class="chart-container"></div>
+				<div id="streak-chart" class="chart-container"></div>
+				<div id="reaction-time-gauge" class="chart-container"></div>
+				<div id="rally-bar-chart" class="chart-container"></div>
+				<div id="rally-bubble-chart" class="chart-container"></div>
+				<div id="victory-box-plot" class="chart-container"></div>
+			</div>
+		</div>
+	</div>
+
+    <!-- Action Popup Modal -->
+    <div id="action-popup" class="modal-overlay hidden">
+        <div class="modal-content " style="border-radius: 10px; padding: 20px; width: 400px; position: relative;">
+            <span id="close-action-modal" class="close-btn">&times;</span>
+            <h2 class="text-center" style="color: #00d1ff; margin-bottom: 20px;">Account Actions</h2>
+            <div class="d-flex flex-column gap-3">
+                <button id="show-edit-profile-btn" class="btn neon-blue">Edit Profile</button>
+                <button id="logout-btn" class="btn neon-pink">Logout</button>
+                <button id="delete-account-btn" class="btn neon-red">Delete Account</button>
+                <button id="enable-2fa-btn" class="btn neon-green">Enable 2FA</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Profile Popup Modal -->
+    <div id="edit-profile-modal" class="modal-overlay hidden">
+        <div class="modal-content" style="border-radius: 10px; padding: 20px; width: 400px; position: relative;">
+            <span id="close-edit-profile-modal" class="close-btn">&times;</span>
+            <h2 class="text-center" style="color: #00d1ff; margin-bottom: 20px;">Edit Profile</h2>
+            <form id="edit-profile-form" class="d-flex flex-column gap-3">
+                <div class="form-group">
+                    <label for="display-name" style="color: white;">Display Name</label>
+                    <input type="text" id="display-name" name="display_name" required class="form-control neon-input">
+                </div>
+                <div class="form-group">
+                    <label for="bio" style="color: white;">Bio</label>
+                    <textarea id="bio" name="bio" rows="3" class="form-control neon-input"></textarea>
+                </div>
+                <div class="form-group d-flex flex-column">
+                    <label for="avatar" style="color: white;">Avatar</label>
+                    <input type="file" id="avatar" name="avatar" accept="image/*" class="neon-input">
+                </div>
+                <button type="submit" class="btn neon-green">Save Changes</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="match-details-popup" class="modal-overlay hidden">
+        <div class="modal-content" style="border-radius: 10px; padding: 20px; width: 90%; max-width: 1300px; position: relative;">
+            <span id="close-match-details-modal" class="close-btn">&times;</span>
+            <h2 class="text-center" style="color: #00d1ff; margin-bottom: 20px;">Match Details</h2>
+            <div class="row g-4" style="max-height: 60vh; overflow-y: auto;">
+                <div class="col-12">
+                    <div id="match-box" 
+                        class="p-4 rounded-3 d-flex flex-column gap-3" 
+                        style="
+                            border-radius: 10px; 
+                            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.8); 
+                            overflow-y: auto; 
+                            padding: 20px; ">
+                    </div>
+                </div>
+                <div id="visualization-container" class="d-flex flex-wrap gap-4 mt-4">
+                    <div id="scoreBarChart" class="chart-container" ></div>
+                    <div id="ballHitsPieChart" class="chart-container" ></div>
+                    <div id="performanceRadarChart" class="chart-container" ></div>
+                    <div id="matchTimelineChart" class="chart-container" ></div>
+                    <div id="ballSpeedLineChart" class="chart-container" ></div>
+                    <div id="rallyBubbleChart" class="chart-container" ></div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>

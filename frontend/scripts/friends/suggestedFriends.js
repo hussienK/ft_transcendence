@@ -4,24 +4,26 @@ function populateSuggestedFriendsUI(friends) {
 
     friends.forEach(friend => {
         const friendElement = document.createElement('div');
-        friendElement.classList.add('friend-suggestion');
+        friendElement.classList.add('friend-suggestion', 'neon-box', 'd-flex', 'align-items-center', 'p-3');
+        friendElement.style.marginBottom = '10px';
         friendElement.innerHTML = `
             <div class="friend-avatar">
-                <img src="${friend.avatar}" alt="${"a"}'s avatar">
+                <img src="${friend.avatar}" alt="${friend.display_name}'s avatar" 
+                     class="rounded-circle neon-avatar">
             </div>
-            <div class="friend-info">
-                <p class="friend-displayname">${friend.display_name}</p>
-                <p class="friend-username">${friend.username}</p>
+            <div class="friend-info ms-3">
+                <p class="friend-displayname text-neon-blue mb-0">${friend.display_name}</p>
+                <p class="friend-username text-light">${friend.username}</p>
             </div>
-			<div style="margin-left: auto;">
-			 <button class="btn btn-danger decline-friend-btn" data-id="${friend.id}">Decline</button>
-             <button class="btn btn-success add-friend-btn" data-id="${friend.id}">Accept</button>
-			<div>
+            <div class="ms-auto d-flex gap-2">
+                <button class="btn neon-btn-pink decline-friend-btn" data-id="${friend.id}">Decline</button>
+                <button class="btn neon-btn-green add-friend-btn" data-id="${friend.id}">Accept</button>
+            </div>
         `;
         container.appendChild(friendElement);
     });
 
-	const acceptButtons = document.querySelectorAll('.add-friend-btn');
+    const acceptButtons = document.querySelectorAll('.add-friend-btn');
     const declineButtons = document.querySelectorAll('.decline-friend-btn');
 
     acceptButtons.forEach(button => {
@@ -35,14 +37,13 @@ function populateSuggestedFriendsUI(friends) {
     declineButtons.forEach(button => {
         button.addEventListener('click', async (e) => {
             const friendRequestId = e.target.getAttribute('data-id');
-            await delineFriendRequest(friendRequestId);
+            await declineFriendRequest(friendRequestId);
             e.target.closest('.friend-suggestion').remove();
         });
     });
 }
 
-async function attachSuggestedFriendsEventListeners(){
-	
-	const friends = await fetchFriendSuggestions();
-	populateSuggestedFriendsUI(friends);
+async function attachSuggestedFriendsEventListeners() {
+    const friends = await fetchFriendSuggestions();
+    populateSuggestedFriendsUI(friends);
 }

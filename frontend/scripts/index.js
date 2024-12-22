@@ -192,13 +192,12 @@ async function loadPage(page, queryParams = {}) {
         loadPage("lobby");
       } else if (page === "lobby") {
         attachLobbyEventListeners();
-        loadLinks("lobby");
+        loadLinks();
         renderFeed();
         establishWebSocketConnection();
       } else if (page === "friends") {
         attachFriendsEventListeners();
-        loadLinks("friends");
-        renderFeed();
+        loadLinks();
         establishWebSocketConnection();
       } else if (page === "profile") {
         if (queryParams.username) {
@@ -206,23 +205,10 @@ async function loadPage(page, queryParams = {}) {
         } else {
           attachProfileEventListeners();
         }
-        loadLinks("profile");
+        loadLinks();
         establishWebSocketConnection();
-        renderFeed();
       }
-      else if (page === "match"){
-        if (queryParams.matchId)
-        {
-          attachMatchEventListeners(queryParams.matchId);
-        }
-        else
-        {
-          const mainContent = document.getElementById("main-content");
-          if (mainContent) {
-            mainContent.innerHTML = "<p>Page not found.</p>";
-          }
-        }
-      } else {
+      else {
         console.warn(`No specific logic implemented for page: ${page}`);
       }
     }
