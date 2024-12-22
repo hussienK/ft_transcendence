@@ -34,15 +34,24 @@ function attachLocalGameEventListeners(roomName) {
 
     socket.onmessage = function (event) {
         let data = JSON.parse(event.data);
+    
         if (data.phase) currentPhase = data.phase;
-
+        else currentPhase = "playing"
+    
+        if (currentPhase === 'countdown' && data.countdown) {
+            renderCountdown(data.countdown);
+        }
+        else
+    
         previousGameState = latestGameState;
         latestGameState = data;
         lastUpdateTime = data.timestamp;
     };
+    
 
     socket.onclose = function (event) {
         console.log("WebSocket connection closed.");
+        currentPhase = 'ended';
     };
 
     socket.onerror = function (error) {
@@ -104,13 +113,39 @@ function attachLocalGameEventListeners(roomName) {
         socket.send(JSON.stringify(message));
     }
 
+    function renderCountdown(countdown) {
+        const canvas = document.getElementById("canvas");
+        const ctx = canvas.getContext("2d");
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+        ctx.font = '100px Arial';
+        ctx.fillStyle = 'yellow';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+    
+        // Display the countdown number at the center of the canvas
+        ctx.fillText(countdown, canvas.width / 2, canvas.height / 2);
+    }
+    
     function render() {
+        if (currentPhase === 'ended') {
+            return;
+        }
+        if (currentPhase === 'countdown') {
+            // Countdown is handled separately; skip rendering the game state
+            requestAnimationFrame(render);
+            return;
+        }
+    
         if (!latestGameState) {
             requestAnimationFrame(render);
             return;
         }
-
+    
+        // Clear and render game state as before
         ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
         if (latestGameState.match_duration) {
             // During gameplay or at game end, display the match duration
             ctx.font = '20px Arial';
@@ -127,13 +162,14 @@ function attachLocalGameEventListeners(roomName) {
             ctx.fillStyle = 'green';
             if (latestGameState.winner === 'player1')
             {
-                ctx.fillText("Player 1 Won!", canvas.width / 2 - 150, canvas.height / 2);
+                ctx.fillText("Player 1 Won!", canvas.width / 2, canvas.height / 2);
             }
             else
             {
-                ctx.fillText("Player 2 Won!", canvas.width / 2 - 150, canvas.height / 2);
+                ctx.fillText("Player 2 Won!", canvas.width / 2, canvas.height / 2);
             }
 
+            currentPhase = 'ended';
             showBackToLobbyButton();
         } else {
             hideBackToLobbyButton();
@@ -149,27 +185,28 @@ function attachLocalGameEventListeners(roomName) {
                 }
                 gs = interpolateGameState(previousGameState, gs, t);
             }
-
+    
             // Draw the ball
             const ballPosition = gs.ball_position;
             ctx.fillStyle = 'white';
             ctx.beginPath();
             ctx.arc(ballPosition[0], ballPosition[1], 10, 0, Math.PI * 2);
             ctx.fill();
-
+    
             // Draw paddles
             ctx.fillStyle = 'white';
             ctx.fillRect(10, gs.paddle1_position, 10, 100);
             ctx.fillRect(canvas.width - 20, gs.paddle2_position, 10, 100);
-
+    
             // Draw scores
             ctx.font = '30px Arial';
             ctx.fillText(gs.score1, canvas.width / 2 - 50, 50);
             ctx.fillText(gs.score2, canvas.width / 2 + 30, 50);
         }
-
+    
         requestAnimationFrame(render);
     }
+    
 
     function interpolateGameState(prev, curr, t) {
         function lerp(a, b, t) { return a + (b - a) * t; }

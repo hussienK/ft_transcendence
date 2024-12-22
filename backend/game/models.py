@@ -66,3 +66,43 @@ class MatchHistory(models.Model):
 
     def __str__(self):
         return f"MatchHistory for GameSession {self.game_session.session_id} ({self.player1} vs {self.player2})"
+
+class Tournament(models.Model):
+    name = models.CharField(max_length=100, default="Pong Tournament")
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_active = models.BooleanField(default=True)
+    is_started = models.BooleanField(default=False)
+    winner = models.CharField(max_length=100, null=True, blank=True)  # Alias of the winner
+
+    def __str__(self):
+        return f"Tournament {self.name}"
+
+
+class TournamentParticipant(models.Model):
+    tournament = models.ForeignKey(
+        Tournament, related_name="participants", on_delete=models.CASCADE
+    )
+    alias = models.CharField(max_length=50, unique=True)  # Alias must be unique
+    user = models.ForeignKey(
+        User, null=True, blank=True, on_delete=models.SET_NULL
+    )  # Optional link to a user
+
+    def __str__(self):
+        return f"{self.alias} in {self.tournament.name}"
+
+
+class TournamentMatch(models.Model):
+    tournament = models.ForeignKey(
+        Tournament, related_name="matches", on_delete=models.CASCADE
+    )
+    game_session = models.OneToOneField(
+        "GameSession", on_delete=models.CASCADE, related_name="tournament_match"
+    )
+    round_number = models.PositiveIntegerField()  # Round in the tournament (e.g., 1 for semi-finals)
+    match_number = models.PositiveIntegerField()  # Match order within the round
+    player1_alias = models.CharField(max_length=50)
+    player2_alias = models.CharField(max_length=50)
+    winner_alias = models.CharField(max_length=50, null=True, blank=True)  # Alias of the match winner
+
+    def __str__(self):
+        return f"Match {self.match_number} (Round {self.round_number}) of {self.tournament.name}"

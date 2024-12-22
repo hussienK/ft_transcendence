@@ -60,10 +60,22 @@ class PongGameConsumer(AsyncWebsocketConsumer):
             self.game_state.player1 = "player1"
             self.game_state.player2 = "player2"
             self.game_state.is_local = True
-            self.game_state.start_game()
+            asyncio.create_task(self.start_countdown_local())
+
 
         await self.accept()
 
+    async def start_countdown_local(self):
+        self.countdown_in_progress = True
+        try:
+            for i in range(3, 0, -1):
+                if not self.countdown_in_progress:  # Check if countdown was interrupted
+                    break
+                await self.broadcast_special_state(phase="countdown", countdown=i)
+                await asyncio.sleep(1)
+        finally:
+            self.countdown_in_progress = False
+            self.game_state.start_game()
 
     async def start_countdown(self):
         self.countdown_in_progress = True

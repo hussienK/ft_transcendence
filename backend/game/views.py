@@ -10,8 +10,11 @@ from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 import asyncio
 import logging
+from django.db import transaction
 from channels.generic.websocket import AsyncWebsocketConsumer
 import json
+from .models import Tournament, TournamentParticipant, GameSession, TournamentMatch
+import random
 
 # In-memory matchmaking queue
 matchmaking_queue = []
@@ -150,3 +153,220 @@ class LeaveQueueView(APIView):
             status=status.HTTP_200_OK
         )
 
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+import uuid
+import random
+import threading
+
+# A global dictionary to hold multiple tournaments in memory.
+tournaments = {}
+
+# A lock to protect reads/writes to the 'tournaments' dictionary
+tournament_lock = threading.RLock()
+
+class CreateTournamentView(APIView):
+    """
+    POST /api/tournament/create/
+    Creates a new in-memory tournament and returns its ID.
+    """
+    def post(self, request):
+        with tournament_lock:
+            tournament_id = str(uuid.uuid4())
+            tournaments[tournament_id] = {
+                "participants": [],
+                "matches": [],            # List of matches: { player1, player2, winner }
+                "is_started": False,
+                "lock": threading.RLock() # Each tournament can also have its own lock
+            }
+        return Response({"status": "tournament_created", "tournament_id": tournament_id}, status=status.HTTP_201_CREATED)
+
+class RegisterAliasView(APIView):
+    """
+    POST /api/tournament/<tournament_id>/register/
+    Body: { "alias": "PlayerAlias" }
+    Registers an alias (i.e., player's name) in the tournament.
+    """
+    def post(self, request, tournament_id):
+        alias = request.data.get("alias")
+        if not alias:
+            return Response({"error": "Alias is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        with tournament_lock:
+            tournament = tournaments.get(tournament_id)
+            if not tournament:
+                return Response({"error": "Tournament not found."}, status=status.HTTP_404_NOT_FOUND)
+
+            with tournament["lock"]:
+                if tournament["is_started"]:
+                    return Response({"error": "Tournament already started."}, status=status.HTTP_400_BAD_REQUEST)
+
+                if alias in tournament["participants"]:
+                    return Response({"error": "Alias already taken."}, status=status.HTTP_400_BAD_REQUEST)
+
+                tournament["participants"].append(alias)
+
+        return Response({"status": "registered", "alias": alias})
+
+class StartTournamentView(APIView):
+    """
+    POST /api/tournament/<tournament_id>/start/
+    Generates the full match tree, including placeholders for future rounds.
+    """
+    def post(self, request, tournament_id):
+        with tournament_lock:
+            tournament = tournaments.get(tournament_id)
+            if not tournament:
+                return Response({"error": "Tournament not found."}, status=status.HTTP_404_NOT_FOUND)
+
+            with tournament["lock"]:
+                if tournament["is_started"]:
+                    return Response({"error": "Tournament already started."}, status=status.HTTP_400_BAD_REQUEST)
+
+                participants = tournament["participants"]
+                if len(participants) < 2:
+                    return Response({"error": "At least 2 participants are required to start."}, status=status.HTTP_400_BAD_REQUEST)
+
+                # Shuffle participants for randomness
+                random.shuffle(participants)
+
+                # Generate the full match tree
+                match_tree = self.generate_match_tree(participants)
+                tournament["matches"] = match_tree
+                tournament["is_started"] = True
+
+                return Response({
+                    "status": "tournament_started",
+                    "matches": match_tree
+                })
+
+    def generate_match_tree(self, participants):
+        """
+        Recursively generates the match tree with placeholders (TBD).
+        Each match is represented as:
+        { "round": X, "match_number": Y, "player1": "Alias1", "player2": "Alias2", "winner": None }
+        """
+        rounds = []
+        current_round = self.create_round(participants, round_number=1)
+        rounds.append(current_round)
+
+        while len(current_round) > 1:
+            winners = ["TBD"] * len(current_round)  # Placeholder for winners
+            next_round = self.create_round(winners, round_number=len(rounds) + 1)
+            rounds.append(next_round)
+            current_round = next_round
+
+        return [match for round_matches in rounds for match in round_matches]
+
+    def create_round(self, players, round_number):
+        """
+        Creates a single round of matches.
+        """
+        matches = []
+        for i in range(0, len(players), 2):
+            player1 = players[i]
+            player2 = players[i + 1] if i + 1 < len(players) else None
+            matches.append({
+                "round": round_number,
+                "match_number": (i // 2) + 1,
+                "player1": player1,
+                "player2": player2,
+                "winner": None
+            })
+        return matches
+
+
+    def generate_match_tree(self, participants):
+        """
+        Recursively generates the match tree with placeholders (TBD).
+        Each match is represented as:
+        { "round": X, "match_number": Y, "player1": "Alias1", "player2": "Alias2", "winner": None }
+        """
+        rounds = []
+        current_round = self.create_round(participants, round_number=1)
+        rounds.append(current_round)
+
+        while len(current_round) > 1:
+            winners = ["TBD"] * len(current_round)  # Placeholder for winners
+            next_round = self.create_round(winners, round_number=len(rounds) + 1)
+            rounds.append(next_round)
+            current_round = next_round
+
+        return [match for round_matches in rounds for match in round_matches]
+
+    def create_round(self, players, round_number):
+        """
+        Creates a single round of matches.
+        """
+        matches = []
+        for i in range(0, len(players), 2):
+            player1 = players[i]
+            player2 = players[i + 1] if i + 1 < len(players) else None
+            matches.append({
+                "round": round_number,
+                "match_number": (i // 2) + 1,
+                "player1": player1,
+                "player2": player2,
+                "winner": None
+            })
+        return matches
+
+
+class SaveMatchResultView(APIView):
+    """
+    POST /api/tournament/<tournament_id>/match/<match_index>/save_result/
+    Body: { "winner_alias": "PlayerAlias" }
+    Saves the result of one match and progresses the tournament.
+    """
+    def post(self, request, tournament_id, match_index):
+        winner_alias = request.data.get("winner_alias")
+        if not winner_alias:
+            return Response({"error": "winner_alias is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        with tournament_lock:
+            tournament = tournaments.get(tournament_id)
+            if not tournament:
+                return Response({"error": "Tournament not found."}, status=status.HTTP_404_NOT_FOUND)
+
+            with tournament["lock"]:
+                try:
+                    match_index = int(match_index)
+                except ValueError:
+                    return Response({"error": "Invalid match index."}, status=status.HTTP_400_BAD_REQUEST)
+
+                if match_index < 0 or match_index >= len(tournament["matches"]):
+                    return Response({"error": "Match index out of range."}, status=status.HTTP_404_NOT_FOUND)
+
+                match = tournament["matches"][match_index]
+                if match["winner"] is not None:
+                    return Response({"error": "Match winner already set."}, status=status.HTTP_400_BAD_REQUEST)
+
+                # Validate the winner is actually one of the players
+                if winner_alias not in (match["player1"], match["player2"]):
+                    return Response({"error": "Winner alias does not match players."}, status=status.HTTP_400_BAD_REQUEST)
+
+                # Save the winner for the current match
+                match["winner"] = winner_alias
+
+                # Propagate the winner to the next round
+                self.propagate_winner(tournament["matches"], match)
+
+                return Response({"status": "result_saved", "matches": tournament["matches"]})
+
+    def propagate_winner(self, matches, completed_match):
+        """
+        Updates the next round match with the winner of the completed match.
+        """
+        print(f"Propagating winner of Match {completed_match['match_number']} (Round {completed_match['round']})")
+        next_round_number = completed_match['round'] + 1
+        next_match_number = (completed_match['match_number'] + 1) // 2
+
+        for match in matches:
+            if match["round"] == next_round_number and match["match_number"] == next_match_number:
+                if match["player1"] == "TBD":
+                    match["player1"] = completed_match["winner"]
+                elif match["player2"] == "TBD":
+                    match["player2"] = completed_match["winner"]
+                break
+        print("Updated matches:", matches)

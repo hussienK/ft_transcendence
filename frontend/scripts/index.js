@@ -208,6 +208,11 @@ async function loadPage(page, queryParams = {}) {
         loadLinks();
         establishWebSocketConnection();
       }
+      else if (page === "tournament") {
+        attachTournamentEventListeners();
+        loadLinks();
+        establishWebSocketConnection();
+      }
       else {
         console.warn(`No specific logic implemented for page: ${page}`);
       }

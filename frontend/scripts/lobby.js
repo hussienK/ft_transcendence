@@ -64,7 +64,6 @@ function attachLobbyEventListeners() {
       alert('Access token is missing in localStorage');
       return;
     }
-
     try {
       await startLocalGame(token);
     } catch (error) {
@@ -73,4 +72,8 @@ function attachLobbyEventListeners() {
     }
   });
 
+  document.getElementById('tournamentButton').addEventListener('click', async () => {
+    console.log('Tournament button clicked');
+      window.location.hash = 'tournament';
+  });
 }
