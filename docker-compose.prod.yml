@@ -1,15 +1,20 @@
-version: "3.8"  # or the latest supported version
+version: "3.8"
 
 volumes:
-  staticfiles:  # Named volume for static files
-  dbdata:       # Named volume for database
-  celerybeatdata: # Named volume for Celery Beat data
+  staticfiles:
+  dbdata:
+  celerybeatdata:
+  backend-code:
+  mediafiles:
 
 services:
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
+      args:
+        UID: 1000
+        GID: 1000
     container_name: django-backend
     command: >
       sh -c "./wait-for-db.sh db &&
@@ -22,10 +27,11 @@ services:
     environment:
       - DJANGO_SETTINGS_MODULE=ft_transcendance.settings
     ports:
-      - "8000:8000"  # Backend port
+      - "8000:8000"
     volumes:
-      - ./backend:/app  # Bind mount backend code for live updates (only for development)
-      - staticfiles:/app/staticfiles  # Named volume for static files
+      - backend-code:/app
+      - staticfiles:/app/staticfiles
+      - mediafiles:/app/media
     depends_on:
       db:
         condition: service_healthy
@@ -39,10 +45,11 @@ services:
       dockerfile: ./nginx/Dockerfile
     container_name: nginx-server
     ports:
-      - "8080:8080"  # HTTP
-      - "8443:8443"  # HTTPS
+      - "8080:8080"
+      - "8443:8443"
     volumes:
-      - staticfiles:/app/staticfiles  # Use the staticfiles volume instead of bind mount
+      - staticfiles:/app/staticfiles
+      - mediafiles:/app/media
     depends_on:
       - backend
     restart: always
@@ -74,6 +81,9 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
+      args:
+        UID: 1000
+        GID: 1000
     container_name: celery-worker
     command: celery -A ft_transcendance worker --loglevel=info
     environment:
@@ -90,6 +100,9 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
+      args:
+        UID: 1000
+        GID: 1000
     container_name: celery-beat
     command: >
       sh -c "./wait-for-db.sh db &&

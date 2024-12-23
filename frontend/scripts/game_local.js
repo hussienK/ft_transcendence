@@ -62,7 +62,7 @@ function attachLocalGameEventListeners(roomName) {
         if (['w', 's', 'ArrowUp', 'ArrowDown'].includes(event.key)) {
             let player = null;
             let direction = null;
-
+    
             if (event.key === 'w') {
                 player = 'player1';
                 direction = 'up';
@@ -76,8 +76,14 @@ function attachLocalGameEventListeners(roomName) {
                 player = 'player2';
                 direction = 'down';
             }
-
+    
             if (player && direction && currentDirections[player] !== direction) {
+                // Clear existing interval for the player
+                if (keyIntervals[player]) {
+                    clearInterval(keyIntervals[player]);
+                }
+    
+                // Update the current direction and start a new interval
                 currentDirections[player] = direction;
                 sendDirection(player, direction);
                 keyIntervals[player] = setInterval(() => sendDirection(player, direction), 50);
@@ -85,25 +91,29 @@ function attachLocalGameEventListeners(roomName) {
             }
         }
     });
+    
 
     document.addEventListener('keyup', function (event) {
         if (['w', 's', 'ArrowUp', 'ArrowDown'].includes(event.key)) {
             let player = null;
-
+    
             if (event.key === 'w' || event.key === 's') {
                 player = 'player1';
             } else if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
                 player = 'player2';
             }
-
+    
             if (player) {
-                currentDirections[player] = null;
+                // Clear the interval and reset the direction
                 clearInterval(keyIntervals[player]);
+                keyIntervals[player] = null;
+                currentDirections[player] = null;
                 sendDirection(player, null);
                 event.preventDefault();
             }
         }
     });
+    
 
     function sendDirection(player, direction) {
         const message = {

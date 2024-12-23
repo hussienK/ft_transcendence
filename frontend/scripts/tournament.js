@@ -107,12 +107,12 @@ function attachTournamentEventListeners() {
 		
 		// Update first player
 		players[0].querySelector('.player-name').textContent = match.player1 || 'TBD';
-		players[0].querySelector('.player-score').textContent = match.score1 || '0';
+		players[0].querySelector('.player-score').textContent = match.score_player1 || '0';
 
 		// Update second player
 		if (match.player2) {
 			players[1].querySelector('.player-name').textContent = match.player2;
-			players[1].querySelector('.player-score').textContent = match.score2 || '0';
+			players[1].querySelector('.player-score').textContent = match.score_player2 || '0';
 		} else {
 			players[1].querySelector('.player-name').textContent = 'BYE';
 			players[1].querySelector('.player-score').textContent = '-';
@@ -176,10 +176,12 @@ function attachTournamentEventListeners() {
 	
 				if (data.winner) {
 					const winnerAlias = data.winner === "player1" ? match.player1 : match.player2;
+					const score1 = data.score1;
+					const score2 = data.score2;
 					matchResult.innerText = `Winner: ${winnerAlias}`;
 					socket.close(); // Close the WebSocket connection
 					setTimeout(() => {
-						resolve(winnerAlias);
+						resolve({ winner: winnerAlias, score1, score2 });
 						const ctx = canvas.getContext("2d");
 						document.getElementById("next-match-container").classList.remove("hidden");
 						ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -204,10 +206,10 @@ function attachTournamentEventListeners() {
 	
 		const match = matches[currentMatchIndex];
 		document.getElementById("next-match-container").classList.add("hidden");
-		const winner = await playActualMatch(match);
+		const data = await playActualMatch(match);
 	
-		if (winner) {
-			await saveMatchResult(winner);
+		if (data) {
+			await saveMatchResult(data);
 		} else {
 			console.error("Error determining winner for match:", match);
 		}
@@ -231,19 +233,23 @@ function attachTournamentEventListeners() {
 		}
 	});
 
-	async function saveMatchResult(winner) {
-		document.getElementById("matchResult").innerText = `Winner: ${winner}`;
+	async function saveMatchResult(data) {
+		document.getElementById("matchResult").innerText = `Winner: ${data.winner}`;
 		const index = currentMatchIndex;
 		currentMatchIndex++;
 	
 		try {
 			const response = await axios.post(
 				`/api/game/tournament/${tournamentId}/match/${index}/save_result/`,
-				{ winner_alias: winner },
+				{ winner_alias:  data.winner,
+					score_player1: data.score1,
+					score_player2: data.score2
+				},
 				{ headers }
 			);
 	
 			matches = response.data.matches;
+			console.log(response);
 			displayBracket(matches);
 	
 		} catch (error) {

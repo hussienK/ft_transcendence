@@ -52,9 +52,9 @@ services:
     image: postgres:15
     container_name: postgres-db
     environment:
-      POSTGRES_DB: ft_transcendence
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: HK@12345@42Student
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
     volumes:
       - dbdata:/var/lib/postgresql/data
     healthcheck:

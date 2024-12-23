@@ -312,17 +312,21 @@ class StartTournamentView(APIView):
             })
         return matches
 
-
 class SaveMatchResultView(APIView):
     """
     POST /api/tournament/<tournament_id>/match/<match_index>/save_result/
-    Body: { "winner_alias": "PlayerAlias" }
+    Body: { "winner_alias": "PlayerAlias", "score_player1": 10, "score_player2": 8 }
     Saves the result of one match and progresses the tournament.
     """
     def post(self, request, tournament_id, match_index):
         winner_alias = request.data.get("winner_alias")
+        score_player1 = request.data.get("score_player1")
+        score_player2 = request.data.get("score_player2")
+
         if not winner_alias:
             return Response({"error": "winner_alias is required."}, status=status.HTTP_400_BAD_REQUEST)
+        if score_player1 is None or score_player2 is None:
+            return Response({"error": "Scores for both players are required."}, status=status.HTTP_400_BAD_REQUEST)
 
         with tournament_lock:
             tournament = tournaments.get(tournament_id)
@@ -346,13 +350,19 @@ class SaveMatchResultView(APIView):
                 if winner_alias not in (match["player1"], match["player2"]):
                     return Response({"error": "Winner alias does not match players."}, status=status.HTTP_400_BAD_REQUEST)
 
-                # Save the winner for the current match
+                # Save the winner and scores
                 match["winner"] = winner_alias
+                match["score_player1"] = score_player1
+                match["score_player2"] = score_player2
 
                 # Propagate the winner to the next round
                 self.propagate_winner(tournament["matches"], match)
 
-                return Response({"status": "result_saved", "matches": tournament["matches"]})
+                return Response({
+                    "status": "result_saved",
+                    "match": match,
+                    "matches": tournament["matches"]
+                })
 
     def propagate_winner(self, matches, completed_match):
         """
