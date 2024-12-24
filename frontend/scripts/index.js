@@ -69,6 +69,7 @@ function establishWebSocketConnection() {
   // Add event listeners for WebSocket connection
   socket.onopen = () => {
     console.log("WebSocket connection established.");
+    setInterval(sendPing, 30000); // Send a ping every 30 seconds  
   };
 
   socket.onclose = (event) => {
@@ -94,6 +95,12 @@ function establishWebSocketConnection() {
     }
     console.log("Received message:", message.data);
   };
+
+  function sendPing() {
+    if (socket && socket.readyState === WebSocket.OPEN) {
+      socket.send(JSON.stringify({ type: "ping" }));
+    }
+  }
 }
 
 
