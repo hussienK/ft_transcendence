@@ -59,6 +59,7 @@ function attachTournamentEventListeners() {
 				document.getElementById("aliasPromptMessage").innerText = data.error || "An error occurred.";
 			}
 		} catch (error) {
+			showAlert("An error occurred. Please try again.", "danger");
 			console.error("Error registering alias:", error);
 		}
 	});

@@ -1,11 +1,7 @@
-<div id="friends-page" class="bg-dark d-flex flex-row" style="height: 100%; background-color: #121212; min-height: 100vh;">
+<div id="friends-page" class="bg-dark d-flex flex-column align-items-center" style="height: 100%; background-color: #121212; min-height: 100vh;">
   <!-- Navigation -->
 
-  <div id="chat" style="width: 20%; height: 100%;">
-    <h1>Chat</h1>
-  </div>
-
-  <div id="main-friends" class="bg-dark d-flex flex-column" style="height: 100%; background-color: #121212; width: 60%;">
+  <div id="main-friends" class="bg-dark d-flex flex-column" style="height: 100%; background-color: #121212; width: 90%; max-height: 700px;">
       <nav class="navbar navbar-expand-lg px-0 neon-box" style="background-color: #1e1e1e;">
         <div class="container-fluid d-flex align-items-center justify-content-start" style="padding-left: 15px;">
             <span class="navbar-brand text-neon-blue me-2">Friends</span>
@@ -41,12 +37,12 @@
     </nav>
 
     <!-- Main Section -->
-    <div id="friends-page-main" class="p-4 neon-box" style="flex-grow: 1; background-color: #1e1e1e;">
+    <div id="friends-page-main" class="p-4 neon-box" style="flex-grow: 1; background-color: #1e1e1e; overflow-y: scroll;">
         <!-- Content dynamically loaded -->
     </div>
   </div>
 
-  <div class="d-flex flex-column justify-content-center align-items-center" id="links-tab" style="width: 20%; height: 100%; min-height: 100vh;">    <div class="navigation-vertical">
+  <div class="d-flex flex-row justify-content-center align-items-center" id="links-tab" style="width: 100%; margin-top: 40px;">    <div class="navigation">
         <div id="lobby-link" class="nav-card  lobby">
             <h3>Lobby</h3>
             <p>Explore active games and events.</p>
