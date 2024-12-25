@@ -279,6 +279,7 @@ function attachProfileEventListeners(userName = -42) {
                 const score2 = element.player2_score || 0;
                 const forfeit = element.forfeit;
                 const result = element.result || 'Not Available';
+                console.log(result);
                 const isWinner = result === "Win";
     
                 const createdAt = new Date(element.created_at);
@@ -366,6 +367,7 @@ function attachProfileEventListeners(userName = -42) {
             const forfeit = element.match_stats.forfeit;
             const winner = element.match_stats.winner || 'Unknown';
             const loser = element.match_stats.loser || 'Unknown';
+            console.log(winner);
             const createdAt = new Date(element.match_stats.created_at);
             const timeAgo = getTimeAgo(createdAt);
     

@@ -14,6 +14,7 @@ class GameState:
         self.player1 = None
         self.player2 = None
         self.is_local = False
+        self.is_updates = False
         self.game_is_active = False
 
         # Dimensions
@@ -87,9 +88,15 @@ class GameState:
         if current_speed > self.max_ball_speed_reached:
             self.max_ball_speed_reached = current_speed
 
-        # Check for collision with top and bottom walls
-        if self.ball_position[1] <= self.ball_radius or self.ball_position[1] >= (self.canvas_height - self.ball_radius):
-            self.ball_velocity[1] = -self.ball_velocity[1]
+    # Check for collision with top and bottom walls
+        if self.ball_position[1] <= self.ball_radius:  # Top border
+            self.ball_position[1] = self.ball_radius  # Push the ball slightly inside
+            self.ball_velocity[1] = abs(self.ball_velocity[1])  # Ensure positive velocity
+
+        elif self.ball_position[1] >= (self.canvas_height - self.ball_radius):  # Bottom border
+            self.ball_position[1] = self.canvas_height - self.ball_radius  # Push the ball slightly inside
+            self.ball_velocity[1] = -abs(self.ball_velocity[1])  # Ensure negative velocity
+
 
         # Check paddle collisions
         # Left paddle (player1)
@@ -215,11 +222,25 @@ class GameState:
 
     async def handle_game_end(self, winner, loser, disconnected=False):
         self.game_is_active = False
-        self.winner = "player1" if winner == self.player1 else "player2"
+
+        # Determine the winner explicitly
+        if disconnected:
+            # If a player disconnected, the remaining player is the winner
+            if self.player1 == winner:
+                self.winner = "player1"
+            elif self.player2 == winner:
+                self.winner = "player2"
+        else:
+            # Determine winner based on scores
+            if self.score1 > self.score2:
+                self.winner = "player1"
+            elif self.score2 > self.score1:
+                self.winner = "player2"
+            else:
+                self.winner = "draw"
 
         match_duration = round(time.time() - self.match_start_time, 2) if self.match_start_time else 0
         avg_ball_speed = self.total_ball_speed / self.ball_speed_samples if self.ball_speed_samples > 0 else 0.0
-
 
         # Calculate average reaction times
         avg_reaction_time_player1 = sum(self.player1_reaction_times) / len(self.player1_reaction_times) if self.player1_reaction_times else 0
@@ -227,29 +248,34 @@ class GameState:
 
         victory_margin = abs(self.score1 - self.score2)
 
+        # Broadcast the final state
         await self.broadcast_state()
 
+        # Save the match results
         if not self.is_local:
             try:
                 await sync_to_async(save_match_results_sync, thread_sensitive=False)(
                     self.game_id, self.score1, self.score2, disconnected, match_duration, self.total_ball_hits, self.longest_rally,
-                    self.max_ball_speed_reached, avg_ball_speed, avg_reaction_time_player1, avg_reaction_time_player2, victory_margin
+                    self.max_ball_speed_reached, avg_ball_speed, avg_reaction_time_player1, avg_reaction_time_player2, victory_margin, self.winner
                 )
                 print("Data saved to database")
             except Exception as e:
                 print(f"Error saving match results: {e}")
-        
+
+        # Stop the game loop
         self.stop_game()
 
+
     async def broadcast_state(self):
-        if self.channel_layer:
-            await self.channel_layer.group_send(
-                self.group_name,
-                {
-                    'type': 'broadcast_game_state',
-                    'game_state': self.to_dict()
-                }
-            )
+        if (not self.is_updates):
+            if self.channel_layer:
+                await self.channel_layer.group_send(
+                    self.group_name,
+                    {
+                        'type': 'broadcast_game_state',
+                        'game_state': self.to_dict()
+                    }
+                )
 
     def to_dict(self):
         match_duration = round(time.time() - self.match_start_time, 2) if self.match_start_time else 0
@@ -265,13 +291,22 @@ class GameState:
         }
 
 def save_match_results_sync(game_id, score1, score2, forfeit=False, match_duration=0, total_ball_hits=0, longest_rally=0,
-                            max_ball_speed_reached=0, avg_ball_speed=0, avg_reaction_time_player1=0, avg_reaction_time_player2=0, victory_margin=0):
-    """Synchronously save match results to the database.""",
+                            max_ball_speed_reached=0, avg_ball_speed=0, avg_reaction_time_player1=0, avg_reaction_time_player2=0, victory_margin=0, winner=None):
+    """Synchronously save match results to the database."""
     from .models import GameSession, MatchHistory
 
     try:
         # Fetch the GameSession object
         game_session = GameSession.objects.get(session_id=game_id)
+
+        # Determine forfeited player
+        forfeited_by = None
+        if forfeit:
+            if winner == "player1":
+                forfeited_by = game_session.player2
+            elif winner == "player2":
+                forfeited_by = game_session.player1
+        print("\n\nForfeited by: ", forfeited_by)
 
         # Create a MatchHistory entry
         MatchHistory.objects.create(
@@ -279,6 +314,7 @@ def save_match_results_sync(game_id, score1, score2, forfeit=False, match_durati
             player1=game_session.player1,
             player2=game_session.player2,
             forfeit=forfeit,
+            forfeited_by=forfeited_by,
             player1_score=score1,
             player2_score=score2,
             match_duration=match_duration,
@@ -292,5 +328,7 @@ def save_match_results_sync(game_id, score1, score2, forfeit=False, match_durati
         )
 
         print("Match history updated successfully")
+    except GameSession.DoesNotExist:
+        print(f"Error: Game session with ID {game_id} does not exist.")
     except Exception as e:
         print(f"Error updating match history: {e}")

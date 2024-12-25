@@ -7,7 +7,7 @@ import jwt
 from rest_framework.exceptions import AuthenticationFailed
 from game.routing import websocket_urlpatterns
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'your_project.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'ft_transcendance.settings')
 
 # Initialize Django ASGI application first
 django_asgi_app = get_asgi_application()
@@ -23,7 +23,6 @@ class JWTAuthMiddleware(BaseMiddleware):
         # Extract the JWT token from the query string
         query_params = parse_qs(scope["query_string"].decode())
         token = query_params.get("token", [None])[0]
-
         if token:
             try:
                 # Decode the token
@@ -33,16 +32,15 @@ class JWTAuthMiddleware(BaseMiddleware):
                 # Fetch the user from the database
                 user = await self.get_user(user_id)
                 scope["user"] = user
-
             except jwt.ExpiredSignatureError:
                 raise AuthenticationFailed("Token has expired.")
             except jwt.InvalidTokenError:
                 raise AuthenticationFailed("Invalid token.")
             except Exception:
+                print("Unexpected error")
                 scope["user"] = AnonymousUser()
         else:
             scope["user"] = AnonymousUser()
-
         return await super().__call__(scope, receive, send)
 
     @staticmethod

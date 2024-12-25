@@ -278,6 +278,7 @@ class MatchHistorySerializer(serializers.ModelSerializer):
     result = serializers.SerializerMethodField()  # Computes the result dynamically
     opponent = serializers.SerializerMethodField()  # Computes the opponent dynamically
     opponent_avatar = serializers.SerializerMethodField()  # Adds the avatar of the opponent
+    forfeit_by = serializers.SerializerMethodField()
 
     class Meta:
         model = MatchHistory
@@ -291,16 +292,28 @@ class MatchHistorySerializer(serializers.ModelSerializer):
             'player2_score',
             'forfeit',
             'created_at',
+            'forfeit_by'
         ]
 
     def get_result(self, obj):
-        request_user = self.context['request'].user
-        if obj.game_session.player1 == request_user:
-            return "Win" if obj.player1_score > obj.player2_score else "Loss"
-        elif obj.game_session.player2 == request_user:
-            return "Win" if obj.player2_score > obj.player1_score else "Loss"
-        else:
-            return "Not a participant"
+            request_user = self.context['request'].user
+
+            if obj.forfeit:
+                # Handle forfeits
+                if obj.forfeited_by == request_user:
+                    return "Loss"
+                elif obj.forfeited_by:
+                    return "Win"
+                else:
+                    return "Forfeit"
+
+            # Handle normal results
+            if obj.game_session.player1 == request_user:
+                return "Win" if obj.player1_score > obj.player2_score else "Loss"
+            elif obj.game_session.player2 == request_user:
+                return "Win" if obj.player2_score > obj.player1_score else "Loss"
+            else:
+                return "Not a participant"
 
     def get_opponent(self, obj):
         request_user = self.context['request'].user
@@ -320,6 +333,10 @@ class MatchHistorySerializer(serializers.ModelSerializer):
         else:
             return None
 
+    def get_forfeit_by(self, obj):
+        if obj.forfeit and obj.forfeited_by:
+            return obj.forfeited_by.username
+        return None
 
 class Verify2FACodeSerializer(serializers.Serializer):
     code = serializers.IntegerField()

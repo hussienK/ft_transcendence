@@ -41,6 +41,12 @@ class MatchHistory(models.Model):
     total_ball_hits = models.PositiveIntegerField(default=0)  # Number of ball hits in the match
     avg_ball_speed = models.FloatField(null=True, blank=True)  # Average ball speed
     max_ball_speed = models.FloatField(null=True, blank=True)  # Maximum ball speed
+    forfeited_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        related_name="forfeited_matches",
+        null=True, blank=True,
+        on_delete=models.SET_NULL
+    )  # Track which player forfeited
     longest_rally = models.PositiveIntegerField(default=0)  # Maximum number of consecutive hits without scoring
     reaction_time_player1 = models.FloatField(null=True, blank=True)  # Avg reaction time for player1
     reaction_time_player2 = models.FloatField(null=True, blank=True)  # Avg reaction time for player2
@@ -48,6 +54,8 @@ class MatchHistory(models.Model):
 
     @property
     def winner(self):
+        if self.forfeit and self.forfeited_by:
+            return self.player2 if self.forfeited_by == self.player1 else self.player1
         if self.player1_score > self.player2_score:
             return self.player1
         elif self.player2_score > self.player1_score:
@@ -57,6 +65,8 @@ class MatchHistory(models.Model):
 
     @property
     def loser(self):
+        if self.forfeit and self.forfeited_by:
+            return self.forfeited_by
         if self.winner == self.player1:
             return self.player2
         elif self.winner == self.player2:

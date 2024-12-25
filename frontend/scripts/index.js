@@ -57,8 +57,7 @@ function joinMatchLocal(messageFormatted) {
 
 // Function to create a new WebSocket connection
 function establishWebSocketConnection() {
-  const ws_scheme = window.location.protocol === "https:" ? "ws" : "ws";
-  const ws_path = `${ws_scheme}://localhost:8080/ws/updates/?token=${localStorage.getItem('accessToken')}`;
+  const ws_path = `wss://localhost:8443/ws/updates/?token=${localStorage.getItem('accessToken')}`;
 
   if (socket) {
     socket.close();  // Close any existing connection

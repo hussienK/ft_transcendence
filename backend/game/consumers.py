@@ -16,11 +16,15 @@ class PongGameConsumer(AsyncWebsocketConsumer):
         self.room_group_name = f'game_{self.room_name}'
         self.user = self.scope["user"]
         self.countdown_in_progress = False
+        is_already_connected = False
 
         query_params = parse_qs(self.scope['query_string'].decode('utf-8'))
         try:
             is_local = query_params.get('is_local', ['false'])[0].lower() == 'true'
             self.is_local = is_local
+            if not is_local:
+                self.player = query_params.get('player', [''])[0]
+                print(f"Player: {self.player}")
         except:
             self.is_local = False
 
@@ -43,12 +47,10 @@ class PongGameConsumer(AsyncWebsocketConsumer):
         if not self.is_local:
             self.game_state.players_ready += 1
 
-            if not self.game_state.player1:
+            if self.player == 'player1' and not self.game_state.player1:
                 self.game_state.player1 = self.user
-                self.player = 'player1'
-            elif not self.game_state.player2:
+            elif self.player == 'player2' and not self.game_state.player2:
                 self.game_state.player2 = self.user
-                self.player = 'player2'
             else:
                 await self.close()
                 return
@@ -57,11 +59,14 @@ class PongGameConsumer(AsyncWebsocketConsumer):
             if self.game_state.players_ready >= 2 and not self.game_state.game_is_active:
                 asyncio.create_task(self.start_countdown())
         else:
-            self.game_state.player1 = "player1"
-            self.game_state.player2 = "player2"
-            self.game_state.is_local = True
-            asyncio.create_task(self.start_countdown_local())
-
+            if self.game_state.player1:
+                is_already_connected = True
+            else:
+                self.game_state.player1 = "player1"
+                self.game_state.player2 = "player2"
+                self.game_state.is_local = True
+            if not is_already_connected:
+                asyncio.create_task(self.start_countdown_local())
 
         await self.accept()
 
@@ -108,7 +113,6 @@ class PongGameConsumer(AsyncWebsocketConsumer):
                 'game_state': state
             }
         )
-
     async def disconnect(self, close_code):
         # Leave the room group
         await self.channel_layer.group_discard(
@@ -125,15 +129,13 @@ class PongGameConsumer(AsyncWebsocketConsumer):
 
             # Identify the disconnecting user and the remaining user
             if self.user == self.game_state.player1:
+                loser = self.user
+                winner = self.game_state.player2 if self.game_state.player2 else None
                 self.game_state.player1 = None
-                winner = self.game_state.player2  # Remaining player
-                self.game_state.winner = winner
-                loser = self.user
             elif self.user == self.game_state.player2:
-                self.game_state.player2 = None
-                winner = self.game_state.player1  # Remaining player
-                self.game_state.winner = winner
                 loser = self.user
+                winner = self.game_state.player1 if self.game_state.player1 else None
+                self.game_state.player2 = None
 
             # If less than 2 players are left, stop the game
             if self.game_state.players_ready < 2:
@@ -143,7 +145,9 @@ class PongGameConsumer(AsyncWebsocketConsumer):
 
                 # Set the winner if there is one remaining player
                 if winner:
+                    print(f"Game ended. Winner: {winner}, Loser: {loser}")
                     await self.game_state.handle_game_end(winner, loser, True)
+
 
     async def receive(self, text_data):
         data = json.loads(text_data)

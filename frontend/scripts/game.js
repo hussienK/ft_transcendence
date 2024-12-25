@@ -1,5 +1,6 @@
 function attachGameEventListeners(roomName, player) {
-    const ws_path = "wss://" + window.location.host + '/ws/game/' + roomName + '/?is_local=false&token=' + localStorage.getItem('accessToken');
+    console.log(player)
+    const ws_path = "wss://" + window.location.host + '/ws/game/' + roomName + `/?is_local=false&player=${player}&token=` + localStorage.getItem('accessToken');
     console.log("WebSocket URL:", ws_path);
     const socket = new WebSocket(ws_path);
 
@@ -45,7 +46,6 @@ function attachGameEventListeners(roomName, player) {
     
         previousGameState = latestGameState;
         latestGameState = data;
-        console.log(latestGameState);
         lastUpdateTime = data.timestamp;
     };
     
@@ -143,6 +143,7 @@ function attachGameEventListeners(roomName, player) {
             ctx.fillText("Game Over", canvas.width / 2 - 100, canvas.height / 2);
         } else if (!latestGameState.game_is_active && latestGameState.winner) {
             ctx.font = '50px Arial';
+            console.log(latestGameState.winner, player);
             if (latestGameState.winner === player)
             {
                 ctx.fillStyle = 'green';
