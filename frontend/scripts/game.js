@@ -1,5 +1,5 @@
 function attachGameEventListeners(roomName, player) {
-    console.log(player)
+    console.log(player);
     const ws_path = "wss://" + window.location.host + '/ws/game/' + roomName + `/?is_local=false&player=${player}&token=` + localStorage.getItem('accessToken');
     console.log("WebSocket URL:", ws_path);
     const socket = new WebSocket(ws_path);
@@ -9,7 +9,7 @@ function attachGameEventListeners(roomName, player) {
 
     let latestGameState = null;
     let previousGameState = null;
-    let currentPhase = 'running'; // Local game always starts immediately
+    let currentPhase = 'running'; // Online game phase
     let lastUpdateTime = null;
 
     const button = document.getElementById('back-to-lobby-button');
@@ -21,37 +21,34 @@ function attachGameEventListeners(roomName, player) {
     }
 
     let keyIntervals = {
-        player1: null,
-        player2: null,
+        [player]: null,
     };
     let currentDirections = {
-        player1: null,
-        player2: null,
+        [player]: null,
     };
 
     socket.onopen = function (event) {
-        console.log("WebSocket connection established for Game.");
+        console.log("WebSocket connection established for Online Game.");
     };
 
     socket.onmessage = function (event) {
         let data = JSON.parse(event.data);
-    
+
         if (data.phase) currentPhase = data.phase;
-        else currentPhase = "playing"
-    
+        else currentPhase = "playing";
+
         if (currentPhase === 'countdown' && data.countdown) {
             renderCountdown(data.countdown);
+        } else {
+            previousGameState = latestGameState;
+            latestGameState = data;
+            lastUpdateTime = data.timestamp;
         }
-        else
-    
-        previousGameState = latestGameState;
-        latestGameState = data;
-        lastUpdateTime = data.timestamp;
     };
-    
 
     socket.onclose = function (event) {
         console.log("WebSocket connection closed.");
+        currentPhase = 'ended';
     };
 
     socket.onerror = function (error) {
@@ -59,18 +56,26 @@ function attachGameEventListeners(roomName, player) {
     };
 
     document.addEventListener('keydown', function (event) {
-        if (['ArrowUp', 'ArrowDown'].includes(event.key)) {
+        if (['w', 's', 'ArrowUp', 'ArrowDown'].includes(event.key)) {
             let direction = null;
 
-            if (event.key === 'ArrowUp') {
-                player = player;
+            if (event.key === 'w' && player === 'player1') {
                 direction = 'up';
-            } else if (event.key === 'ArrowDown') {
-                player = player;
+            } else if (event.key === 's' && player === 'player1') {
+                direction = 'down';
+            } else if (event.key === 'ArrowUp' && player === 'player2') {
+                direction = 'up';
+            } else if (event.key === 'ArrowDown' && player === 'player2') {
                 direction = 'down';
             }
 
-            if (player && direction && currentDirections[player] !== direction) {
+            if (direction && currentDirections[player] !== direction) {
+                // Clear existing interval for the player
+                if (keyIntervals[player]) {
+                    clearInterval(keyIntervals[player]);
+                }
+
+                // Update the current direction and start a new interval
                 currentDirections[player] = direction;
                 sendDirection(player, direction);
                 keyIntervals[player] = setInterval(() => sendDirection(player, direction), 50);
@@ -80,15 +85,15 @@ function attachGameEventListeners(roomName, player) {
     });
 
     document.addEventListener('keyup', function (event) {
-        if (['ArrowUp', 'ArrowDown'].includes(event.key)) {
-
-            if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
-                player = player;
-            }
-
-            if (player) {
-                currentDirections[player] = null;
+        if (['w', 's', 'ArrowUp', 'ArrowDown'].includes(event.key)) {
+            if (
+                (event.key === 'w' || event.key === 's') && player === 'player1' ||
+                (event.key === 'ArrowUp' || event.key === 'ArrowDown') && player === 'player2'
+            ) {
+                // Clear the interval and reset the direction
                 clearInterval(keyIntervals[player]);
+                keyIntervals[player] = null;
+                currentDirections[player] = null;
                 sendDirection(player, null);
                 event.preventDefault();
             }
@@ -105,60 +110,54 @@ function attachGameEventListeners(roomName, player) {
 
     function renderCountdown(countdown) {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
+
         ctx.font = '100px Arial';
         ctx.fillStyle = 'yellow';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-    
-        // Display the countdown number at the center of the canvas
+
         ctx.fillText(countdown, canvas.width / 2, canvas.height / 2);
     }
-    
+
     function render() {
+        if (currentPhase === 'ended') {
+            return;
+        }
         if (currentPhase === 'countdown') {
-            // Countdown is handled separately; skip rendering the game state
             requestAnimationFrame(render);
             return;
         }
-    
+
         if (!latestGameState) {
             requestAnimationFrame(render);
             return;
         }
-    
-        // Clear and render game state as before
+
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
+
         if (latestGameState.match_duration) {
-            // During gameplay or at game end, display the match duration
             ctx.font = '20px Arial';
             ctx.fillStyle = 'white';
-            ctx.fillText(`${latestGameState.match_duration.toFixed(2)}s`, canvas.width / 2 , 80);
+            ctx.fillText(`${latestGameState.match_duration.toFixed(2)}s`, canvas.width / 2, 80);
         }
         if (!latestGameState.game_is_active && !latestGameState.winner) {
-            // Game over or waiting state
             ctx.font = '50px Arial';
             ctx.fillStyle = 'white';
             ctx.fillText("Game Over", canvas.width / 2 - 100, canvas.height / 2);
         } else if (!latestGameState.game_is_active && latestGameState.winner) {
             ctx.font = '50px Arial';
-            console.log(latestGameState.winner, player);
-            if (latestGameState.winner === player)
-            {
+            if (latestGameState.winner === player) {
                 ctx.fillStyle = 'green';
                 ctx.fillText("You Won!", canvas.width / 2, canvas.height / 2);
-            }
-            else
-            {
+            } else {
                 ctx.fillStyle = 'red';
                 ctx.fillText("You Lost!", canvas.width / 2, canvas.height / 2);
             }
 
+            currentPhase = 'ended';
             showBackToLobbyButton();
         } else {
             hideBackToLobbyButton();
-            // Normal rendering of the game state
             let gs = latestGameState;
             if (previousGameState && previousGameState.timestamp) {
                 let dt = gs.timestamp - previousGameState.timestamp;
@@ -171,35 +170,31 @@ function attachGameEventListeners(roomName, player) {
                 }
                 gs = interpolateGameState(previousGameState, gs, t);
             }
-    
-            // Draw the ball
+
             const ballPosition = gs.ball_position;
             ctx.fillStyle = 'white';
             ctx.beginPath();
             ctx.arc(ballPosition[0], ballPosition[1], 10, 0, Math.PI * 2);
             ctx.fill();
-    
-            // Draw paddles
+
             ctx.fillStyle = 'white';
             ctx.fillRect(10, gs.paddle1_position, 10, 100);
             ctx.fillRect(canvas.width - 20, gs.paddle2_position, 10, 100);
-    
-            // Draw scores
+
             ctx.font = '30px Arial';
             ctx.fillText(gs.score1, canvas.width / 2 - 50, 50);
             ctx.fillText(gs.score2, canvas.width / 2 + 30, 50);
         }
-    
+
         requestAnimationFrame(render);
     }
-    
 
     function interpolateGameState(prev, curr, t) {
         function lerp(a, b, t) { return a + (b - a) * t; }
         return {
             ball_position: [
                 lerp(prev.ball_position[0], curr.ball_position[0], t),
-                lerp(prev.ball_position[1], curr.ball_position[1], t)
+                lerp(prev.ball_position[1], curr.ball_position[1], t),
             ],
             paddle1_position: lerp(prev.paddle1_position, curr.paddle1_position, t),
             paddle2_position: lerp(prev.paddle2_position, curr.paddle2_position, t),
@@ -214,16 +209,14 @@ function attachGameEventListeners(roomName, player) {
     requestAnimationFrame(render);
 
     function showBackToLobbyButton() {
-        const button = document.getElementById('back-to-lobby-button');
         if (button) {
-            button.style.display = 'block'; // Show the button
+            button.style.display = 'block';
         }
     }
-    
+
     function hideBackToLobbyButton() {
-        const button = document.getElementById('back-to-lobby-button');
         if (button) {
-            button.style.display = 'none'; // Hide the button
+            button.style.display = 'none';
         }
     }
 }
