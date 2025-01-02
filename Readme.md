@@ -1,92 +1,122 @@
-# Instructions
+# ft_transcendence Project Documentation
 
-## To Run The app follow the steps
+## Project Overview
+This project involves the creation of a website for the mighty Pong contest. The site will allow users to participate in real-time multiplayer Pong games with a focus on delivering a seamless user experience and robust security.
 
-- Make sure docker is installed and running
-- remove any previously active prosses `docker rm -f $(docker ps -a -q)`
-- shut down all previous containers `docker-compose down -v`
-- to build on production (no live updates) `docker-compose --f docker-compose.prod.yml up --build`
-- to build on development (enable live udpates) `docker-compose docker-compose.dev.yml up --build`
-- to access a container for debugging/testing `docker exec -it <container_name_or_id> /bin/bash`
+### Key Features:
+1. Real-time multiplayer Pong games.
+2. User registration, authentication, and profile management.
+3. Tournament management and matchmaking system.
+4. Dashboards for user and game statistics.
+5. Two-Factor Authentication (2FA) and JWT-based security.
+6. Browser compatibility enhancements.
+7. Server-side Pong game with API integration.
 
-## Chosen Modules
+---
 
- ◦ Major module: Use a Framework as backend.
- ◦ Minor module: Use a front-end framework or toolkit.
- ◦ Minor module: Use a database for the backend.
-  Major module: Standard user management, authentication, users across
- tournaments.
- • Major module: Remote players
-• Minor module: User and Game Stats Dashboards.
- • Major module: Implement Two-Factor Authentication (2FA) and JWT.
-• Major module: Replacing Basic Pong with Server-Side Pong and Implementing
- an API.
- • Minor module: Expanding Browser Compatibility.
-## Explanations
+## Development Guidelines
+- Use of libraries or tools providing a complete solution for a feature/module is prohibited.
+- Small libraries solving unique subcomponent tasks are allowed.
+- Justify the use of any library or tool not explicitly approved.
 
-### Dockerization
+---
 
-#### backend/Dockerfile
+## Minimal Technical Requirements
+1. The site must function as a single-page application.
+2. Must be compatible with the latest stable version of Google Chrome.
+3. The backend (if used) must be written in Django.
+4. The frontend must be built using vanilla JavaScript or Bootstrap.
+5. Ensure secure handling of passwords (hashed), protect against SQL injections/XSS, and use HTTPS.
+6. Validate all user inputs.
+7. Launch the entire application with a single command line using Docker.
+8. No unhandled errors or warnings.
 
-- Pulls a python version and prepares the python environment and runs all tasks then starts
+---
 
-#### nginx/Dockerfile
+## Modules Implemented
 
-- Pulls nginx and prepares all need folders by copying them
+### Major Modules:
+1. **Framework as Backend**:
+   - Backend developed using Django.
+   - Supports database integration.
 
-#### docker-compose
+2. **Standard User Management**:
+   - Secure user registration and login.
+   - Unique display names, avatars, and friend lists.
+   - User profiles display stats (wins/losses, match history).
 
-Docker Compose file defines a multi-container setup for a Django application
+3. **Remote Players**:
+   - Real-time gameplay for players on separate computers.
+   - Handles network issues for the best user experience.
 
-1. **Backend:** A Django app container that applies database migrations, creates an admin user, collects static files, and serves the app via uvicorn.
-2. **Nginx:** A reverse proxy server to handle client requests and serve static files.
-3. **Database (PostgreSQL):** A containerized database for storing app data.
-4. **Redis:** A caching layer for asynchronous tasks.
-5. **Celery Worker and Beat:** Containers for task processing and periodic task scheduling.
+4. **Two-Factor Authentication and JWT**:
+   - Adds an extra security layer with 2FA.
+   - Implements secure user authentication and authorization.
 
-#### nginx.conf files
+5. **Server-Side Pong and API**:
+   - Server-side game logic and API for interaction.
+   - Integrates with CLI and web interface.
 
-This Nginx configuration sets up a reverse proxy for a Django backend and serves static files, media files, WebSocket traffic, and a static frontend. It redirects HTTP traffic to HTTPS for security and handles both standard API requests and WebSocket connections.
+### Minor Modules:
+1. **Frontend Toolkit**:
+   - Frontend developed using Bootstrap.
 
-- **Static and Media Files:** Served directly from the /app/staticfiles/ and /app/media/ directories.
-- **WebSocket Traffic:** Proxied to the Django backend at /ws/ with support for WebSocket headers.
-- **API Requests:** Proxied to the backend at /api/.
-- **Frontend Files:** Served from /usr/share/nginx/html/ with caching disabled.
-- **HTTPS Configuration:** Includes SSL certificate and key for secure communication.
+2. **User and Game Stats Dashboards**:
+   - Dashboards for user and game statistics using data visualization techniques.
 
-#### DRF
+3. **Expanding Browser Compatibility**:
+   - Added support for an additional browser with thorough testing.
 
-DRF connects your Django models to a RESTful API, handling serialization, routing, views, and security seamless
+---
 
-1. **Serializers:** Convert complex data types (e.g., Django models) to JSON for API responses and validate incoming JSON data for requests.
-2. **Views:** Handle HTTP methods (GET, POST, PUT, DELETE) and process requests. These can be function-based or class-based (e.g., APIView, GenericAPIView, or viewsets).
-3. **Routers:** Automatically generate URL patterns for your views, especially for viewsets.
-4. **Authentication & Permissions:** Provide built-in tools for securing APIs (e.g., token-based auth, session auth, or custom permissions).
-5. **Browsable API:** Offers a web-based interface to test and explore your API.
+## Security Considerations
+1. Store passwords using a strong hashing algorithm.
+2. Protect against SQL injections and XSS attacks.
+3. Secure all routes and data transmissions using HTTPS.
+4. Validate user inputs rigorously.
+5. Store credentials and sensitive information in a `.env` file (ignored by Git).
 
-#### Backend Apps
+---
 
-##### ft_transendance
+## Deployment Instructions
 
-- Contains our app's settings that tell the app how everything should behave
-- Contains the routes that redirect into all other apps
-- Contains ASGI the routes into websocket requests
+### Prerequisites:
+- Ensure Docker is installed and running on your system.
 
-##### Users
+### Clean Up Active Processes:
+```bash
+docker rm -f $(docker ps -a -q)
+```
 
-- Manages the users and everything related to them
-- We have a few custom permissions, isEmail Verified, is2FA Enabled
-- We have 2 mains db models, Friends and Friend requests
-- User being Online/Offline is detected through signals on his logout/login. To make it more accurate we also use Celery to schedule auto tasks every duration to make user offline if not using the app
-- Every user action passes through a Middleware to detect the Authentication Token and update the last activity accordingly
-- Includes a verifyToken view for the frontend to call to make sure the token is valid and not expired before rendering any pages
+### Shut Down Previous Containers:
+```bash
+docker-compose down -v
+```
 
-##### Core
+### Build and Run:
+- **Production (no live updates):**
+  ```bash
+  docker-compose -f docker-compose.prod.yml up --build
+  ```
+- **Development (with live updates):**
+  ```bash
+  docker-compose -f docker-compose.dev.yml up --build
+  ```
 
-Currently Only for testing
+### Debugging/Testing:
+To access a running container:
+```bash
+docker exec -it <container_name_or_id> /bin/bash
+```
 
-##### Game
+---
 
-Under Development
+## Additional Notes
+- Ensure your Docker runtime files are located in `/goinfre` or `/sgoinfre` for Linux clusters.
+- Avoid bind-mount volumes if non-root UIDs are used in containers.
 
-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
+---
+
+## Credits
+This documentation is part of the ft_transcendence project guidelines and reflects the mandatory and additional modules implemented to deliver a functional and secure Pong contest website.
+
