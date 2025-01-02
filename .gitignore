@@ -1,21 +1,3 @@
-# Ignore all virtual envs
-env/
-
-# Ignore cache files
-__pyache__/
-*.py[cod]
-
-# Ignore any database files
-*.sqlite3
-
-# Ignore compiled code
-*.pyc
-
-# Ignore log files
-*.log
-
-# Ignore Docker files
-*.env
-
-# Ignore vs code stuff
-.vscode/
+/dbdata/
+*.md
+/staticfiles/

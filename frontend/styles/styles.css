@@ -1,0 +1,718 @@
+/* General Styling */
+body {
+  margin: 0;
+  font-family: 'Roboto', sans-serif;
+  background-color: #121212;
+  color: #fff;
+  box-sizing: border-box;
+}
+
+/* Dashboard Layout */
+#lobby-page {
+  display: grid;
+  grid-template-rows: 1fr auto auto;
+  gap: 20px;
+  height: 100vh;
+  padding: 20px;
+}
+
+/* Background Section */
+.background-section {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 20px;
+  align-items: center;
+}
+
+.background-image {
+  background: url('../assets/home_bg.webp') center/cover no-repeat;
+  border-radius: 10px;
+  height: 100%;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+}
+
+.info-section {
+  background-color: #1e1e1e;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  text-align: center;
+  max-height: 50%;
+}
+
+.info-section .highlight {
+  color: #00d1ff;
+  text-shadow: 0 0 10px #00d1ff;
+}
+
+/* Gameplay Modes */
+.gameplay-modes {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.card {
+  background-color: #1e1e1e;
+  padding: 20px;
+  border-radius: 10px;
+  text-align: center;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  transition: transform 0.3s ease, background-color 0.3s ease;
+}
+
+.card h2 {
+  color: #00d1ff;
+  text-shadow: 0 0 5px #00d1ff;
+}
+
+.card p {
+  margin: 10px 0;
+}
+
+.card button {
+  background-color: #00d1ff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #fff;
+  transition: background-color 0.3s ease;
+}
+
+.card button:hover {
+  background-color: #00a1cc;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  background-color: #292929;
+}
+
+/* Navigation Section */
+.navigation {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.nav-card {
+  background-color: #1e1e1e;
+  padding: 20px;
+  border-radius: 10px;
+  text-align: center;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  transition: transform 0.3s ease, background-color 0.3s ease;
+}
+
+.nav-card h3 {
+  color: #00d1ff;
+  text-shadow: 0 0 5px #00d1ff;
+}
+
+.nav-card p {
+  margin: 10px 0;
+}
+
+.nav-card:hover {
+  transform: translateY(-5px);
+  background-color: #292929;
+}
+
+.feed-section{
+  display: flex;
+  flex-direction: column;
+}
+
+#live-feeds{
+  height: 450px;
+  background-color: #292929;
+  border-radius: 10px;
+  padding: 10px;
+}
+
+
+@media (max-width: 768px) {
+  #profile-page {
+    flex-direction: column;
+    padding: 10px;
+  }
+
+  .row {
+    flex-direction: column;
+  }
+
+  .navigation {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .chart {
+    width: 100%;
+    height: 250px;
+  }
+
+  .card {
+    width: 100%;
+  }
+
+  #profile-box,
+  #history-box {
+    max-height: unset;
+  }
+}
+
+/* Adjust Profile Page Specifics */
+#profile-page {
+  display: grid;
+  grid-template-rows: 1fr auto auto;
+  gap: 20px;
+  height: 100vh;
+  padding: 20px;
+}
+
+.profile-summary, 
+.win-loss-ratio, 
+.edit-profile, 
+.account-settings, 
+.match-history, 
+.friends-list {
+  background-color: #1e1e1e;
+  padding: 20px;
+  border-radius: 10px;
+  text-align: center;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  transition: transform 0.3s ease, background-color 0.3s ease;
+}
+
+.profile-summary h2,
+.win-loss-ratio h2,
+.edit-profile h2,
+.account-settings h2,
+.match-history h2,
+.friends-list h2 {
+  color: #00d1ff;
+  text-shadow: 0 0 5px #00d1ff;
+}
+
+.profile-summary button,
+.win-loss-ratio button,
+.edit-profile button,
+.account-settings button,
+.match-history button,
+.friends-list button {
+  background-color: #00d1ff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #fff;
+  transition: background-color 0.3s ease;
+}
+
+.profile-summary button:hover,
+.win-loss-ratio button:hover,
+.edit-profile button:hover,
+.account-settings button:hover,
+.match-history button:hover,
+.friends-list button:hover {
+  background-color: #00a1cc;
+}
+
+#profile-avatar{
+  width: 75px;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: #1e1e1e;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+  padding: 20px;
+  color: white;
+}
+
+.close-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 20px;
+  color: white;
+  cursor: pointer;
+}
+
+.hidden {
+  display: none;
+}
+
+#match-details-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow-y: auto;
+  max-height: 400px;
+  padding: 10px;
+}
+
+.match-card {
+  background-color: #1e1e1e;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease;
+}
+
+.match-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 10px rgba(0, 0, 0, 0.3);
+}
+
+.friend-avatar img {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.chart {
+  box-shadow: 0 0 15px #00d1ff; /* Blue neon glow */
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.chart:hover {
+  transform: scale(1.02);
+  transition: transform 0.2s ease;
+  box-shadow: 0 0 25px #ff6ec7; /* Pink neon glow on hover */
+}
+
+.chart-container {
+  width: 100%;
+  height: auto;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: #1e1e1e;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+  color: white;
+  overflow-y: auto;
+  max-height: 90vh;
+}
+
+.close-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 20px;
+  color: white;
+  cursor: pointer;
+}
+
+.hidden {
+  display: none;
+}
+
+.chart-container {
+  flex: 1 1 48%; /* Flexible width, 48% for two charts in a row */
+  min-width: 300px;
+  height: 350px; /* Ensure consistent height for all charts */
+  background-color: #1e1e1e; /* Match the modal's dark theme */
+  border-radius: 10px;
+  box-shadow: 0 0 15px #00d1ff; /* Neon blue glow */
+  padding: 10px; /* Padding around the chart */
+  display: flex; /* Ensure the Plotly chart fits properly */
+  justify-content: center;
+  align-items: center;
+}
+
+.chart-container:hover {
+  box-shadow: 0 0 25px #ff6ec7; /* Pink neon glow on hover */
+  transition: box-shadow 0.2s ease;
+}
+
+
+
+.modal-content h2 {
+  margin-bottom: 20px;
+  color: #00d1ff; /* Neon blue header */
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  .chart-container {
+      flex: 1 1 100%; /* Full width on smaller screens */
+      height: 300px;
+  }
+
+  .modal-content {
+      padding: 15px; /* Reduce padding for smaller screens */
+  }
+}
+/* Minimal Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px; /* Narrow width for a minimalist look */
+  height: 8px; /* For horizontal scrollbar */
+}
+
+::-webkit-scrollbar-track {
+  background: #1e1e1e; /* Match your background */
+  border-radius: 4px; /* Slight rounding */
+}
+
+::-webkit-scrollbar-thumb {
+  background: #00d1ff; /* Neon blue thumb */
+  border-radius: 4px; /* Rounded corners */
+  transition: background 0.3s ease; /* Smooth transition */
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #ff6ec7; /* Change to neon pink on hover */
+}
+
+/* For Firefox */
+.scroll-container {
+  scrollbar-width: thin; /* Thin scrollbar */
+  scrollbar-color: #00d1ff #1e1e1e; /* Thumb and track colors */
+}
+
+/* Apply to any scrollable container */
+.scroll-container {
+  overflow-y: auto; /* Enable vertical scrolling */
+  max-height: 400px; /* Adjust for content */
+}
+
+/* Modal Overlay */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background-color: #1e1e1e;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+    color: white;
+    overflow-y: auto;
+}
+
+.close-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 20px;
+    color: white;
+    cursor: pointer;
+}
+
+.hidden {
+    display: none;
+}
+
+/* Button Styling */
+.btn {
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    border-radius: 5px;
+    text-align: center;
+    color: white;
+    transition: transform 0.2s ease, background-color 0.2s ease;
+    cursor: pointer;
+}
+
+/* Neon Colors */
+.neon-blue {
+    background-color: #00d1ff;
+    box-shadow: 0 0 10px #00d1ff;
+}
+
+.neon-blue:hover {
+    background-color: #00a1cc;
+    box-shadow: 0 0 15px #00a1cc;
+}
+
+.neon-pink {
+    background-color: #ff6ec7;
+    box-shadow: 0 0 10px #ff6ec7;
+}
+
+.neon-pink:hover {
+    background-color: #d1549a;
+    box-shadow: 0 0 15px #d1549a;
+}
+
+.neon-red {
+    background-color: #ff4d4d;
+    box-shadow: 0 0 10px #ff4d4d;
+}
+
+.neon-red:hover {
+    background-color: #cc0000;
+    box-shadow: 0 0 15px #cc0000;
+}
+
+.neon-green {
+    background-color: #4caf50;
+    box-shadow: 0 0 10px #4caf50;
+}
+
+.neon-green:hover {
+    background-color: #388e3c;
+    box-shadow: 0 0 15px #388e3c;
+}
+
+/* Form Inputs */
+.form-control {
+  width: 100%;
+  padding: 10px;
+  margin-top: 5px;
+  border: 1px solid #444;
+  border-radius: 5px;
+  background-color: #121212;
+  color: white;
+}
+
+.vs-text {
+  font-size: 24px;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.divider {
+  background-color: #fff;
+  width: 1px;
+  height: 50px;
+  margin-top: 10px;
+}
+
+/* Neon Avatar */
+.neon-avatar {
+  width: 80px;
+  height: 80px;
+  border: 3px solid #ff6ec7;
+  box-shadow: 0 0 10px #00d1ff;
+  margin-bottom: 10px;
+  object-fit: cover;
+}
+
+.neon-box {
+  background-color: #1e1e1e;
+  border: 2px solid #00d1ff;
+  box-shadow: 0 0 15px #00d1ff, 0 0 25px #ff6ec7;
+  color: #fff;
+}
+
+.neon-btn-pink {
+  background-color: #ff6ec7;
+  border: 2px solid #ff6ec7;
+  color: #fff;
+  text-shadow: 0 0 5px #ff6ec7;
+  border-radius: 5px;
+  transition: all 0.3s ease;
+}
+
+.neon-btn-pink:hover {
+  background-color: #d15ca3;
+  box-shadow: 0 0 10px #ff6ec7;
+}
+
+/* Neon Buttons */
+.neon-btn-green {
+  background-color: #00d1ff;
+  border: 2px solid #00d1ff;
+  color: #fff;
+  text-shadow: 0 0 5px #00d1ff;
+  border-radius: 5px;
+  transition: all 0.3s ease;
+}
+
+.neon-btn-green:hover {
+  background-color: #00a1cc;
+  box-shadow: 0 0 10px #00d1ff;
+}
+
+
+.neon-blue-text {
+  color: #00d1ff;
+  text-shadow: 0 0 8px #00d1ff;
+  font-weight: bold;
+}
+
+/* Navigation Section */
+.navigation-vertical {
+  display: grid;
+  grid-template-columns: repeat(1fr, 3);
+  gap: 20px;
+  padding: 15px;
+}
+/* Tournament bracket container */
+.bracket {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  align-items: center;
+  padding: 2rem;
+  gap: 4rem;
+  min-height: 600px;
+  background-color: #f8f9fa;
+  border-radius: 12px;
+  overflow-x: auto;
+}
+
+/* Round columns */
+.bracket-round {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  gap: 2rem;
+  position: relative;
+}
+
+/* Round title */
+.bracket-round::before {
+  content: attr(data-round-title);
+  position: absolute;
+  top: -2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  font-weight: 600;
+  color: #6c757d;
+  white-space: nowrap;
+}
+
+/* Match boxes */
+.bracket-match {
+  position: relative;
+  width: 200px;
+  min-height: 80px;
+  background: white;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+}
+
+/* Match player entries */
+.bracket-player {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem;
+  margin: 0.25rem 0;
+  border-radius: 4px;
+  background: #f8f9fa;
+}
+
+/* Player name */
+.player-name {
+  font-weight: 500;
+  color: #495057;
+}
+
+/* Player score */
+.player-score {
+  font-weight: 600;
+  color: #212529;
+  min-width: 2rem;
+  text-align: center;
+}
+
+/* Winner styling */
+.bracket-match.winner {
+  border-color: #28a745;
+  background: #f8fff9;
+}
+
+.bracket-match.winner .bracket-player.winner {
+  background: #28a745;
+  color: white;
+}
+
+/* Upcoming match styling */
+.bracket-match.upcoming {
+  border-style: dashed;
+  background: #fafafa;
+}
+
+/* Bye match styling */
+.bracket-match.bye {
+  opacity: 0.7;
+  background: #f1f3f5;
+}
+
+/* Connector lines */
+.bracket-connector {
+  position: absolute;
+  right: -4rem;
+  width: 4rem;
+  border-top: 2px solid #dee2e6;
+}
+
+.bracket-connector::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  width: 2px;
+  background: #dee2e6;
+}
+
+/* Hover effects */
+.bracket-match:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Media queries for responsiveness */
+@media (max-width: 768px) {
+  .bracket {
+    padding: 1rem;
+    gap: 2rem;
+  }
+
+  .bracket-match {
+    width: 160px;
+    min-height: 70px;
+    padding: 0.75rem;
+  }
+
+  .bracket-connector {
+    right: -2rem;
+    width: 2rem;
+  }
+}

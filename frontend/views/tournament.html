@@ -1,0 +1,96 @@
+<div id="tournament-page">
+	<!-- Large Background Section -->
+	<div class="background-section p-2">
+		<div class="background-image" style="height: 400px;"></div>
+		<div class="feed-section">
+			<div class="info-section" style="height: 400px;">
+				<h1>TOURNAMENT <span class="highlight">FT_TRANSCENDANCE</span></h1>
+				<p>Prepare to compete in the ultimate Pong Tournament!</p>
+			</div>
+		</div>
+	</div>
+
+	<!-- Tournament Controls -->
+	<div id="top-container-game" class="gameplay-modes">
+		<div id="create-tournament-button" class="card "  style="height: 300px;  align-items: center; justify-content: center;">
+			<h2>Create New Tournament</h2>
+			<button id="startTournamentButton" style="width: 200px; height: 50px;">Create New Tournament</button>
+		</div>
+
+		<div id="aliasInputContainer" class="card hidden" style="height: 300px; align-items: center; justify-content: center;">
+			<h2>Enter Alias for Player <span id="playerNumber"></span>:</h2>
+			<input type="text" id="aliasInput" placeholder="Player Alias"  style="width: 300px;"/>
+			<button id="submitAliasButton" style="width: 300px; margin-top: 15px;">Submit Alias</button>
+			<p id="aliasPromptMessage" style="width: 300px;"></p>
+		</div>
+
+
+		<div id="matchContainer" class="card hidden" style="width: 100%;">
+				<h2>Match: <span id="matchDetails"></span></h2>
+				<canvas id="canvas" width="800" height="600" style="background-color: black; border-radius: 10px;"></canvas>
+				<div id="next-match-container" class="hidden">
+					<button id="nextMatchButton">Next Match</button>
+					<p id="matchResult"></p>
+				</div>
+		</div>
+
+		<!-- Tournament Bracket Section -->
+		<div id="bracket-tournament" class="bracket hidden">
+			<!-- Semi Finals -->
+			<div class="bracket-round" data-round-title="Semi Finals">
+				<div class="bracket-match">
+					<div class="bracket-player">
+						<span class="player-name">Player 1</span>
+						<span class="player-score">0</span>
+					</div>
+					<div class="bracket-player">
+						<span class="player-name">Player 2</span>
+						<span class="player-score">0</span>
+					</div>
+				</div>
+				
+				<div class="bracket-match">
+					<div class="bracket-player">
+						<span class="player-name">Player 3</span>
+						<span class="player-score">0</span>
+					</div>
+					<div class="bracket-player">
+						<span class="player-name">Player 4</span>
+						<span class="player-score">0</span>
+					</div>
+				</div>
+			</div>
+
+			<!-- Finals -->
+			<div class="bracket-round" data-round-title="Finals">
+				<div class="bracket-match upcoming">
+					<div class="bracket-player">
+						<span class="player-name">TBD</span>
+						<span class="player-score">-</span>
+					</div>
+					<div class="bracket-player">
+						<span class="player-name">TBD</span>
+						<span class="player-score">-</span>
+					</div>
+				</div>
+			</div>
+		</div>
+
+	</div>
+
+	<!-- Navigation Section -->
+	<div class="navigation">
+		<div id="lobby-link" class="nav-card lobby">
+			<h3>Lobby</h3>
+			<p>Explore active games and events.</p>
+		</div>
+		<div id="profile-link" class="nav-card profile">
+			<h3>Profile</h3>
+			<p>Manage your stats and settings.</p>
+		</div>
+		<div id="friends-link" class="nav-card friends">
+			<h3>Friends</h3>
+			<p>Connect and chat with friends.</p>
+		</div>
+	</div>
+</div>
